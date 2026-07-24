@@ -195,35 +195,29 @@ async function expectProfileCardPositionedFromAnchor(
   profileCard: Locator,
   anchorRect: { left: number; right: number; top: number }
 ): Promise<void> {
-  const position = await profileCard.evaluate((element, anchor) => {
-    const margin = 8;
-    const cardRect = element.getBoundingClientRect();
-    let expectedLeft = anchor.right + margin;
-    if (expectedLeft + cardRect.width + margin > window.innerWidth) {
-      expectedLeft = anchor.left - cardRect.width - margin;
+  await expect.poll(
+    async () => profileCard.evaluate((element, anchor) => {
+      const margin = 8;
+      const cardRect = element.getBoundingClientRect();
+      let expectedLeft = anchor.right + margin;
+      if (expectedLeft + cardRect.width + margin > window.innerWidth) {
+        expectedLeft = anchor.left - cardRect.width - margin;
+      }
+
+      let expectedTop = anchor.top;
+      if (expectedTop + cardRect.height + margin > window.innerHeight) {
+        expectedTop = window.innerHeight - cardRect.height - margin;
+      }
+
+      return {
+        x: Math.round(cardRect.left) - Math.max(margin, Math.round(expectedLeft)),
+        y: Math.round(cardRect.top) - Math.max(margin, Math.round(expectedTop))
+      };
+    }, anchorRect),
+    {
+      message: 'Nested profile card should settle at the clicked mention’s position.'
     }
-
-    let expectedTop = anchor.top;
-    if (expectedTop + cardRect.height + margin > window.innerHeight) {
-      expectedTop = window.innerHeight - cardRect.height - margin;
-    }
-
-    return {
-      actualLeft: Math.round(cardRect.left),
-      actualTop: Math.round(cardRect.top),
-      expectedLeft: Math.max(margin, Math.round(expectedLeft)),
-      expectedTop: Math.max(margin, Math.round(expectedTop))
-    };
-  }, anchorRect);
-
-  expect(
-    position.actualLeft,
-    'Nested profile card should use the clicked mention’s x position.'
-  ).toBe(position.expectedLeft);
-  expect(
-    position.actualTop,
-    'Nested profile card should use the clicked mention’s y position.'
-  ).toBe(position.expectedTop);
+  ).toEqual({ x: 0, y: 0 });
 }
 
 interface MessageSource {
