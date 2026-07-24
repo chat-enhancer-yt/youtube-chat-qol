@@ -30,53 +30,51 @@ Rozszerzenie nie prosi o ogólne uprawnienia do historii przeglądania, czytania
 
 Rozszerzenie przechowuje część danych, aby jego funkcje mogły działać między przeładowaniami strony.
 
-Dane wymienione w tej sekcji są przechowywane przez rozszerzenie w Twoim własnym profilu przeglądarki. Nie są wysyłane do Chat Enhancer, chyba że są również wymienione w sekcji „Dane wysyłane poza Twoją przeglądarkę” poniżej.
+O ile poniżej nie wskazano inaczej, dane z tej sekcji pozostają w Twoim profilu przeglądarki i nie są wysyłane do Chat Enhancer. Przeglądarka może synchronizować ustawienia rozszerzenia między Twoimi zalogowanymi instalacjami przeglądarki.
 
-- **Ustawienia:** zapisywane za pomocą synchronizowanego magazynu rozszerzeń przeglądarki (`chrome.storage.sync`). W zależności od ustawień przeglądarki, przeglądarka może synchronizować te ustawienia rozszerzenia między Twoimi zalogowanymi instalacjami przeglądarki.
+- **Ustawienia:** Twoje wybory funkcji i preferencje.
 
-- **Dane Inbox:** zapisywane za pomocą lokalnego magazynu rozszerzenia (`chrome.storage.local`). Obejmuje to obserwowane słowa kluczowe i do 100 rekordów inbox na stream lub powtórkę. Rekordy Inbox mogą zawierać tekst wiadomości, nazwę autora, znacznik czasu, podstawowe szczegóły wiadomości YouTube potrzebne do pokazania, skąd pochodzi zapisana wiadomość, szczegóły dopasowania oraz informacje o emoji lub obrazach potrzebne do poprawnego pokazania zapisanej wiadomości.
+- **Dane Inbox:** obserwowane słowa kluczowe i do 100 rekordów inbox na stream lub powtórkę. Rekordy Inbox mogą zawierać tekst wiadomości, nazwę autora, znacznik czasu, podstawowe szczegóły wiadomości YouTube potrzebne do pokazania, skąd pochodzi zapisana wiadomość, szczegóły dopasowania oraz informacje o emoji lub obrazach potrzebne do poprawnego pokazania zapisanej wiadomości.
 
-- **Dane częstych emoji:** zapisywane za pomocą lokalnego magazynu rozszerzenia (`chrome.storage.local`). Obejmuje to lokalne liczniki użycia i informacje wyświetlania emoji używane do budowy wiersza częstych emoji.
+- **Dane częstych emoji:** lokalne liczniki użycia i informacje wyświetlania emoji używane do budowy wiersza częstych emoji.
 
-- **Dane zakładek:** są zapisywane w lokalnym magazynie rozszerzenia (`chrome.storage.local`). Mogą obejmować tekst zapisanej wiadomości i dane wyświetlania emoji, nazwę autora, adres awatara i dostępny identyfikator kanału, czas wiadomości i zapisu oraz tytuł i adres transmisji. Zakładki pozostają dostępne między transmisjami w bieżącym profilu przeglądarki.
+- **Dane zakładek:** tekst zapisanej wiadomości i dane wyświetlania emoji, nazwa autora, adres awatara i dostępny identyfikator kanału, czas wiadomości i zapisu oraz tytuł i adres transmisji. Zakładki pozostają dostępne między transmisjami w bieżącym profilu przeglądarki.
 
-- **Dane obwódek awatarów:** są zapisywane w lokalnym magazynie rozszerzenia (`chrome.storage.local`). Obejmują nazwę autora, czas dodania obwódki, adres URL transmisji oraz, jeśli są dostępne, adres URL awatara, identyfikator kanału i tytuł transmisji dla użytkowników, którym wyraźnie dodasz obwódkę z profilu ostatnich wiadomości. Wybór pozostaje dostępny między transmisjami w bieżącym profilu przeglądarki i służy wyłącznie do ozdabiania pasujących awatarów; nie sprawdza, czy użytkownik jest online.
+- **Dane obwódek awatarów:** nazwa autora, czas dodania obwódki, adres URL transmisji oraz, jeśli są dostępne, adres URL awatara, identyfikator kanału i tytuł transmisji dla użytkowników, którym wyraźnie dodasz obwódkę z profilu ostatnich wiadomości. Wybór pozostaje dostępny między transmisjami w bieżącym profilu przeglądarki i służy wyłącznie do ozdabiania pasujących awatarów.
 
-- **Niewysłane szkice czatu:** zapisywane za pomocą lokalnego magazynu rozszerzenia (`chrome.storage.local`) dla każdego streamu. Są przywracane po odświeżeniu strony. Szkice są usuwane, gdy pole czatu zostanie wyczyszczone, wiadomość zostanie wysłana lub dane rozszerzenia zostaną zresetowane.
+- **Niewysłane szkice czatu:** zapisywane oddzielnie dla każdego streamu i przywracane po odświeżeniu strony. Szkice są usuwane, gdy pole czatu zostanie wyczyszczone, wiadomość zostanie wysłana lub dane rozszerzenia zostaną zresetowane.
 
-- **Dane tożsamości Playground:** zapisywane za pomocą lokalnego magazynu rozszerzenia (`chrome.storage.local`), jeśli używany jest Playground. Jest to losowo wygenerowana lokalna tożsamość Playground używana do rozpoznania tej samej instalacji przeglądarki po ponownym połączeniu z Playground. To nie jest Twoja tożsamość YouTube.
+- **Dane tożsamości Playground:** losowo wygenerowana lokalna tożsamość tworzona, jeśli używany jest Playground. Służy do rozpoznania tej samej instalacji przeglądarki po ponownym połączeniu z Playground. To nie jest Twoja tożsamość YouTube.
 
-- **Ostatnie wiadomości profilu, stan komend i wyniki tłumaczeń:** przechowywane tylko w pamięci dla bieżącej strony czatu na żywo. Są czyszczone, gdy opuszczasz lub odświeżasz stronę czatu.
+- **Tymczasowe dane strony:** ostatnie wiadomości profilu, stan komend i wyniki tłumaczeń są przechowywane tylko w pamięci dla bieżącej strony czatu na żywo. Są czyszczone, gdy opuszczasz lub odświeżasz stronę czatu.
 
 ## Dane wysyłane poza Twoją przeglądarkę
 
-Tłumaczenie czatu, tłumaczenie szkiców i gry Playground są domyślnie wyłączone.
+Dane są wysyłane do tych usług tylko wtedy, gdy powiązana funkcja jest włączona i używana:
 
-Gdy funkcje tłumaczenia lub Playground są włączone i używane, dane mogą być wysyłane do tych usług:
+### Google Translate (`translate.googleapis.com`)
 
-- **Google Translate pod `https://translate.googleapis.com/translate_a/single`**
+Tłumaczenie czatu wysyła tekst wiadomości czatu widoczny w czacie na żywo i kwalifikujący się do tłumaczenia, gdy tłumaczenie jest włączone. Tłumaczenie szkiców wysyła tekst szkicu, który wybierzesz do tłumaczenia z pola czatu.
 
-  Tłumaczenie czatu wysyła tekst wiadomości czatu widoczny w czacie na żywo i kwalifikujący się do tłumaczenia, gdy tłumaczenie jest włączone. Tłumaczenie szkiców wysyła tekst szkicu, który wybierzesz do tłumaczenia z pola czatu.
+Żądania tłumaczenia zawierają tekst do przetłumaczenia i język docelowy. Rozszerzenie nie wysyła Twoich plików cookie YouTube ani danych logowania YouTube z żądaniami tłumaczenia.
 
-  Żądania tłumaczenia zawierają tekst do przetłumaczenia i język docelowy. Rozszerzenie nie wysyła Twoich plików cookie YouTube ani danych logowania YouTube z żądaniami tłumaczenia.
+Dostęp do Google Translate przez `translate.googleapis.com` jest nieoficjalny i może być limitowany, zmieniony lub niedostępny.
 
-  Dostęp do Google Translate przez `translate.googleapis.com` jest nieoficjalny i może być limitowany, zmieniony lub niedostępny.
+### <span id="playground"></span>Chat Enhancer Playground (`playground.chatenhancer.com`)
 
-- <span id="playground"></span>**Chat Enhancer Playground pod `https://playground.chatenhancer.com`**
+Jeśli włączysz Playground i użyjesz panelu gier, rozszerzenie połączy się z serwerem gier Chat Enhancer Playground, aby użytkownicy opt-in w tym samym streamie mogli widzieć dostępność, wymieniać zaproszenia i grać.
 
-  Playground jest domyślnie wyłączony. Jeśli włączysz Playground i użyjesz panelu gier, rozszerzenie połączy się z serwerem gier Chat Enhancer Playground, aby użytkownicy opt-in w tym samym streamie mogli widzieć dostępność, wymieniać zaproszenia i grać.
+Wiadomości Playground mogą zawierać identyfikator streamu lub wideo YouTube, wygenerowaną tożsamość gracza Playground, wygenerowaną nazwę gracza, listę dostępnych gier, zaproszenia i odpowiedzi na zaproszenia oraz akcje gry, takie jak ruchy szachowe.
 
-  Wiadomości Playground mogą zawierać identyfikator streamu lub wideo YouTube, wygenerowaną tożsamość gracza Playground, wygenerowaną nazwę gracza, listę dostępnych gier, zaproszenia i odpowiedzi na zaproszenia oraz akcje gry, takie jak ruchy szachowe.
+Playground przechowuje zwięzłe wyniki meczów powiązane z wygenerowanymi tożsamościami graczy Playground, aby udostępniać statystyki graczy. Zapisane wyniki mogą obejmować wersję gry, czas rozpoczęcia i zakończenia, wynik i powód zakończenia, role uczestników oraz niewielkie statystyki specyficzne dla gry, takie jak ruchy lub punkty. Nie obejmują treści pytań trivia ani pełnego stanu gry.
 
-  Playground przechowuje zwięzłe wyniki meczów powiązane z wygenerowanymi tożsamościami graczy Playground, aby udostępniać statystyki graczy. Zapisane wyniki mogą obejmować wersję gry, czas rozpoczęcia i zakończenia, wynik i powód zakończenia, role uczestników oraz niewielkie liczniki specyficzne dla gry, takie jak ruchy, odpowiedzi, czas odpowiedzi, zdobyte nagrody, strzały, trafienia, obrażenia, życia, nokauty i punkty. Nie obejmują nazw wyświetlanych ani awatarów YouTube, tekstu czatu na żywo, treści pytań trivia ani pełnego stanu gry.
+Rozszerzenie nie wysyła tekstu czatu na żywo, Twojej nazwy wyświetlanej YouTube, URL awatara YouTube, plików cookie YouTube ani danych logowania YouTube na serwer gier Playground.
 
-  Playground nie wysyła tekstu czatu na żywo, Twojej nazwy wyświetlanej YouTube, URL awatara YouTube, plików cookie YouTube ani danych logowania YouTube na serwer gier Playground.
+Oddzielnie generowanie pytań HELP-A-FRIEND! Trivia może wysyłać wybrane fragmenty publicznych transkrypcji wideo YouTube i identyfikatory gry na serwer gier Playground. Te fragmenty pochodzą z transkrypcji wideo, a nie z czatu na żywo. Serwer używa OpenAI do generowania pytań trivia z tych fragmentów.
 
-  Oddzielnie generowanie pytań HELP-A-FRIEND! Trivia może wysyłać wybrane fragmenty publicznych transkrypcji wideo YouTube i identyfikatory gry na serwer gier Playground. Te fragmenty pochodzą z transkrypcji wideo, a nie z czatu na żywo. Serwer używa OpenAI do generowania pytań trivia z tych fragmentów.
+Generowanie Replay Trivia może wymagać weryfikacji Cloudflare Turnstile na `https://playground.chatenhancer.com`. Cloudflare może otrzymać normalne dane weryfikacyjne, takie jak adres IP, informacje o przeglądarce i urządzeniu oraz wynik wyzwania.
 
-  Generowanie Replay Trivia może wymagać weryfikacji Cloudflare Turnstile na `https://playground.chatenhancer.com`. Cloudflare może otrzymać normalne dane weryfikacyjne, takie jak adres IP, informacje o przeglądarce i urządzeniu oraz wynik wyzwania.
-
-  Jak każda usługa webowa, serwer gier Playground może otrzymać normalne informacje o połączeniu, takie jak adres IP oraz informacje o przeglądarce/urządzeniu, od przeglądarki lub dostawcy sieci.
+Jak każda usługa webowa, serwer gier Playground może otrzymać normalne informacje o połączeniu, takie jak adres IP oraz informacje o przeglądarce/urządzeniu, od przeglądarki lub dostawcy sieci.
 
 ## Kontrola danych
 
@@ -86,18 +84,15 @@ Możesz także usunąć rozszerzenie z przeglądarki. W zależności od przeglą
 
 Zresetowanie lub usunięcie rozszerzenia samo w sobie nie usuwa wyników meczów zapisanych wcześniej przez Playground.
 
-## Czego Chat Enhancer nie robi
+## Czego rozszerzenie nie robi
 
-Rozszerzenie nie uruchamia analityki.
+- Nie uruchamia analityki.
+- Nie zbiera historii przeglądania.
+- Nie sprzedaje danych użytkowników.
+- Nie wysyła danych do serwera Chat Enhancer, chyba że używasz opisanych wyżej opcjonalnych funkcji Playground.
 
-Rozszerzenie nie zbiera historii przeglądania.
+## Pytania
 
-Rozszerzenie nie sprzedaje danych użytkowników.
-
-Poza opisanymi wyżej opcjonalnymi funkcjami Playground, rozszerzenie nie wysyła danych do serwera Chat Enhancer.
-
-Rozszerzenie nie przechowuje ostatnich wiadomości profilu ani wyników tłumaczeń po opuszczeniu lub odświeżeniu strony czatu na żywo.
+W sprawach prywatności [skontaktuj się z pomocą techniczną](https://www.chatenhancer.com/pl/support).
 
 Chat Enhancer for YouTube nie jest powiązany z YouTube ani Google.
-
-W sprawach prywatności użyj linku e-mail na https://www.chatenhancer.com.

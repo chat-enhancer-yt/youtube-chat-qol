@@ -24,53 +24,51 @@ The extension does not request general browsing-history, tab-reading, scripting,
 
 The extension stores some data so its features can work between page reloads.
 
-Data listed in this section is stored by the extension in your own browser profile. It is not sent to Chat Enhancer unless it is also listed in the "Data sent outside your browser" section below.
+Unless stated below, data in this section stays in your browser profile and is not sent to Chat Enhancer. Your browser may sync extension settings across your own signed-in browser installs.
 
-- **Settings:** saved using the browser's synced extension storage (`chrome.storage.sync`). Depending on your browser settings, your browser may sync these extension settings across your own signed-in browser installs.
+- **Settings:** your feature choices and preferences.
 
-- **Inbox data:** saved using local extension storage (`chrome.storage.local`). This includes watched keywords and up to 100 inbox records per stream or replay. Inbox records may include message text, author name, timestamp, basic YouTube message details needed to show where the saved message came from, match details, and emoji or image information needed to display the saved message correctly.
+- **Inbox data:** watched keywords and up to 100 inbox records per stream or replay. Inbox records may include message text, author name, timestamp, basic YouTube message details needed to show where the saved message came from, match details, and emoji or image information needed to display the saved message correctly.
 
-- **Frequent emoji data:** saved using local extension storage (`chrome.storage.local`). This includes local usage counts and emoji display information used to build the frequent emoji row.
+- **Frequent emoji data:** local usage counts and emoji display information used to build the frequent emoji row.
 
-- **Bookmark data:** saved using local extension storage (`chrome.storage.local`). This may include the saved message text and emoji display information, author name, avatar URL and channel ID when available, message and save times, and stream title and URL. Bookmarks remain available across streams in the current browser profile.
+- **Bookmark data:** saved message text and emoji display information, author name, avatar URL and channel ID when available, message and save times, and stream title and URL. Bookmarks remain available across streams in the current browser profile.
 
-- **Avatar ring data:** saved using local extension storage (`chrome.storage.local`). This includes the author name, the time the ring was added, the stream URL, and, when available, the avatar URL, channel ID, and stream title for users you explicitly add an avatar ring to from their recent-message profile. The selection remains available across streams in the current browser profile and is used only to decorate matching avatars.
+- **Avatar ring data:** the author name, the time the ring was added, the stream URL, and, when available, the avatar URL, channel ID, and stream title for users you explicitly add an avatar ring to from their recent-message profile. The selection remains available across streams in the current browser profile and is used only to decorate matching avatars.
 
-- **Unsent chat drafts:** saved using local extension storage (`chrome.storage.local`) per stream. They are restored after a page refresh. Drafts are removed when the chat input is cleared, the message is sent, or extension data is reset.
+- **Unsent chat drafts:** saved separately for each stream and restored after a page refresh. Drafts are removed when the chat input is cleared, the message is sent, or extension data is reset.
 
-- **Playground identity data:** saved using local extension storage (`chrome.storage.local`) if Playground is used. This is a randomly generated local Playground identity used to recognize the same browser install when it reconnects to Playground. It is not your YouTube identity.
+- **Playground identity data:** a randomly generated local identity created if Playground is used. It recognizes the same browser install when it reconnects to Playground. It is not your YouTube identity.
 
-- **Recent profile messages, command state, and translation results:** kept only in memory for the current live chat page. They are cleared when you leave or refresh the chat page.
+- **Temporary page data:** recent profile messages, command state, and translation results are kept only in memory for the current live chat page. They are cleared when you leave or refresh the chat page.
 
 ## Data sent outside your browser
 
-Chat translation, draft translation, and Playground games are off by default.
+Data is sent to these services only when the related feature is enabled and used:
 
-When translation or Playground features are enabled and used, data may be sent to these services:
+### Google Translate (`translate.googleapis.com`)
 
-- **Google Translate at `https://translate.googleapis.com/translate_a/single`**
+Chat translation sends chat message text that is visible in the live chat and eligible for translation while translation is enabled. Draft translation sends the draft text you choose to translate from the chat box.
 
-  Chat translation sends chat message text that is visible in the live chat and eligible for translation while translation is enabled. Draft translation sends the draft text you choose to translate from the chat box.
+Translation requests include the text to translate and the target language. The extension does not send your YouTube cookies or YouTube credentials with translation requests.
 
-  Translation requests include the text to translate and the target language. The extension does not send your YouTube cookies or YouTube credentials with translation requests.
+Google Translate access through `translate.googleapis.com` is unofficial and may be rate-limited, changed, or unavailable.
 
-  Google Translate access through `translate.googleapis.com` is unofficial and may be rate-limited, changed, or unavailable.
+### <span id="playground"></span>Chat Enhancer Playground (`playground.chatenhancer.com`)
 
-- <span id="playground"></span>**Chat Enhancer Playground at `https://playground.chatenhancer.com`**
+If you enable Playground and use the games panel, the extension connects to the Chat Enhancer Playground game server so opted-in users in the same stream can see availability, exchange invites, and play games.
 
-  Playground is off by default. If you enable Playground and use the games panel, the extension connects to the Chat Enhancer Playground game server so opted-in users in the same stream can see availability, exchange invites, and play games.
+Playground messages may include the YouTube stream or video identifier, your generated Playground player identity, your generated player name, your available game list, invites and invite responses, and game actions such as chess moves.
 
-  Playground messages may include the YouTube stream or video identifier, your generated Playground player identity, your generated player name, your available game list, invites and invite responses, and game actions such as chess moves.
+Playground stores compact match results linked to generated Playground player identities so it can provide player statistics. Stored results may include the game version, start and finish times, the outcome and finish reason, participant roles, and small game-specific statistics such as moves or scores. They do not include trivia question content or complete game state.
 
-  Playground stores compact match results linked to generated Playground player identities so it can provide player statistics. Stored results may include the game version, start and finish times, the outcome and finish reason, participant roles, and small game-specific counters such as moves, answers, response times, claims, shots, hits, damage, stocks, knockouts, and scores. They do not include YouTube display names or avatars, live chat text, trivia question content, or complete game state.
+The extension does not send live chat message text, your YouTube display name, your YouTube avatar URL, YouTube cookies, or YouTube credentials to the Playground game server.
 
-  Playground does not send live chat message text, your YouTube display name, your YouTube avatar URL, YouTube cookies, or YouTube credentials to the Playground game server.
+Separately, HELP-A-FRIEND! Trivia question generation may send selected public YouTube video transcript excerpts and game identifiers to the Playground game server. These excerpts come from the video's transcript, not from live chat. The server uses OpenAI to generate trivia questions from those excerpts.
 
-  Separately, HELP-A-FRIEND! Trivia question generation may send selected public YouTube video transcript excerpts and game identifiers to the Playground game server. These excerpts come from the video's transcript, not from live chat. The server uses OpenAI to generate trivia questions from those excerpts.
+Replay Trivia generation may require Cloudflare Turnstile verification on `https://playground.chatenhancer.com`. Cloudflare may receive normal verification data such as IP address, browser and device information, and the challenge result.
 
-  Replay Trivia generation may require Cloudflare Turnstile verification on `https://playground.chatenhancer.com`. Cloudflare may receive normal verification data such as IP address, browser and device information, and the challenge result.
-
-  Like any web service, the Playground game server may receive normal connection information such as IP address and browser/device information from the browser or network provider.
+Like any web service, the Playground game server may receive normal connection information such as IP address and browser/device information from the browser or network provider.
 
 ## Data controls
 
@@ -80,18 +78,15 @@ You can also remove the extension from your browser. Depending on the browser, r
 
 Resetting or removing the extension does not by itself delete match results already stored by Playground.
 
-## What Chat Enhancer does not do
+## What the extension does not do
 
-The extension does not run analytics.
+- Run analytics.
+- Collect browsing history.
+- Sell user data.
+- Send data to a Chat Enhancer server unless you use the opt-in Playground features described above.
 
-The extension does not collect browsing history.
+## Questions
 
-The extension does not sell user data.
-
-Except for the opt-in Playground features described above, the extension does not send data to a Chat Enhancer server.
-
-The extension does not store recent profile messages or translation results after you leave or refresh the live chat page.
+For privacy questions, [contact support](https://www.chatenhancer.com/support).
 
 Chat Enhancer for YouTube is not affiliated with YouTube or Google.
-
-For privacy questions, use the email link on https://www.chatenhancer.com.

@@ -30,53 +30,51 @@ Tiện ích không yêu cầu các quyền chung về lịch sử duyệt web, �
 
 Tiện ích lưu một số dữ liệu để các tính năng có thể hoạt động giữa các lần tải lại trang.
 
-Dữ liệu liệt kê trong phần này được tiện ích lưu trong hồ sơ trình duyệt của chính bạn. Dữ liệu này không được gửi đến Chat Enhancer trừ khi cũng được liệt kê trong phần "Dữ liệu được gửi ra ngoài trình duyệt của bạn" bên dưới.
+Trừ khi có ghi chú khác bên dưới, dữ liệu trong phần này vẫn nằm trong hồ sơ trình duyệt của bạn và không được gửi đến Chat Enhancer. Trình duyệt có thể đồng bộ cài đặt tiện ích giữa các bản cài đặt trình duyệt của riêng bạn đã đăng nhập.
 
-- **Cài đặt:** được lưu bằng bộ nhớ tiện ích đã đồng bộ của trình duyệt (`chrome.storage.sync`). Tùy thuộc vào cài đặt trình duyệt của bạn, trình duyệt có thể đồng bộ các cài đặt tiện ích đó giữa các bản cài đặt trình duyệt của riêng bạn đã đăng nhập.
+- **Cài đặt:** lựa chọn tính năng và tùy chọn của bạn.
 
-- **Dữ liệu Inbox:** được lưu bằng bộ nhớ tiện ích cục bộ (`chrome.storage.local`). Dữ liệu này bao gồm các từ khóa được theo dõi và tối đa 100 bản ghi inbox cho mỗi stream hoặc replay. Bản ghi Inbox có thể bao gồm văn bản tin nhắn, tên tác giả, dấu thời gian, chi tiết cơ bản của tin nhắn YouTube cần để hiển thị nguồn gốc của tin nhắn đã lưu, chi tiết khớp và thông tin emoji hoặc hình ảnh cần để hiển thị đúng tin nhắn đã lưu.
+- **Dữ liệu Inbox:** các từ khóa được theo dõi và tối đa 100 bản ghi inbox cho mỗi stream hoặc replay. Bản ghi Inbox có thể bao gồm văn bản tin nhắn, tên tác giả, dấu thời gian, chi tiết cơ bản của tin nhắn YouTube cần để hiển thị nguồn gốc của tin nhắn đã lưu, chi tiết khớp và thông tin emoji hoặc hình ảnh cần để hiển thị đúng tin nhắn đã lưu.
 
-- **Dữ liệu emoji thường dùng:** được lưu bằng bộ nhớ tiện ích cục bộ (`chrome.storage.local`). Dữ liệu này bao gồm số lần sử dụng cục bộ và thông tin hiển thị emoji dùng để tạo hàng emoji thường dùng.
+- **Dữ liệu emoji thường dùng:** số lần sử dụng cục bộ và thông tin hiển thị emoji dùng để tạo hàng emoji thường dùng.
 
-- **Dữ liệu dấu trang:** được lưu trong bộ nhớ tiện ích cục bộ (`chrome.storage.local`). Dữ liệu có thể gồm nội dung tin nhắn đã lưu và thông tin hiển thị emoji, tên tác giả, URL ảnh đại diện và ID kênh khi có, thời gian gửi và lưu tin nhắn, cùng tiêu đề và URL của stream. Dấu trang vẫn dùng được giữa các stream trong hồ sơ trình duyệt hiện tại.
+- **Dữ liệu dấu trang:** nội dung tin nhắn đã lưu và thông tin hiển thị emoji, tên tác giả, URL ảnh đại diện và ID kênh khi có, thời gian gửi và lưu tin nhắn, cùng tiêu đề và URL của stream. Dấu trang vẫn dùng được giữa các stream trong hồ sơ trình duyệt hiện tại.
 
-- **Dữ liệu vòng ảnh đại diện:** được lưu trong bộ nhớ tiện ích cục bộ (`chrome.storage.local`). Dữ liệu gồm tên tác giả, thời điểm thêm vòng, URL stream và, khi có, URL ảnh đại diện, ID kênh cùng tiêu đề stream của những người dùng mà bạn chủ động thêm vòng từ hồ sơ tin nhắn gần đây của họ. Lựa chọn này vẫn dùng được giữa các stream trong hồ sơ trình duyệt hiện tại và chỉ dùng để trang trí ảnh đại diện khớp; tiện ích không kiểm tra người dùng có đang trực tuyến hay không.
+- **Dữ liệu vòng ảnh đại diện:** tên tác giả, thời điểm thêm vòng, URL stream và, khi có, URL ảnh đại diện, ID kênh cùng tiêu đề stream của những người dùng mà bạn chủ động thêm vòng từ hồ sơ tin nhắn gần đây của họ. Lựa chọn này vẫn dùng được giữa các stream trong hồ sơ trình duyệt hiện tại và chỉ dùng để trang trí ảnh đại diện khớp.
 
-- **Bản nháp chat chưa gửi:** được lưu bằng bộ nhớ tiện ích cục bộ (`chrome.storage.local`) theo từng stream. Chúng được khôi phục sau khi làm mới trang. Bản nháp bị xóa khi ô nhập chat được xóa, tin nhắn được gửi, hoặc dữ liệu tiện ích được đặt lại.
+- **Bản nháp chat chưa gửi:** được lưu riêng cho từng stream và khôi phục sau khi làm mới trang. Bản nháp bị xóa khi ô nhập chat được xóa, tin nhắn được gửi, hoặc dữ liệu tiện ích được đặt lại.
 
-- **Dữ liệu danh tính Playground:** được lưu bằng bộ nhớ tiện ích cục bộ (`chrome.storage.local`) nếu Playground được sử dụng. Đây là danh tính Playground cục bộ được tạo ngẫu nhiên, dùng để nhận ra cùng một bản cài đặt trình duyệt khi nó kết nối lại với Playground. Đây không phải danh tính YouTube của bạn.
+- **Dữ liệu danh tính Playground:** danh tính cục bộ được tạo ngẫu nhiên nếu Playground được sử dụng. Danh tính này dùng để nhận ra cùng một bản cài đặt trình duyệt khi kết nối lại với Playground. Đây không phải danh tính YouTube của bạn.
 
-- **Tin nhắn hồ sơ gần đây, trạng thái lệnh và kết quả dịch:** chỉ được giữ trong bộ nhớ cho trang live chat hiện tại. Chúng được xóa khi bạn rời khỏi hoặc làm mới trang chat.
+- **Dữ liệu trang tạm thời:** tin nhắn hồ sơ gần đây, trạng thái lệnh và kết quả dịch chỉ được giữ trong bộ nhớ cho trang live chat hiện tại. Chúng được xóa khi bạn rời khỏi hoặc làm mới trang chat.
 
 ## Dữ liệu được gửi ra ngoài trình duyệt của bạn
 
-Dịch chat, dịch bản nháp và trò chơi Playground bị tắt theo mặc định.
+Dữ liệu chỉ được gửi đến các dịch vụ sau khi tính năng liên quan được bật và sử dụng:
 
-Khi các tính năng dịch hoặc Playground được bật và sử dụng, dữ liệu có thể được gửi đến các dịch vụ sau:
+### Google Translate (`translate.googleapis.com`)
 
-- **Google Translate tại `https://translate.googleapis.com/translate_a/single`**
+Dịch chat gửi văn bản tin nhắn chat hiển thị trong live chat và đủ điều kiện dịch khi dịch được bật. Dịch bản nháp gửi văn bản bản nháp mà bạn chọn dịch từ ô chat.
 
-  Dịch chat gửi văn bản tin nhắn chat hiển thị trong live chat và đủ điều kiện dịch khi dịch được bật. Dịch bản nháp gửi văn bản bản nháp mà bạn chọn dịch từ ô chat.
+Yêu cầu dịch bao gồm văn bản cần dịch và ngôn ngữ đích. Tiện ích không gửi cookie YouTube hoặc thông tin xác thực YouTube của bạn cùng với yêu cầu dịch.
 
-  Yêu cầu dịch bao gồm văn bản cần dịch và ngôn ngữ đích. Tiện ích không gửi cookie YouTube hoặc thông tin xác thực YouTube của bạn cùng với yêu cầu dịch.
+Truy cập Google Translate qua `translate.googleapis.com` là không chính thức và có thể bị giới hạn tốc độ, thay đổi hoặc không khả dụng.
 
-  Truy cập Google Translate qua `translate.googleapis.com` là không chính thức và có thể bị giới hạn tốc độ, thay đổi hoặc không khả dụng.
+### <span id="playground"></span>Chat Enhancer Playground (`playground.chatenhancer.com`)
 
-- <span id="playground"></span>**Chat Enhancer Playground tại `https://playground.chatenhancer.com`**
+Nếu bạn bật Playground và sử dụng bảng trò chơi, tiện ích sẽ kết nối với máy chủ trò chơi Chat Enhancer Playground để người dùng opt-in trong cùng stream có thể thấy trạng thái sẵn sàng, trao đổi lời mời và chơi trò chơi.
 
-  Playground bị tắt theo mặc định. Nếu bạn bật Playground và sử dụng bảng trò chơi, tiện ích sẽ kết nối với máy chủ trò chơi Chat Enhancer Playground để người dùng opt-in trong cùng stream có thể thấy trạng thái sẵn sàng, trao đổi lời mời và chơi trò chơi.
+Tin nhắn Playground có thể bao gồm mã định danh stream hoặc video YouTube, danh tính người chơi Playground được tạo của bạn, tên người chơi được tạo của bạn, danh sách trò chơi có sẵn, lời mời và phản hồi lời mời, và hành động trò chơi như nước đi cờ vua.
 
-  Tin nhắn Playground có thể bao gồm mã định danh stream hoặc video YouTube, danh tính người chơi Playground được tạo của bạn, tên người chơi được tạo của bạn, danh sách trò chơi có sẵn, lời mời và phản hồi lời mời, và hành động trò chơi như nước đi cờ vua.
+Playground lưu trữ kết quả trận đấu gọn nhẹ được liên kết với danh tính người chơi Playground đã tạo để cung cấp số liệu thống kê người chơi. Kết quả được lưu có thể gồm phiên bản trò chơi, thời gian bắt đầu và kết thúc, kết quả và lý do kết thúc, vai trò người tham gia, cùng số liệu nhỏ dành riêng cho trò chơi như nước đi hoặc điểm số. Chúng không gồm nội dung câu hỏi trivia hay toàn bộ trạng thái trò chơi.
 
-  Playground lưu trữ kết quả trận đấu gọn nhẹ được liên kết với danh tính người chơi Playground đã tạo để cung cấp số liệu thống kê người chơi. Kết quả được lưu có thể gồm phiên bản trò chơi, thời gian bắt đầu và kết thúc, kết quả và lý do kết thúc, vai trò người tham gia, cùng các bộ đếm nhỏ dành riêng cho trò chơi như nước đi, câu trả lời, thời gian phản hồi, tiền thưởng nhận được, lượt bắn, cú đánh, sát thương, mạng, hạ gục và điểm số. Chúng không gồm tên hiển thị hoặc avatar YouTube, văn bản live chat, nội dung câu hỏi trivia hay toàn bộ trạng thái trò chơi.
+Tiện ích không gửi văn bản live chat, tên hiển thị YouTube của bạn, URL avatar YouTube của bạn, cookie YouTube hoặc thông tin xác thực YouTube đến máy chủ trò chơi Playground.
 
-  Playground không gửi văn bản live chat, tên hiển thị YouTube của bạn, URL avatar YouTube của bạn, cookie YouTube hoặc thông tin xác thực YouTube đến máy chủ trò chơi Playground.
+Riêng việc tạo câu hỏi HELP-A-FRIEND! Trivia có thể gửi các đoạn trích bản chép lời video YouTube công khai được chọn và mã định danh trò chơi đến máy chủ trò chơi Playground. Các đoạn trích này đến từ bản chép lời của video, không phải từ live chat. Máy chủ dùng OpenAI để tạo câu hỏi trivia từ các đoạn trích đó.
 
-  Riêng việc tạo câu hỏi HELP-A-FRIEND! Trivia có thể gửi các đoạn trích bản chép lời video YouTube công khai được chọn và mã định danh trò chơi đến máy chủ trò chơi Playground. Các đoạn trích này đến từ bản chép lời của video, không phải từ live chat. Máy chủ dùng OpenAI để tạo câu hỏi trivia từ các đoạn trích đó.
+Việc tạo Replay Trivia có thể yêu cầu xác minh Cloudflare Turnstile tại `https://playground.chatenhancer.com`. Cloudflare có thể nhận dữ liệu xác minh thông thường như địa chỉ IP, thông tin trình duyệt và thiết bị, và kết quả thử thách.
 
-  Việc tạo Replay Trivia có thể yêu cầu xác minh Cloudflare Turnstile tại `https://playground.chatenhancer.com`. Cloudflare có thể nhận dữ liệu xác minh thông thường như địa chỉ IP, thông tin trình duyệt và thiết bị, và kết quả thử thách.
-
-  Như mọi dịch vụ web, máy chủ trò chơi Playground có thể nhận thông tin kết nối thông thường như địa chỉ IP và thông tin trình duyệt/thiết bị từ trình duyệt hoặc nhà cung cấp mạng.
+Như mọi dịch vụ web, máy chủ trò chơi Playground có thể nhận thông tin kết nối thông thường như địa chỉ IP và thông tin trình duyệt/thiết bị từ trình duyệt hoặc nhà cung cấp mạng.
 
 ## Kiểm soát dữ liệu
 
@@ -86,18 +84,15 @@ Bạn cũng có thể gỡ tiện ích khỏi trình duyệt. Tùy trình duyệ
 
 Việc đặt lại hoặc gỡ tiện ích không tự động xóa các kết quả trận đấu mà Playground đã lưu trước đó.
 
-## Những gì Chat Enhancer không làm
+## Những gì tiện ích không làm
 
-Tiện ích không chạy phân tích.
+- Chạy phân tích.
+- Thu thập lịch sử duyệt web.
+- Bán dữ liệu người dùng.
+- Gửi dữ liệu đến máy chủ Chat Enhancer trừ khi bạn dùng các tính năng Playground opt-in được mô tả ở trên.
 
-Tiện ích không thu thập lịch sử duyệt web.
+## Câu hỏi
 
-Tiện ích không bán dữ liệu người dùng.
-
-Ngoại trừ các tính năng Playground opt-in được mô tả ở trên, tiện ích không gửi dữ liệu đến máy chủ Chat Enhancer.
-
-Tiện ích không lưu tin nhắn hồ sơ gần đây hoặc kết quả dịch sau khi bạn rời khỏi hoặc làm mới trang live chat.
+Đối với câu hỏi về quyền riêng tư, hãy [liên hệ bộ phận hỗ trợ](https://www.chatenhancer.com/vi/support).
 
 Chat Enhancer for YouTube không liên kết với YouTube hoặc Google.
-
-Đối với câu hỏi về quyền riêng tư, hãy dùng liên kết email trên https://www.chatenhancer.com.

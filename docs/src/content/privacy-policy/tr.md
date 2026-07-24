@@ -30,53 +30,51 @@ Uzantı genel gezinme geçmişi, sekme okuma, scripting veya web navigation izin
 
 Uzantı, özelliklerinin sayfa yenilemeleri arasında çalışabilmesi için bazı verileri saklar.
 
-Bu bölümde listelenen veriler uzantı tarafından kendi tarayıcı profilinizde saklanır. Aşağıdaki "Tarayıcınızın dışına gönderilen veriler" bölümünde de listelenmediği sürece Chat Enhancer’a gönderilmez.
+Aşağıda aksi belirtilmedikçe bu bölümdeki veriler tarayıcı profilinizde kalır ve Chat Enhancer’a gönderilmez. Tarayıcınız, uzantı ayarlarını oturum açtığınız kendi tarayıcı kurulumlarınız arasında senkronize edebilir.
 
-- **Ayarlar:** tarayıcının senkronize uzantı depolaması (`chrome.storage.sync`) kullanılarak kaydedilir. Tarayıcı ayarlarınıza bağlı olarak tarayıcı, bu uzantı ayarlarını kendi oturum açtığınız tarayıcı kurulumlarınız arasında senkronize edebilir.
+- **Ayarlar:** özellik seçimleriniz ve tercihleriniz.
 
-- **Inbox verileri:** yerel uzantı depolaması (`chrome.storage.local`) kullanılarak kaydedilir. Bu, izlenen anahtar kelimeleri ve stream veya tekrar başına en fazla 100 inbox kaydını içerir. Inbox kayıtları mesaj metni, yazar adı, zaman damgası, kaydedilen mesajın nereden geldiğini göstermek için gereken temel YouTube mesaj ayrıntıları, eşleşme ayrıntıları ve kaydedilen mesajı doğru göstermek için gereken emoji veya görsel bilgilerini içerebilir.
+- **Inbox verileri:** izlenen anahtar kelimeler ve stream veya tekrar başına en fazla 100 inbox kaydı. Inbox kayıtları mesaj metni, yazar adı, zaman damgası, kaydedilen mesajın nereden geldiğini göstermek için gereken temel YouTube mesaj ayrıntıları, eşleşme ayrıntıları ve kaydedilen mesajı doğru göstermek için gereken emoji veya görsel bilgilerini içerebilir.
 
-- **Sık kullanılan emoji verileri:** yerel uzantı depolaması (`chrome.storage.local`) kullanılarak kaydedilir. Bu, sık kullanılan emoji satırını oluşturmak için kullanılan yerel kullanım sayaçlarını ve emoji görüntüleme bilgilerini içerir.
+- **Sık kullanılan emoji verileri:** sık kullanılan emoji satırını oluşturmak için kullanılan yerel kullanım sayaçları ve emoji görüntüleme bilgileri.
 
-- **Yer işareti verileri:** yerel uzantı depolamasında (`chrome.storage.local`) saklanır. Kaydedilen mesaj metni ve emoji görüntüleme bilgileri, yazarın adı, avatar URL’si ve varsa kanal ID’si, mesaj ve kaydetme zamanları ile yayın başlığı ve URL’sini içerebilir. Yer işaretleri mevcut tarayıcı profilinde yayınlar arasında kullanılabilir kalır.
+- **Yer işareti verileri:** kaydedilen mesaj metni ve emoji görüntüleme bilgileri, yazarın adı, avatar URL’si ve varsa kanal ID’si, mesaj ve kaydetme zamanları ile yayın başlığı ve URL’si. Yer işaretleri mevcut tarayıcı profilinde yayınlar arasında kullanılabilir kalır.
 
-- **Avatar halkası verileri:** yerel uzantı depolamasında (`chrome.storage.local`) saklanır. Son mesajlar profilinden açıkça halka eklediğiniz kullanıcıların yazar adını, halkanın eklendiği zamanı, yayın URL’sini ve varsa avatar URL’sini, kanal ID’sini ve yayın başlığını içerir. Seçim mevcut tarayıcı profilinde yayınlar arasında kullanılabilir kalır ve yalnızca eşleşen avatarları süslemek için kullanılır; kullanıcının çevrimiçi olup olmadığını kontrol etmez.
+- **Avatar halkası verileri:** son mesajlar profilinden açıkça halka eklediğiniz kullanıcıların yazar adı, halkanın eklendiği zaman, yayın URL’si ve varsa avatar URL’si, kanal ID’si ve yayın başlığı. Seçim mevcut tarayıcı profilinde yayınlar arasında kullanılabilir kalır ve yalnızca eşleşen avatarları süslemek için kullanılır.
 
-- **Gönderilmemiş sohbet taslakları:** stream başına yerel uzantı depolaması (`chrome.storage.local`) kullanılarak kaydedilir. Sayfa yenilemesinden sonra geri yüklenir. Taslaklar sohbet girişi temizlendiğinde, mesaj gönderildiğinde veya uzantı verileri sıfırlandığında kaldırılır.
+- **Gönderilmemiş sohbet taslakları:** her stream için ayrı kaydedilir ve sayfa yenilemesinden sonra geri yüklenir. Taslaklar sohbet girişi temizlendiğinde, mesaj gönderildiğinde veya uzantı verileri sıfırlandığında kaldırılır.
 
-- **Playground kimlik verileri:** Playground kullanılırsa yerel uzantı depolaması (`chrome.storage.local`) kullanılarak kaydedilir. Bu, Playground’a yeniden bağlandığında aynı tarayıcı kurulumunu tanımak için kullanılan rastgele oluşturulmuş yerel Playground kimliğidir. Bu sizin YouTube kimliğiniz değildir.
+- **Playground kimlik verileri:** Playground kullanılırsa oluşturulan rastgele bir yerel kimlik. Playground’a yeniden bağlandığında aynı tarayıcı kurulumunu tanır. Bu sizin YouTube kimliğiniz değildir.
 
-- **Son profil mesajları, komut durumu ve çeviri sonuçları:** yalnızca mevcut canlı sohbet sayfası için bellekte tutulur. Sohbet sayfasından ayrıldığınızda veya sayfayı yenilediğinizde temizlenir.
+- **Geçici sayfa verileri:** son profil mesajları, komut durumu ve çeviri sonuçları yalnızca mevcut canlı sohbet sayfası için bellekte tutulur. Sohbet sayfasından ayrıldığınızda veya sayfayı yenilediğinizde temizlenir.
 
 ## Tarayıcınızın dışına gönderilen veriler
 
-Sohbet çevirisi, taslak çevirisi ve Playground oyunları varsayılan olarak kapalıdır.
+Veriler bu hizmetlere yalnızca ilgili özellik etkinleştirilip kullanıldığında gönderilir:
 
-Çeviri veya Playground özellikleri etkinleştirilip kullanıldığında veriler şu hizmetlere gönderilebilir:
+### Google Translate (`translate.googleapis.com`)
 
-- **`https://translate.googleapis.com/translate_a/single` adresindeki Google Translate**
+Sohbet çevirisi, çeviri etkinken canlı sohbette görünen ve çevrilmeye uygun sohbet mesajı metnini gönderir. Taslak çevirisi, sohbet kutusundan çevirmeyi seçtiğiniz taslak metni gönderir.
 
-  Sohbet çevirisi, çeviri etkinken canlı sohbette görünen ve çevrilmeye uygun sohbet mesajı metnini gönderir. Taslak çevirisi, sohbet kutusundan çevirmeyi seçtiğiniz taslak metni gönderir.
+Çeviri istekleri çevrilecek metni ve hedef dili içerir. Uzantı, çeviri istekleriyle YouTube cookies veya YouTube credentials göndermez.
 
-  Çeviri istekleri çevrilecek metni ve hedef dili içerir. Uzantı, çeviri istekleriyle YouTube cookies veya YouTube credentials göndermez.
+`translate.googleapis.com` üzerinden Google Translate erişimi resmi değildir ve rate limit’e tabi olabilir, değişebilir veya kullanılamayabilir.
 
-  `translate.googleapis.com` üzerinden Google Translate erişimi resmi değildir ve rate limit’e tabi olabilir, değişebilir veya kullanılamayabilir.
+### <span id="playground"></span>Chat Enhancer Playground (`playground.chatenhancer.com`)
 
-- <span id="playground"></span>**`https://playground.chatenhancer.com` adresindeki Chat Enhancer Playground**
+Playground’u etkinleştirir ve oyun panelini kullanırsanız uzantı, aynı stream’de opt-in kullanıcıların uygunluğu görmesi, davet alışverişi yapması ve oyun oynaması için Chat Enhancer Playground oyun sunucusuna bağlanır.
 
-  Playground varsayılan olarak kapalıdır. Playground’u etkinleştirir ve oyun panelini kullanırsanız uzantı, aynı stream’de opt-in kullanıcıların uygunluğu görmesi, davet alışverişi yapması ve oyun oynaması için Chat Enhancer Playground oyun sunucusuna bağlanır.
+Playground mesajları YouTube stream veya video tanımlayıcısını, oluşturulan Playground oyuncu kimliğinizi, oluşturulan oyuncu adınızı, mevcut oyun listenizi, davetleri ve davet yanıtlarını, satranç hamleleri gibi oyun eylemlerini içerebilir.
 
-  Playground mesajları YouTube stream veya video tanımlayıcısını, oluşturulan Playground oyuncu kimliğinizi, oluşturulan oyuncu adınızı, mevcut oyun listenizi, davetleri ve davet yanıtlarını, satranç hamleleri gibi oyun eylemlerini içerebilir.
+Playground, oyuncu istatistikleri sunabilmek için oluşturulan Playground oyuncu kimliklerine bağlı, özet maç sonuçlarını saklar. Saklanan sonuçlar oyun sürümünü, başlangıç ve bitiş zamanlarını, sonucu ve bitiş nedenini, katılımcı rollerini ve hamleler veya skorlar gibi oyuna özgü küçük istatistikleri içerebilir. Trivia soru içeriğini ya da oyunun tam durumunu içermez.
 
-  Playground, oyuncu istatistikleri sunabilmek için oluşturulan Playground oyuncu kimliklerine bağlı, özet maç sonuçlarını saklar. Saklanan sonuçlar oyun sürümünü, başlangıç ve bitiş zamanlarını, sonucu ve bitiş nedenini, katılımcı rollerini ve hamleler, yanıtlar, yanıt süreleri, alınan ödüller, atışlar, isabetler, hasar, canlar, nakavtlar ve skorlar gibi oyuna özgü küçük sayaçları içerebilir. YouTube görünen adlarını veya avatarlarını, canlı sohbet metnini, trivia soru içeriğini ya da oyunun tam durumunu içermez.
+Uzantı canlı sohbet mesajı metnini, YouTube görünen adınızı, YouTube avatar URL’nizi, YouTube cookies veya YouTube credentials’ınızı Playground oyun sunucusuna göndermez.
 
-  Playground canlı sohbet mesajı metnini, YouTube görünen adınızı, YouTube avatar URL’nizi, YouTube cookies veya YouTube credentials’ınızı Playground oyun sunucusuna göndermez.
+Ayrı olarak HELP-A-FRIEND! Trivia soru üretimi, seçilen herkese açık YouTube video transcript parçalarını ve oyun tanımlayıcılarını Playground oyun sunucusuna gönderebilir. Bu parçalar canlı sohbetten değil, videonun transcript’inden gelir. Sunucu, bu parçalardan trivia soruları üretmek için OpenAI kullanır.
 
-  Ayrı olarak HELP-A-FRIEND! Trivia soru üretimi, seçilen herkese açık YouTube video transcript parçalarını ve oyun tanımlayıcılarını Playground oyun sunucusuna gönderebilir. Bu parçalar canlı sohbetten değil, videonun transcript’inden gelir. Sunucu, bu parçalardan trivia soruları üretmek için OpenAI kullanır.
+Replay Trivia üretimi `https://playground.chatenhancer.com` üzerinde Cloudflare Turnstile doğrulaması gerektirebilir. Cloudflare, IP adresi, tarayıcı ve cihaz bilgileri ve challenge sonucu gibi normal doğrulama verilerini alabilir.
 
-  Replay Trivia üretimi `https://playground.chatenhancer.com` üzerinde Cloudflare Turnstile doğrulaması gerektirebilir. Cloudflare, IP adresi, tarayıcı ve cihaz bilgileri ve challenge sonucu gibi normal doğrulama verilerini alabilir.
-
-  Her web hizmeti gibi Playground oyun sunucusu da tarayıcıdan veya ağ sağlayıcısından IP adresi ve tarayıcı/cihaz bilgileri gibi normal bağlantı bilgileri alabilir.
+Her web hizmeti gibi Playground oyun sunucusu da tarayıcıdan veya ağ sağlayıcısından IP adresi ve tarayıcı/cihaz bilgileri gibi normal bağlantı bilgileri alabilir.
 
 ## Veri kontrolleri
 
@@ -86,18 +84,15 @@ Uzantıyı tarayıcınızdan da kaldırabilirsiniz. Tarayıcıya bağlı olarak 
 
 Uzantıyı sıfırlamak veya kaldırmak, Playground tarafından daha önce saklanan maç sonuçlarını tek başına silmez.
 
-## Chat Enhancer’ın yapmadıkları
+## Uzantının yapmadıkları
 
-Uzantı analitik çalıştırmaz.
+- Analitik çalıştırmak.
+- Gezinme geçmişi toplamak.
+- Kullanıcı verisi satmak.
+- Yukarıda açıklanan opt-in Playground özelliklerini kullanmadığınız sürece bir Chat Enhancer sunucusuna veri göndermek.
 
-Uzantı gezinme geçmişi toplamaz.
+## Sorular
 
-Uzantı kullanıcı verisi satmaz.
-
-Yukarıda açıklanan opt-in Playground özellikleri dışında, uzantı bir Chat Enhancer sunucusuna veri göndermez.
-
-Uzantı, canlı sohbet sayfasından ayrıldıktan veya sayfayı yeniledikten sonra son profil mesajlarını veya çeviri sonuçlarını saklamaz.
+Gizlilik soruları için [destekle iletişime geçin](https://www.chatenhancer.com/tr/support).
 
 Chat Enhancer for YouTube, YouTube veya Google ile bağlantılı değildir.
-
-Gizlilik soruları için https://www.chatenhancer.com adresindeki e-posta bağlantısını kullanın.

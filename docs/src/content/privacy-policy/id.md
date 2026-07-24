@@ -30,53 +30,51 @@ Ekstensi tidak meminta izin umum untuk riwayat browsing, membaca tab, scripting,
 
 Ekstensi menyimpan beberapa data agar fiturnya dapat bekerja di antara reload halaman.
 
-Data yang tercantum di bagian ini disimpan oleh ekstensi di profil browser Anda sendiri. Data ini tidak dikirim ke Chat Enhancer kecuali juga tercantum di bagian "Data yang dikirim ke luar browser Anda" di bawah.
+Kecuali dinyatakan lain di bawah, data di bagian ini tetap berada di profil browser Anda dan tidak dikirim ke Chat Enhancer. Browser dapat menyinkronkan pengaturan ekstensi di antara instalasi browser Anda sendiri yang sudah login.
 
-- **Pengaturan:** disimpan menggunakan penyimpanan ekstensi browser yang disinkronkan (`chrome.storage.sync`). Tergantung pengaturan browser Anda, browser dapat menyinkronkan pengaturan ekstensi tersebut di antara instalasi browser Anda yang sudah login.
+- **Pengaturan:** pilihan fitur dan preferensi Anda.
 
-- **Data Inbox:** disimpan menggunakan penyimpanan ekstensi lokal (`chrome.storage.local`). Ini mencakup kata kunci yang dipantau dan hingga 100 catatan inbox per stream atau replay. Catatan Inbox dapat mencakup teks pesan, nama penulis, timestamp, detail dasar pesan YouTube yang diperlukan untuk menunjukkan dari mana pesan tersimpan berasal, detail kecocokan, serta informasi emoji atau gambar yang diperlukan untuk menampilkan pesan tersimpan dengan benar.
+- **Data Inbox:** kata kunci yang dipantau dan hingga 100 catatan inbox per stream atau replay. Catatan Inbox dapat mencakup teks pesan, nama penulis, timestamp, detail dasar pesan YouTube yang diperlukan untuk menunjukkan dari mana pesan tersimpan berasal, detail kecocokan, serta informasi emoji atau gambar yang diperlukan untuk menampilkan pesan tersimpan dengan benar.
 
-- **Data emoji yang sering digunakan:** disimpan menggunakan penyimpanan ekstensi lokal (`chrome.storage.local`). Ini mencakup hitungan penggunaan lokal dan informasi tampilan emoji yang digunakan untuk membuat baris emoji sering digunakan.
+- **Data emoji yang sering digunakan:** hitungan penggunaan lokal dan informasi tampilan emoji yang digunakan untuk membuat baris emoji sering digunakan.
 
-- **Data bookmark:** disimpan menggunakan penyimpanan ekstensi lokal (`chrome.storage.local`). Data ini dapat mencakup teks pesan tersimpan dan informasi tampilan emoji, nama penulis, URL avatar dan ID channel jika tersedia, waktu pesan dan penyimpanan, serta judul dan URL stream. Bookmark tetap tersedia di seluruh stream dalam profil browser saat ini.
+- **Data bookmark:** teks pesan tersimpan dan informasi tampilan emoji, nama penulis, URL avatar dan ID channel jika tersedia, waktu pesan dan penyimpanan, serta judul dan URL stream. Bookmark tetap tersedia di seluruh stream dalam profil browser saat ini.
 
-- **Data cincin avatar:** disimpan menggunakan penyimpanan ekstensi lokal (`chrome.storage.local`). Data ini mencakup nama penulis, waktu cincin ditambahkan, URL stream, serta URL avatar, ID channel, dan judul stream jika tersedia, untuk pengguna yang secara khusus Anda tambahi cincin dari profil pesan terbaru mereka. Pilihan tetap tersedia di seluruh stream dalam profil browser saat ini dan hanya digunakan untuk menghias avatar yang cocok; pilihan ini tidak memeriksa apakah pengguna sedang online.
+- **Data cincin avatar:** nama penulis, waktu cincin ditambahkan, URL stream, serta URL avatar, ID channel, dan judul stream jika tersedia, untuk pengguna yang secara khusus Anda tambahi cincin dari profil pesan terbaru mereka. Pilihan tetap tersedia di seluruh stream dalam profil browser saat ini dan hanya digunakan untuk menghias avatar yang cocok.
 
-- **Draft chat yang belum terkirim:** disimpan menggunakan penyimpanan ekstensi lokal (`chrome.storage.local`) per stream. Draft dipulihkan setelah refresh halaman. Draft dihapus saat input chat dikosongkan, pesan dikirim, atau data ekstensi direset.
+- **Draft chat yang belum terkirim:** disimpan secara terpisah untuk setiap stream dan dipulihkan setelah refresh halaman. Draft dihapus saat input chat dikosongkan, pesan dikirim, atau data ekstensi direset.
 
-- **Data identitas Playground:** disimpan menggunakan penyimpanan ekstensi lokal (`chrome.storage.local`) jika Playground digunakan. Ini adalah identitas lokal Playground yang dibuat secara acak dan digunakan untuk mengenali instalasi browser yang sama saat terhubung kembali ke Playground. Ini bukan identitas YouTube Anda.
+- **Data identitas Playground:** identitas lokal acak yang dibuat jika Playground digunakan. Identitas ini mengenali instalasi browser yang sama saat terhubung kembali ke Playground. Ini bukan identitas YouTube Anda.
 
-- **Pesan profil terbaru, status perintah, dan hasil terjemahan:** hanya disimpan di memori untuk halaman live chat saat ini. Semuanya dihapus saat Anda meninggalkan atau merefresh halaman chat.
+- **Data halaman sementara:** pesan profil terbaru, status perintah, dan hasil terjemahan hanya disimpan di memori untuk halaman live chat saat ini. Semuanya dihapus saat Anda meninggalkan atau merefresh halaman chat.
 
 ## Data yang dikirim ke luar browser Anda
 
-Terjemahan chat, terjemahan draft, dan game Playground nonaktif secara default.
+Data hanya dikirim ke layanan berikut saat fitur terkait diaktifkan dan digunakan:
 
-Saat fitur terjemahan atau Playground diaktifkan dan digunakan, data dapat dikirim ke layanan berikut:
+### Google Translate (`translate.googleapis.com`)
 
-- **Google Translate di `https://translate.googleapis.com/translate_a/single`**
+Terjemahan chat mengirim teks pesan chat yang terlihat di live chat dan memenuhi syarat untuk diterjemahkan saat terjemahan diaktifkan. Terjemahan draft mengirim teks draft yang Anda pilih untuk diterjemahkan dari kotak chat.
 
-  Terjemahan chat mengirim teks pesan chat yang terlihat di live chat dan memenuhi syarat untuk diterjemahkan saat terjemahan diaktifkan. Terjemahan draft mengirim teks draft yang Anda pilih untuk diterjemahkan dari kotak chat.
+Permintaan terjemahan mencakup teks yang akan diterjemahkan dan bahasa target. Ekstensi tidak mengirim cookie YouTube atau kredensial YouTube Anda bersama permintaan terjemahan.
 
-  Permintaan terjemahan mencakup teks yang akan diterjemahkan dan bahasa target. Ekstensi tidak mengirim cookie YouTube atau kredensial YouTube Anda bersama permintaan terjemahan.
+Akses Google Translate melalui `translate.googleapis.com` tidak resmi dan dapat dibatasi, berubah, atau tidak tersedia.
 
-  Akses Google Translate melalui `translate.googleapis.com` tidak resmi dan dapat dibatasi, berubah, atau tidak tersedia.
+### <span id="playground"></span>Chat Enhancer Playground (`playground.chatenhancer.com`)
 
-- <span id="playground"></span>**Chat Enhancer Playground di `https://playground.chatenhancer.com`**
+Jika Anda mengaktifkan Playground dan menggunakan panel game, ekstensi terhubung ke server game Chat Enhancer Playground agar pengguna opt-in di stream yang sama dapat melihat ketersediaan, bertukar undangan, dan bermain game.
 
-  Playground nonaktif secara default. Jika Anda mengaktifkan Playground dan menggunakan panel game, ekstensi terhubung ke server game Chat Enhancer Playground agar pengguna opt-in di stream yang sama dapat melihat ketersediaan, bertukar undangan, dan bermain game.
+Pesan Playground dapat mencakup pengenal stream atau video YouTube, identitas pemain Playground yang dibuat, nama pemain yang dibuat, daftar game yang tersedia, undangan dan respons undangan, serta aksi game seperti langkah catur.
 
-  Pesan Playground dapat mencakup pengenal stream atau video YouTube, identitas pemain Playground yang dibuat, nama pemain yang dibuat, daftar game yang tersedia, undangan dan respons undangan, serta aksi game seperti langkah catur.
+Playground menyimpan hasil pertandingan ringkas yang ditautkan ke identitas pemain Playground yang dibuat agar dapat menyediakan statistik pemain. Hasil yang disimpan dapat mencakup versi game, waktu mulai dan selesai, hasil dan alasan berakhir, peran peserta, serta statistik kecil khusus game seperti langkah atau skor. Hasil tersebut tidak mencakup isi pertanyaan trivia atau status game lengkap.
 
-  Playground menyimpan hasil pertandingan ringkas yang ditautkan ke identitas pemain Playground yang dibuat agar dapat menyediakan statistik pemain. Hasil yang disimpan dapat mencakup versi game, waktu mulai dan selesai, hasil dan alasan berakhir, peran peserta, serta penghitung kecil khusus game seperti langkah, jawaban, waktu respons, klaim, tembakan, pukulan, kerusakan, nyawa, KO, dan skor. Hasil tersebut tidak mencakup nama tampilan atau avatar YouTube, teks live chat, isi pertanyaan trivia, atau status game lengkap.
+Ekstensi tidak mengirim teks live chat, nama tampilan YouTube Anda, URL avatar YouTube Anda, cookie YouTube, atau kredensial YouTube ke server game Playground.
 
-  Playground tidak mengirim teks live chat, nama tampilan YouTube Anda, URL avatar YouTube Anda, cookie YouTube, atau kredensial YouTube ke server game Playground.
+Secara terpisah, pembuatan pertanyaan HELP-A-FRIEND! Trivia dapat mengirim cuplikan transkrip video YouTube publik yang dipilih dan pengenal game ke server game Playground. Cuplikan ini berasal dari transkrip video, bukan dari live chat. Server menggunakan OpenAI untuk membuat pertanyaan trivia dari cuplikan tersebut.
 
-  Secara terpisah, pembuatan pertanyaan HELP-A-FRIEND! Trivia dapat mengirim cuplikan transkrip video YouTube publik yang dipilih dan pengenal game ke server game Playground. Cuplikan ini berasal dari transkrip video, bukan dari live chat. Server menggunakan OpenAI untuk membuat pertanyaan trivia dari cuplikan tersebut.
+Pembuatan Replay Trivia dapat memerlukan verifikasi Cloudflare Turnstile di `https://playground.chatenhancer.com`. Cloudflare dapat menerima data verifikasi normal seperti alamat IP, informasi browser dan perangkat, serta hasil tantangan.
 
-  Pembuatan Replay Trivia dapat memerlukan verifikasi Cloudflare Turnstile di `https://playground.chatenhancer.com`. Cloudflare dapat menerima data verifikasi normal seperti alamat IP, informasi browser dan perangkat, serta hasil tantangan.
-
-  Seperti layanan web lainnya, server game Playground dapat menerima informasi koneksi normal seperti alamat IP dan informasi browser/perangkat dari browser atau penyedia jaringan.
+Seperti layanan web lainnya, server game Playground dapat menerima informasi koneksi normal seperti alamat IP dan informasi browser/perangkat dari browser atau penyedia jaringan.
 
 ## Kontrol data
 
@@ -86,18 +84,15 @@ Anda juga dapat menghapus ekstensi dari browser Anda. Tergantung browser, mengha
 
 Mereset atau menghapus ekstensi tidak dengan sendirinya menghapus hasil pertandingan yang sudah disimpan oleh Playground.
 
-## Yang tidak dilakukan Chat Enhancer
+## Yang tidak dilakukan ekstensi
 
-Ekstensi tidak menjalankan analitik.
+- Menjalankan analitik.
+- Mengumpulkan riwayat browsing.
+- Menjual data pengguna.
+- Mengirim data ke server Chat Enhancer kecuali Anda menggunakan fitur Playground opt-in yang dijelaskan di atas.
 
-Ekstensi tidak mengumpulkan riwayat browsing.
+## Pertanyaan
 
-Ekstensi tidak menjual data pengguna.
-
-Kecuali fitur Playground opt-in yang dijelaskan di atas, ekstensi tidak mengirim data ke server Chat Enhancer.
-
-Ekstensi tidak menyimpan pesan profil terbaru atau hasil terjemahan setelah Anda meninggalkan atau merefresh halaman live chat.
+Untuk pertanyaan privasi, [hubungi dukungan](https://www.chatenhancer.com/id/support).
 
 Chat Enhancer for YouTube tidak berafiliasi dengan YouTube atau Google.
-
-Untuk pertanyaan privasi, gunakan tautan email di https://www.chatenhancer.com.
