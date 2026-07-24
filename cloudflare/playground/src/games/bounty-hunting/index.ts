@@ -32,7 +32,13 @@ import {
   BOUNTY_HUNTING_ROUND_OVER_MS,
   getBountyHuntingRoundStartTimestampUsec
 } from '../../../../../src/shared/playground/bounty-hunting';
-import type { GameActionInput, GameModule, GameRecord, PublicGameContext } from '../types';
+import type {
+  GameActionInput,
+  GameModule,
+  GameRecord,
+  GameResult,
+  PublicGameContext
+} from '../types';
 
 type PlayerRole = BountyHuntingPlayerRole;
 
@@ -95,7 +101,15 @@ const BountyHuntingPendingClaimSchema = z.strictObject({
   messageId: z.string().min(1),
   role: BountyHuntingRoleSchema
 });
+const BountyHuntingActionStatsSchema = z.strictObject({
+  misses: z.number().int().nonnegative(),
+  shots: z.number().int().nonnegative()
+});
 const BountyHuntingGameRecordSchema = z.strictObject({
+  actionStatsByRole: z.strictObject({
+    guest: BountyHuntingActionStatsSchema,
+    host: BountyHuntingActionStatsSchema
+  }).optional(),
   bounties: z.array(BountyHuntingBountySchema).max(BOUNTY_HUNTING_BOUNTY_COUNT),
   bountyProviderUserId: z.string().min(1),
   claimWitnesses: z.array(BountyHuntingClaimWitnessSchema).max(MAX_STORED_BOUNTY_WITNESSES),
@@ -129,6 +143,7 @@ const BountyHuntingGameRecordSchema = z.strictObject({
 
 export type BountyHuntingClaimWitness = z.infer<typeof BountyHuntingClaimWitnessSchema>;
 export type BountyHuntingPendingClaim = z.infer<typeof BountyHuntingPendingClaimSchema>;
+type BountyHuntingActionStats = z.infer<typeof BountyHuntingActionStatsSchema>;
 export type BountyHuntingGameRecord = z.infer<typeof BountyHuntingGameRecordSchema>;
 
 export interface PublicBountyHuntingGame extends PublicGame {
@@ -187,6 +202,9 @@ export const bountyHuntingGameModule: GameModule = {
     }
     return undefined;
   },
+  getMatchResult(game) {
+    return getBountyHuntingMatchResult(assertBountyHuntingGame(game));
+  },
   getRecipientUserIds(game) {
     const bountyGame = assertBountyHuntingGame(game);
     return [bountyGame.players.host, bountyGame.players.guest];
@@ -222,6 +240,7 @@ export function createBountyHuntingGame(
   now = Date.now()
 ): BountyHuntingGameRecord {
   return {
+    actionStatsByRole: createBountyHuntingActionStatsByRole(),
     bounties: [],
     bountyProviderUserId: hostUserId,
     claimWitnesses: [],
@@ -256,6 +275,7 @@ export function submitBountyHunting(
   const bounties = parseBountyHuntingBounties(input.payload?.bounties);
   return {
     ...game,
+    actionStatsByRole: createBountyHuntingActionStatsByRole(),
     bounties,
     claimWitnesses: [],
     claims: [],
@@ -356,6 +376,7 @@ export function shootBountyHuntingMessage(
   const pendingClaimForRole = resolvedGame.pendingClaims.find((candidate) => candidate.role === role);
   if (pendingClaimForRole) return resolvedGame;
 
+  resolvedGame = incrementBountyHuntingActionStat(resolvedGame, role, 'shots');
   const witnessedBounty = findHighestValueWitnessedOpenBounty(resolvedGame, role, messageId);
   if (!witnessedBounty) return startBountyHuntingMissCooldown(resolvedGame, role, now);
 
@@ -729,12 +750,31 @@ function startBountyHuntingMissCooldown(
   role: PlayerRole,
   now: number
 ): BountyHuntingGameRecord {
+  if (isBountyHuntingMissCooldownActive(game, role, now)) return game;
   return setBountyHuntingMissCooldownUntil(
-    game,
+    incrementBountyHuntingActionStat(game, role, 'misses'),
     role,
     now + BOUNTY_HUNTING_MISS_COOLDOWN_MS,
     now
   );
+}
+
+function incrementBountyHuntingActionStat(
+  game: BountyHuntingGameRecord,
+  role: PlayerRole,
+  key: keyof BountyHuntingActionStats
+): BountyHuntingGameRecord {
+  const actionStatsByRole = getBountyHuntingActionStatsByRole(game);
+  return {
+    ...game,
+    actionStatsByRole: {
+      ...actionStatsByRole,
+      [role]: {
+        ...actionStatsByRole[role],
+        [key]: actionStatsByRole[role][key] + 1
+      }
+    }
+  };
 }
 
 function setBountyHuntingMissCooldownUntil(
@@ -790,6 +830,72 @@ function isBountyHuntingDeadlinePassed(game: BountyHuntingGameRecord, now: numbe
 function getBountyHuntingWinnerUserId(game: BountyHuntingGameRecord): string | null {
   if (game.scores.host === game.scores.guest) return null;
   return game.scores.host > game.scores.guest ? game.players.host : game.players.guest;
+}
+
+export function getBountyHuntingMatchResult(game: BountyHuntingGameRecord): GameResult {
+  const actionStatsByRole = getBountyHuntingActionStatsByRole(game);
+  const bountiesById = new Map(game.bounties.map((bounty) => [bounty.id, bounty]));
+  const completed = game.status === 'finished' || game.status === 'roundOver';
+  const getPlayerSummary = (role: PlayerRole) => {
+    const claims = game.claims.filter((claim) => claim.role === role);
+    const claimValues = claims.map((claim) => bountiesById.get(claim.bountyId)?.amount || 0);
+    const claimsByType: Record<string, number> = {};
+    claims.forEach((claim) => {
+      const kind = bountiesById.get(claim.bountyId)?.matcher.kind;
+      if (kind) claimsByType[kind] = (claimsByType[kind] || 0) + 1;
+    });
+    return {
+      claims: claims.length,
+      claimsByType,
+      highestClaimValue: claimValues.length ? Math.max(...claimValues) : 0,
+      misses: actionStatsByRole[role].misses,
+      score: game.scores[role],
+      shots: actionStatsByRole[role].shots,
+      userId: game.players[role]
+    };
+  };
+  return {
+    finishReason: completed
+      ? game.bounties.length > 0 && game.claims.length >= game.bounties.length
+        ? 'allBountiesClaimed'
+        : 'timeExpired'
+      : game.status,
+    summary: {
+      bountyCount: game.bounties.length,
+      claimedCount: game.claims.length,
+      guest: getPlayerSummary('guest'),
+      host: getPlayerSummary('host')
+    }
+  };
+}
+
+function createBountyHuntingActionStatsByRole(): Record<PlayerRole, BountyHuntingActionStats> {
+  return {
+    guest: {
+      misses: 0,
+      shots: 0
+    },
+    host: {
+      misses: 0,
+      shots: 0
+    }
+  };
+}
+
+function getBountyHuntingActionStatsByRole(
+  game: BountyHuntingGameRecord
+): Record<PlayerRole, BountyHuntingActionStats> {
+  const empty = createBountyHuntingActionStatsByRole();
+  return {
+    guest: {
+      ...empty.guest,
+      ...game.actionStatsByRole?.guest
+    },
+    host: {
+      ...empty.host,
+      ...game.actionStatsByRole?.host
+    }
+  };
 }
 
 function assertBountyHuntingBountyProvider(game: BountyHuntingGameRecord, userId: string): void {

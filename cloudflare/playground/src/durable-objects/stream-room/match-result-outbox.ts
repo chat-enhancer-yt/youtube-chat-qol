@@ -194,6 +194,7 @@ function areQueuedMatchesEqual(left: PlayerMatchResultInput, right: PlayerMatchR
     left.gameVersion === right.gameVersion &&
     left.matchId === right.matchId &&
     left.startedAt === right.startedAt &&
+    JSON.stringify(left.summary) === JSON.stringify(right.summary) &&
     left.winnerUserId === right.winnerUserId &&
     [...left.participantUserIds].sort().join('\n') ===
       [...right.participantUserIds].sort().join('\n');

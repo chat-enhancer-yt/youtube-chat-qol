@@ -12,7 +12,12 @@ import {
   type PublicUserIdentity
 } from '../../protocol/messages';
 import { ProtocolError } from '../../protocol/validation';
-import type { GameActionInput, GameModule, GameRecord } from '../types';
+import type {
+  GameActionInput,
+  GameModule,
+  GameRecord,
+  GameResult
+} from '../types';
 
 const PlayerColorSchema = z.enum(['black', 'white']);
 const ChessGameStatusSchema = z.enum(['active', 'checkmate', 'draw', 'resigned']);
@@ -93,6 +98,9 @@ export const chessGameModule: GameModule = {
   createGame(gameId, playerUserIds) {
     return createChessGame(gameId, playerUserIds[0], playerUserIds[1]);
   },
+  getMatchResult(game) {
+    return getChessMatchResult(assertChessGame(game));
+  },
   getRecipientUserIds(game) {
     const chessGame = assertChessGame(game);
     return [chessGame.players.white, chessGame.players.black];
@@ -142,7 +150,7 @@ export function applyChessMove(game: ChessGameRecord, input: ChessMoveInput): Ch
     throw new ProtocolError('not_your_turn', 'It is not your turn.');
   }
 
-  const chess = new Chess(game.fen);
+  const chess = createChessState(game);
   let move;
   try {
     move = chess.move({
@@ -200,6 +208,61 @@ export function canSeeChessGame(game: ChessGameRecord, userId: string): boolean 
 export function getChessWinnerUserId(game: ChessGameRecord): string | null {
   if (!game.winner) return null;
   return game.players[game.winner] || null;
+}
+
+export function getChessMatchResult(game: ChessGameRecord): GameResult {
+  const chess = createChessState(game);
+  const moves = chess.history({ verbose: true });
+  const metrics: Record<PlayerColor, ReturnType<typeof createEmptyChessMetrics>> = {
+    black: createEmptyChessMetrics(),
+    white: createEmptyChessMetrics()
+  };
+
+  moves.forEach((move) => {
+    const color = move.color === 'w' ? 'white' : 'black';
+    const playerMetrics = metrics[color];
+    if (move.captured) playerMetrics.captures += 1;
+    if (move.san.includes('+') || move.san.includes('#')) playerMetrics.checks += 1;
+    if (move.promotion) playerMetrics.promotions += 1;
+    if (/^O-O/.test(move.san)) playerMetrics.castled = 1;
+  });
+
+  return {
+    finishReason: game.status,
+    summary: {
+      black: {
+        ...metrics.black,
+        userId: game.players.black
+      },
+      plyCount: moves.length,
+      white: {
+        ...metrics.white,
+        userId: game.players.white
+      }
+    }
+  };
+}
+
+function createEmptyChessMetrics() {
+  return {
+    captures: 0,
+    castled: 0,
+    checks: 0,
+    promotions: 0
+  };
+}
+
+function createChessState(game: Pick<ChessGameRecord, 'fen' | 'pgn'>): Chess {
+  if (game.pgn) {
+    try {
+      const chess = new Chess();
+      chess.loadPgn(game.pgn);
+      if (chess.fen() === game.fen) return chess;
+    } catch {
+      // Fall back to the validated current position when stored history is unavailable.
+    }
+  }
+  return new Chess(game.fen);
 }
 
 export function toPublicChessGame(

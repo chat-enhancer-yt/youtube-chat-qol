@@ -25,6 +25,7 @@ import {
   STICK_AROUND_MAX_STORED_HAZARDS
 } from '../../../../../src/shared/playground/stick-around';
 import {
+  createEmptyStickAroundPlayerResultStats,
   createStickAroundServerSimulation,
   getStickAroundComputerControls,
   getStickAroundWinnerUserId,
@@ -33,7 +34,12 @@ import {
   stepStickAroundSimulation,
   type StickAroundSimulation
 } from '../../../../../src/shared/playground/stick-around-simulation';
-import type { GameActionInput, GameModule, GameRecord } from '../types';
+import type {
+  GameActionInput,
+  GameModule,
+  GameRecord,
+  GameResult
+} from '../types';
 
 type PlayerRole = StickAroundPlayerRole;
 
@@ -134,15 +140,27 @@ const StickAroundParticleSchema = z.strictObject({
   x: FiniteNumberSchema,
   y: FiniteNumberSchema
 });
+const StickAroundPlayerResultStatsSchema = z.strictObject({
+  bubbleHitsTaken: NonNegativeIntegerSchema,
+  damageDealt: FiniteNumberSchema.nonnegative(),
+  damageTaken: FiniteNumberSchema.nonnegative(),
+  fighterHitsDealt: NonNegativeIntegerSchema,
+  fighterHitsTaken: NonNegativeIntegerSchema,
+  knockouts: NonNegativeIntegerSchema,
+  lastOpponentHitByUserId: NonEmptyStringSchema.optional(),
+  stocksLost: NonNegativeIntegerSchema
+});
 const StickAroundSimulationSchema = z.strictObject({
   bubbles: z.array(StickAroundBubbleSchema),
   fighters: z.record(z.string(), StickAroundFighterSchema),
   flash: FiniteNumberSchema,
   frame: NonNegativeIntegerSchema,
+  hazardsSpawned: NonNegativeIntegerSchema.optional(),
   height: PositiveNumberSchema,
   lastTime: FiniteNumberSchema,
   particles: z.array(StickAroundParticleSchema),
   platforms: z.array(StickAroundPlatformSchema),
+  resultStatsByUserId: z.record(z.string(), StickAroundPlayerResultStatsSchema).optional(),
   roundSeed: IntegerSchema,
   shake: FiniteNumberSchema,
   spawnedHazardIds: z.array(NonEmptyStringSchema).max(STICK_AROUND_MAX_STORED_HAZARDS),
@@ -168,6 +186,7 @@ const StickAroundGameRecordSchema = z.strictObject({
     guest: z.boolean().optional(),
     host: z.boolean().optional()
   }),
+  resultReason: z.enum(['playerTimedOut', 'stocksDepleted']).optional(),
   roundSeed: IntegerSchema,
   roundStartedAt: FiniteNumberSchema.optional(),
   simulation: StickAroundSimulationSchema.optional(),
@@ -206,6 +225,9 @@ export const stickAroundGameModule: GameModule = {
   },
   getActionRateCost(input) {
     return isStickAroundRealtimeAction(input.action) ? STICK_AROUND_REALTIME_ACTION_RATE_COST : undefined;
+  },
+  getMatchResult(game) {
+    return getStickAroundMatchResult(assertStickAroundGame(game));
   },
   getRecipientUserIds(game) {
     const stickGame = assertStickAroundGame(game);
@@ -316,6 +338,7 @@ export function startStickAroundRound(
     inputs: {},
     observedMessageIds: [],
     phaseStartedAt: now,
+    resultReason: undefined,
     roundStartedAt: now,
     simulation: serializeStickAroundSimulation(createStickAroundServerSimulation({
       arena: game.arena,
@@ -423,8 +446,38 @@ export function timeoutStickAroundRound(
   return {
     ...game,
     phaseStartedAt: now,
+    resultReason: 'playerTimedOut',
     status: 'finished',
     winnerUserId: getOpponentUserId(game, userId)
+  };
+}
+
+export function getStickAroundMatchResult(game: StickAroundGameRecord): GameResult {
+  const statsByUserId = game.simulation?.resultStatsByUserId || {};
+  const getPlayerSummary = (role: PlayerRole) => {
+    const userId = game.players[role];
+    const stats = {
+      ...createEmptyStickAroundPlayerResultStats(),
+      ...statsByUserId[userId]
+    };
+    return {
+      bubbleHitsTaken: stats.bubbleHitsTaken,
+      damageDealt: roundMetric(stats.damageDealt),
+      damageTaken: roundMetric(stats.damageTaken),
+      fighterHitsDealt: stats.fighterHitsDealt,
+      fighterHitsTaken: stats.fighterHitsTaken,
+      knockouts: stats.knockouts,
+      stocksLost: stats.stocksLost,
+      userId
+    };
+  };
+  return {
+    finishReason: game.resultReason || game.status,
+    summary: {
+      guest: getPlayerSummary('guest'),
+      hazardsSpawned: game.simulation?.hazardsSpawned || 0,
+      host: getPlayerSummary('host')
+    }
   };
 }
 
@@ -465,7 +518,6 @@ function withPublicStickAroundFighterLabels(
     player.displayName
   ]));
   return {
-    ...simulation,
     bubbles: simulation.bubbles.map((bubble) => ({ ...bubble })),
     fighters: Object.fromEntries(Object.entries(simulation.fighters).map(([userId, fighter]) => [
       userId,
@@ -474,9 +526,16 @@ function withPublicStickAroundFighterLabels(
         label: labels.get(userId) || fighter.label
       }
     ])),
+    flash: simulation.flash,
+    frame: simulation.frame,
+    height: simulation.height,
+    lastTime: simulation.lastTime,
     particles: simulation.particles.map((particle) => ({ ...particle })),
     platforms: simulation.platforms.map((platform) => ({ ...platform })),
-    spawnedHazardIds: [...simulation.spawnedHazardIds]
+    roundSeed: simulation.roundSeed,
+    shake: simulation.shake,
+    spawnedHazardIds: [...simulation.spawnedHazardIds],
+    width: simulation.width
   };
 }
 
@@ -505,6 +564,7 @@ export function advanceStickAroundGame(
     return {
       ...game,
       phaseStartedAt: now,
+      resultReason: 'stocksDepleted',
       simulation: simulationSnapshot,
       status: 'finished',
       winnerUserId
@@ -558,6 +618,10 @@ function createSimulationPlayers(game: StickAroundGameRecord): PublicStickAround
       userId: game.players.host
     }
   };
+}
+
+function roundMetric(value: number): number {
+  return Math.round(value * 1000) / 1000;
 }
 
 function getAuthoritativeInputs(

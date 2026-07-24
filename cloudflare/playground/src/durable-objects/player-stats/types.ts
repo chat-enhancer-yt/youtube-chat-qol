@@ -3,13 +3,17 @@ import {
   isPlaygroundComputerUserId,
   type GameId
 } from '../../protocol/messages';
+import type {
+  GameResult,
+  GameResultSummary,
+  GameResultSummaryValue
+} from '../../games/types';
 
 export type PlayerMatchOutcome = 'abandoned' | 'draw' | 'loss' | 'win';
 
-export interface PlayerMatchResultInput {
+export interface PlayerMatchResultInput extends GameResult {
   abandonedByUserId: string | null;
   finishedAt: number;
-  finishReason: string;
   gameType: GameId;
   gameVersion: number;
   matchId: string;
@@ -53,6 +57,7 @@ export function parsePlayerMatchResultInput(value: unknown): PlayerMatchResultIn
   const finishedAt = parseTimestamp(value.finishedAt);
   const startedAt = value.startedAt === undefined ? undefined : parseTimestamp(value.startedAt);
   const participantUserIds = parseParticipantUserIds(value.participantUserIds);
+  const summary = parseGameResultSummary(value.summary);
   const winnerUserId = value.winnerUserId === null ? null : parseParticipantUserId(value.winnerUserId);
   const abandonedByUserId = value.abandonedByUserId === undefined || value.abandonedByUserId === null
     ? null
@@ -67,6 +72,7 @@ export function parsePlayerMatchResultInput(value: unknown): PlayerMatchResultIn
     finishedAt === null ||
     startedAt === null ||
     (startedAt !== undefined && startedAt > finishedAt) ||
+    !summary ||
     participantUserIds.length < 2 ||
     (winnerUserId !== null && !participantUserIds.includes(winnerUserId)) ||
     (abandonedByUserId !== null && !participantUserIds.includes(abandonedByUserId)) ||
@@ -85,6 +91,7 @@ export function parsePlayerMatchResultInput(value: unknown): PlayerMatchResultIn
     matchId,
     participantUserIds,
     startedAt,
+    summary,
     winnerUserId
   };
 }
@@ -111,6 +118,40 @@ function parseParticipantUserIds(value: unknown): string[] {
   const userIds = value.map(parseParticipantUserId);
   if (userIds.some((userId) => !userId) || new Set(userIds).size !== userIds.length) return [];
   return userIds;
+}
+
+function parseGameResultSummary(value: unknown): GameResultSummary | null {
+  if (!isRecord(value)) return null;
+  const summary = parseGameResultSummaryValue(value);
+  return isRecord(summary) ? summary as GameResultSummary : null;
+}
+
+function parseGameResultSummaryValue(value: unknown): GameResultSummaryValue | undefined {
+  if (
+    value === null ||
+    typeof value === 'boolean' ||
+    typeof value === 'string'
+  ) {
+    return value;
+  }
+  if (typeof value === 'number') return Number.isFinite(value) ? value : undefined;
+  if (Array.isArray(value)) {
+    const items = value.map(parseGameResultSummaryValue);
+    return items.some((item) => item === undefined)
+      ? undefined
+      : items as GameResultSummaryValue[];
+  }
+  if (!isRecord(value)) return undefined;
+
+  const entries: [string, GameResultSummaryValue][] = [];
+  for (const [key, item] of Object.entries(value).sort(([left], [right]) =>
+    left.localeCompare(right)
+  )) {
+    const parsed = parseGameResultSummaryValue(item);
+    if (parsed === undefined) return undefined;
+    entries.push([key, parsed]);
+  }
+  return Object.fromEntries(entries);
 }
 
 function parseParticipantUserId(value: unknown): string {

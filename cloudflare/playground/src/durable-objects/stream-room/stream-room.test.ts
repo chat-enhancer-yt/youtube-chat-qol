@@ -29,6 +29,7 @@ import {
 } from '../../protocol/messages';
 import { ProtocolError } from '../../protocol/validation';
 import type { Env } from '../../types';
+import type { PlayerMatchResultInput } from '../player-stats/types';
 
 interface TestSession {
   availableGames: Set<GameId>;
@@ -157,13 +158,15 @@ class FakeDurableObjectState {
 }
 
 class FakePlayerStatsNamespace {
-  private readonly matches = new Map<string, {
-    abandonedByUserId: string | null;
-    finishReason: string;
-    gameType: GameId;
-    participantUserIds: string[];
-    winnerUserId: string | null;
-  }>();
+  private readonly matches = new Map<string, Pick<
+    PlayerMatchResultInput,
+    | 'abandonedByUserId'
+    | 'finishReason'
+    | 'gameType'
+    | 'participantUserIds'
+    | 'summary'
+    | 'winnerUserId'
+  >>();
 
   idFromName(name: string): { toString(): string } {
     return {
@@ -205,6 +208,7 @@ class FakePlayerStatsNamespace {
       gameType?: GameId;
       matchId?: string;
       participantUserIds?: string[];
+      summary?: PlayerMatchResultInput['summary'];
       winnerUserId?: string | null;
     };
     const abandonedByUserId = body.abandonedByUserId || null;
@@ -212,6 +216,7 @@ class FakePlayerStatsNamespace {
     const gameType = body.gameType || 'chess';
     const matchId = body.matchId || '';
     const participantUserIds = body.participantUserIds || [];
+    const summary = body.summary || {};
     const winnerUserId = body.winnerUserId || null;
     const recorded = !this.matches.has(matchId);
     if (recorded) {
@@ -220,6 +225,7 @@ class FakePlayerStatsNamespace {
         finishReason,
         gameType,
         participantUserIds,
+        summary,
         winnerUserId
       });
     }
@@ -1219,6 +1225,23 @@ describe('playground stream room', () => {
       finishReason: 'playerLeft',
       gameType: 'chess',
       participantUserIds: [alice.userId, bob.userId],
+      summary: {
+        black: {
+          captures: 0,
+          castled: 0,
+          checks: 0,
+          promotions: 0,
+          userId: bob.userId
+        },
+        plyCount: 0,
+        white: {
+          captures: 0,
+          castled: 0,
+          checks: 0,
+          promotions: 0,
+          userId: alice.userId
+        }
+      },
       winnerUserId: null
     });
     expect(playerStats.getWins(alice.userId, 'chess')).toBe(0);

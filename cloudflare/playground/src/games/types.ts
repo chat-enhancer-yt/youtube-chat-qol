@@ -63,6 +63,21 @@ export interface GameStatePersistenceInput {
   previousGame: GameRecord;
 }
 
+export type GameResultSummaryValue =
+  | boolean
+  | number
+  | string
+  | null
+  | GameResultSummaryValue[]
+  | { [key: string]: GameResultSummaryValue };
+
+export type GameResultSummary = Record<string, GameResultSummaryValue>;
+
+export interface GameResult {
+  finishReason: string;
+  summary: GameResultSummary;
+}
+
 export interface GameModule {
   createGame(gameId: string, playerUserIds: [string, string]): GameRecord;
   applyAction(game: GameRecord, input: GameActionInput): GameRecord;
@@ -70,6 +85,7 @@ export interface GameModule {
   createGenerationToken?(game: GameRecord, input: GameGenerationTokenInput): GameGenerationTokenGrant;
   createGenerationTokenMessage?(input: GameGenerationTokenMessageInput): ServerMessage;
   getActionRateCost?(input: GameActionRateLimitInput): number | null | undefined;
+  getMatchResult(game: GameRecord): GameResult;
   getRecipientUserIds(game: GameRecord): string[];
   getStatePersistence?(input: GameStatePersistenceInput): GameStatePersistence;
   getWinnerUserId?(game: GameRecord): string | null;

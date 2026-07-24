@@ -6,7 +6,7 @@ description: "Chat Enhancer for YouTube स्थानीय संग्रह
 
 # गोपनीयता
 
-अंतिम अपडेट: 21 जून 2026
+अंतिम अपडेट: 24 जुलाई 2026
 
 Chat Enhancer for YouTube, YouTube लाइव चैट के लिए एक ब्राउज़र एक्सटेंशन है। इसे YouTube चैट को बदले बिना या एनालिटिक्स इकट्ठा किए बिना छोटे चैट फीचर जोड़ने के लिए बनाया गया है।
 
@@ -68,6 +68,8 @@ Chat translation, draft translation, और Playground games डिफ़ॉल�
 
   Playground messages में YouTube stream या video identifier, आपकी generated Playground player identity, आपका generated player name, आपकी available game list, invites और invite responses, तथा chess moves जैसी game actions शामिल हो सकती हैं।
 
+  Player statistics देने के लिए Playground generated Playground player identities से जुड़े compact match results store करता है। Stored results में game version, start और finish times, outcome और finish reason, participant roles, और game-specific छोटे counters जैसे moves, answers, response times, claims, shots, hits, damage, stocks, knockouts और scores शामिल हो सकते हैं। इनमें YouTube display names या avatars, live chat text, trivia question content या पूरा game state शामिल नहीं होता।
+
   Playground live chat message text, आपका YouTube display name, आपका YouTube avatar URL, YouTube cookies, या YouTube credentials Playground game server को नहीं भेजता।
 
   अलग से, HELP-A-FRIEND! Trivia question generation चयनित public YouTube video transcript excerpts और game identifiers को Playground game server को भेज सकता है। ये excerpts video के transcript से आते हैं, live chat से नहीं। Server उन excerpts से trivia questions generate करने के लिए OpenAI का उपयोग करता है।
@@ -81,6 +83,8 @@ Chat translation, draft translation, और Playground games डिफ़ॉल�
 आप extension popup में reset button का उपयोग करके extension data साफ कर सकते हैं। यह local extension data और synced extension settings को साफ करता है, फिर default settings restore करता है।
 
 आप अपने browser से extension भी हटा सकते हैं। Browser के आधार पर, extension हटाने से उसका local extension storage भी हट सकता है।
+
+Extension को reset या remove करने से Playground में पहले से stored match results अपने आप delete नहीं होते।
 
 ## Chat Enhancer क्या नहीं करता
 

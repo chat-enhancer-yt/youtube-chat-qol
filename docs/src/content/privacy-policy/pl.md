@@ -6,7 +6,7 @@ description: "Jak Chat Enhancer for YouTube obsługuje lokalne przechowywanie, t
 
 # Prywatność
 
-Ostatnia aktualizacja: 21 czerwca 2026
+Ostatnia aktualizacja: 24 lipca 2026
 
 Chat Enhancer for YouTube to rozszerzenie przeglądarki dla czatu na żywo YouTube. Zostało zaprojektowane, aby dodawać drobne funkcje czatu bez zastępowania czatu YouTube ani zbierania analityki.
 
@@ -68,6 +68,8 @@ Gdy funkcje tłumaczenia lub Playground są włączone i używane, dane mogą by
 
   Wiadomości Playground mogą zawierać identyfikator streamu lub wideo YouTube, wygenerowaną tożsamość gracza Playground, wygenerowaną nazwę gracza, listę dostępnych gier, zaproszenia i odpowiedzi na zaproszenia oraz akcje gry, takie jak ruchy szachowe.
 
+  Playground przechowuje zwięzłe wyniki meczów powiązane z wygenerowanymi tożsamościami graczy Playground, aby udostępniać statystyki graczy. Zapisane wyniki mogą obejmować wersję gry, czas rozpoczęcia i zakończenia, wynik i powód zakończenia, role uczestników oraz niewielkie liczniki specyficzne dla gry, takie jak ruchy, odpowiedzi, czas odpowiedzi, zdobyte nagrody, strzały, trafienia, obrażenia, życia, nokauty i punkty. Nie obejmują nazw wyświetlanych ani awatarów YouTube, tekstu czatu na żywo, treści pytań trivia ani pełnego stanu gry.
+
   Playground nie wysyła tekstu czatu na żywo, Twojej nazwy wyświetlanej YouTube, URL awatara YouTube, plików cookie YouTube ani danych logowania YouTube na serwer gier Playground.
 
   Oddzielnie generowanie pytań HELP-A-FRIEND! Trivia może wysyłać wybrane fragmenty publicznych transkrypcji wideo YouTube i identyfikatory gry na serwer gier Playground. Te fragmenty pochodzą z transkrypcji wideo, a nie z czatu na żywo. Serwer używa OpenAI do generowania pytań trivia z tych fragmentów.
@@ -81,6 +83,8 @@ Gdy funkcje tłumaczenia lub Playground są włączone i używane, dane mogą by
 Możesz wyczyścić dane rozszerzenia z popupu rozszerzenia, używając przycisku resetowania. Czyści to lokalne dane rozszerzenia i zsynchronizowane ustawienia rozszerzenia, a następnie przywraca ustawienia domyślne.
 
 Możesz także usunąć rozszerzenie z przeglądarki. W zależności od przeglądarki usunięcie rozszerzenia może też usunąć jego lokalną pamięć.
+
+Zresetowanie lub usunięcie rozszerzenia samo w sobie nie usuwa wyników meczów zapisanych wcześniej przez Playground.
 
 ## Czego Chat Enhancer nie robi
 

@@ -6,7 +6,7 @@ description: "Chat Enhancer for YouTube yerel depolamayı, çeviriyi, Playground
 
 # Gizlilik
 
-Son güncelleme: 21 Haziran 2026
+Son güncelleme: 24 Temmuz 2026
 
 Chat Enhancer for YouTube, YouTube canlı sohbeti için bir tarayıcı uzantısıdır. YouTube sohbetinin yerini almadan veya analitik toplamadan küçük sohbet özellikleri eklemek için tasarlanmıştır.
 
@@ -68,6 +68,8 @@ Sohbet çevirisi, taslak çevirisi ve Playground oyunları varsayılan olarak ka
 
   Playground mesajları YouTube stream veya video tanımlayıcısını, oluşturulan Playground oyuncu kimliğinizi, oluşturulan oyuncu adınızı, mevcut oyun listenizi, davetleri ve davet yanıtlarını, satranç hamleleri gibi oyun eylemlerini içerebilir.
 
+  Playground, oyuncu istatistikleri sunabilmek için oluşturulan Playground oyuncu kimliklerine bağlı, özet maç sonuçlarını saklar. Saklanan sonuçlar oyun sürümünü, başlangıç ve bitiş zamanlarını, sonucu ve bitiş nedenini, katılımcı rollerini ve hamleler, yanıtlar, yanıt süreleri, alınan ödüller, atışlar, isabetler, hasar, canlar, nakavtlar ve skorlar gibi oyuna özgü küçük sayaçları içerebilir. YouTube görünen adlarını veya avatarlarını, canlı sohbet metnini, trivia soru içeriğini ya da oyunun tam durumunu içermez.
+
   Playground canlı sohbet mesajı metnini, YouTube görünen adınızı, YouTube avatar URL’nizi, YouTube cookies veya YouTube credentials’ınızı Playground oyun sunucusuna göndermez.
 
   Ayrı olarak HELP-A-FRIEND! Trivia soru üretimi, seçilen herkese açık YouTube video transcript parçalarını ve oyun tanımlayıcılarını Playground oyun sunucusuna gönderebilir. Bu parçalar canlı sohbetten değil, videonun transcript’inden gelir. Sunucu, bu parçalardan trivia soruları üretmek için OpenAI kullanır.
@@ -81,6 +83,8 @@ Sohbet çevirisi, taslak çevirisi ve Playground oyunları varsayılan olarak ka
 Uzantı verilerini uzantı popup’ındaki sıfırlama düğmesini kullanarak temizleyebilirsiniz. Bu, yerel uzantı verilerini ve senkronize uzantı ayarlarını temizler, ardından varsayılan ayarları geri yükler.
 
 Uzantıyı tarayıcınızdan da kaldırabilirsiniz. Tarayıcıya bağlı olarak uzantıyı kaldırmak yerel uzantı depolamasını da kaldırabilir.
+
+Uzantıyı sıfırlamak veya kaldırmak, Playground tarafından daha önce saklanan maç sonuçlarını tek başına silmez.
 
 ## Chat Enhancer’ın yapmadıkları
 

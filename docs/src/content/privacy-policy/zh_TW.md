@@ -6,7 +6,7 @@ description: "Chat Enhancer for YouTube 如何處理本機儲存、翻譯、Play
 
 # 隱私權
 
-最後更新：2026 年 6 月 21 日
+最後更新：2026 年 7 月 24 日
 
 Chat Enhancer for YouTube 是一款用於 YouTube 即時聊天室的瀏覽器擴充功能。它旨在為聊天室加入小功能，而不是取代 YouTube 聊天或收集分析資料。
 
@@ -68,6 +68,8 @@ Chat Enhancer for YouTube 是一款用於 YouTube 即時聊天室的瀏覽器擴
 
   Playground 訊息可能包括 YouTube 直播或影片識別碼、你產生的 Playground 玩家身分、你產生的玩家名稱、你的可用遊戲清單、邀請和邀請回覆，以及棋步等遊戲動作。
 
+  為提供玩家統計資料，Playground 會儲存與產生的 Playground 玩家身分相關聯的精簡比賽結果。儲存的結果可能包括遊戲版本、開始與結束時間、比賽結果與結束原因、參與者角色，以及走棋、作答、回應時間、領取懸賞、射擊、命中、傷害、生命、擊倒和分數等少量遊戲專屬計數。這些結果不包括 YouTube 顯示名稱或頭像、即時聊天文字、trivia 問題內容或完整遊戲狀態。
+
   Playground 不會將即時聊天訊息文字、你的 YouTube 顯示名稱、你的 YouTube 頭像 URL、YouTube cookie 或 YouTube 憑證傳送到 Playground 遊戲伺服器。
 
   另外，HELP-A-FRIEND! Trivia 問題生成可能會將選定的公開 YouTube 影片逐字稿摘錄和遊戲識別碼傳送到 Playground 遊戲伺服器。這些摘錄來自影片逐字稿，而不是即時聊天室。伺服器使用 OpenAI 從這些摘錄生成 trivia 問題。
@@ -81,6 +83,8 @@ Chat Enhancer for YouTube 是一款用於 YouTube 即時聊天室的瀏覽器擴
 你可以使用擴充功能彈出視窗中的重設按鈕清除擴充功能資料。這會清除本機擴充功能資料和同步的擴充功能設定，然後還原預設設定。
 
 你也可以從瀏覽器移除擴充功能。視瀏覽器而定，移除擴充功能也可能會刪除其本機擴充功能儲存空間。
+
+重設或移除擴充功能本身不會刪除 Playground 已儲存的比賽結果。
 
 ## Chat Enhancer 不會做的事
 

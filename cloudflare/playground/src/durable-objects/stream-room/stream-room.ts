@@ -840,15 +840,16 @@ function getProtocolLogEvent(code: string): string {
 
 function createCompletedPlayerMatchResult(game: GameRecord): PlayerMatchResultInput {
   const gameModule = getGameModuleForRecord(game);
+  const result = gameModule.getMatchResult(game);
   const finishedAt = game.finishedAt;
   if (finishedAt === undefined) {
     throw new Error('Cannot record a match without a finish timestamp.');
   }
 
   return {
+    ...result,
     abandonedByUserId: null,
     finishedAt,
-    finishReason: game.status,
     gameType: game.gameType,
     gameVersion: game.gameVersion,
     matchId: game.gameId,
@@ -862,14 +863,17 @@ function createAbandonedPlayerMatchResult(
   game: GameRecord,
   abandonedByUserId: string
 ): PlayerMatchResultInput {
+  const gameModule = getGameModuleForRecord(game);
+  const result = gameModule.getMatchResult(game);
   return {
+    ...result,
     abandonedByUserId,
     finishedAt: Date.now(),
     finishReason: 'playerLeft',
     gameType: game.gameType,
     gameVersion: game.gameVersion,
     matchId: game.gameId,
-    participantUserIds: getGameModuleForRecord(game).getRecipientUserIds(game),
+    participantUserIds: gameModule.getRecipientUserIds(game),
     startedAt: game.startedAt,
     winnerUserId: null
   };

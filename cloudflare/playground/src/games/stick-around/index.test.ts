@@ -4,6 +4,7 @@ import {
   applyStickAroundInput,
   createStickAroundGame,
   finishStickAroundRound,
+  getStickAroundMatchResult,
   observeStickAroundChatTraffic,
   readyStickAroundPlayer,
   startStickAroundRound,
@@ -258,6 +259,60 @@ describe('playground Stick Around game rules', () => {
     });
   });
 
+  it('collects combat metrics with the server finish reason', () => {
+    let game = startActiveGame();
+    if (!game.simulation) throw new Error('Expected an active server simulation.');
+    game.simulation.hazardsSpawned = 3;
+    game.simulation.resultStatsByUserId = {
+      'guest-user': {
+        bubbleHitsTaken: 1,
+        damageDealt: 7.25,
+        damageTaken: 12.5,
+        fighterHitsDealt: 1,
+        fighterHitsTaken: 2,
+        knockouts: 0,
+        stocksLost: 2
+      },
+      'host-user': {
+        bubbleHitsTaken: 0,
+        damageDealt: 12.5,
+        damageTaken: 7.25,
+        fighterHitsDealt: 2,
+        fighterHitsTaken: 1,
+        knockouts: 2,
+        stocksLost: 0
+      }
+    };
+    game = timeoutStickAroundRound(game, 'guest-user', 6_000);
+
+    expect(getStickAroundMatchResult(game)).toEqual({
+      finishReason: 'playerTimedOut',
+      summary: {
+        guest: {
+          bubbleHitsTaken: 1,
+          damageDealt: 7.25,
+          damageTaken: 12.5,
+          fighterHitsDealt: 1,
+          fighterHitsTaken: 2,
+          knockouts: 0,
+          stocksLost: 2,
+          userId: 'guest-user'
+        },
+        hazardsSpawned: 3,
+        host: {
+          bubbleHitsTaken: 0,
+          damageDealt: 12.5,
+          damageTaken: 7.25,
+          fighterHitsDealt: 2,
+          fighterHitsTaken: 1,
+          knockouts: 2,
+          stocksLost: 0,
+          userId: 'host-user'
+        }
+      }
+    });
+  });
+
   it('keeps public fighter labels in authoritative simulation snapshots', () => {
     const game = startActiveGame();
 
@@ -268,6 +323,8 @@ describe('playground Stick Around game rules', () => {
 
     expect(publicGame.simulation?.fighters['host-user'].label).toBe('Host name');
     expect(publicGame.simulation?.fighters['guest-user'].label).toBe('Guest name');
+    expect(publicGame.simulation).not.toHaveProperty('hazardsSpawned');
+    expect(publicGame.simulation).not.toHaveProperty('resultStatsByUserId');
   });
 
   it('drops spawned hazard ids after their capped hazard records roll out', () => {

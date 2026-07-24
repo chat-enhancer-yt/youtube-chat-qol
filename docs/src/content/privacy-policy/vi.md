@@ -6,7 +6,7 @@ description: "Cách Chat Enhancer for YouTube xử lý lưu trữ cục bộ, b�
 
 # Quyền riêng tư
 
-Cập nhật lần cuối: ngày 21 tháng 6 năm 2026
+Cập nhật lần cuối: ngày 24 tháng 7 năm 2026
 
 Chat Enhancer for YouTube là tiện ích trình duyệt dành cho live chat YouTube. Tiện ích được thiết kế để thêm các tính năng chat nhỏ mà không thay thế chat YouTube hoặc thu thập phân tích.
 
@@ -68,6 +68,8 @@ Khi các tính năng dịch hoặc Playground được bật và sử dụng, d�
 
   Tin nhắn Playground có thể bao gồm mã định danh stream hoặc video YouTube, danh tính người chơi Playground được tạo của bạn, tên người chơi được tạo của bạn, danh sách trò chơi có sẵn, lời mời và phản hồi lời mời, và hành động trò chơi như nước đi cờ vua.
 
+  Playground lưu trữ kết quả trận đấu gọn nhẹ được liên kết với danh tính người chơi Playground đã tạo để cung cấp số liệu thống kê người chơi. Kết quả được lưu có thể gồm phiên bản trò chơi, thời gian bắt đầu và kết thúc, kết quả và lý do kết thúc, vai trò người tham gia, cùng các bộ đếm nhỏ dành riêng cho trò chơi như nước đi, câu trả lời, thời gian phản hồi, tiền thưởng nhận được, lượt bắn, cú đánh, sát thương, mạng, hạ gục và điểm số. Chúng không gồm tên hiển thị hoặc avatar YouTube, văn bản live chat, nội dung câu hỏi trivia hay toàn bộ trạng thái trò chơi.
+
   Playground không gửi văn bản live chat, tên hiển thị YouTube của bạn, URL avatar YouTube của bạn, cookie YouTube hoặc thông tin xác thực YouTube đến máy chủ trò chơi Playground.
 
   Riêng việc tạo câu hỏi HELP-A-FRIEND! Trivia có thể gửi các đoạn trích bản chép lời video YouTube công khai được chọn và mã định danh trò chơi đến máy chủ trò chơi Playground. Các đoạn trích này đến từ bản chép lời của video, không phải từ live chat. Máy chủ dùng OpenAI để tạo câu hỏi trivia từ các đoạn trích đó.
@@ -81,6 +83,8 @@ Khi các tính năng dịch hoặc Playground được bật và sử dụng, d�
 Bạn có thể xóa dữ liệu tiện ích từ popup tiện ích bằng nút đặt lại. Thao tác này xóa dữ liệu tiện ích cục bộ và cài đặt tiện ích đã đồng bộ, sau đó khôi phục cài đặt mặc định.
 
 Bạn cũng có thể gỡ tiện ích khỏi trình duyệt. Tùy trình duyệt, việc gỡ tiện ích cũng có thể xóa bộ nhớ cục bộ của tiện ích.
+
+Việc đặt lại hoặc gỡ tiện ích không tự động xóa các kết quả trận đấu mà Playground đã lưu trước đó.
 
 ## Những gì Chat Enhancer không làm
 

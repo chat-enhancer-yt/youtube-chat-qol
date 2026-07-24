@@ -6,7 +6,7 @@ description: "Comment Chat Enhancer for YouTube gère le stockage local, la trad
 
 # Politique de confidentialité
 
-Dernière mise à jour : 21 juin 2026
+Dernière mise à jour : 24 juillet 2026
 
 Chat Enhancer for YouTube est une extension de navigateur pour le chat en direct YouTube. Elle est conçue pour ajouter de petites fonctions au chat sans remplacer le chat YouTube ni collecter d’analyses.
 
@@ -68,6 +68,8 @@ Lorsque la traduction ou les fonctions Playground sont activées et utilisées, 
 
   Les messages Playground peuvent inclure l’identifiant du stream ou de la vidéo YouTube, votre identité de joueur Playground générée, votre nom de joueur généré, votre liste de jeux disponibles, les invitations et réponses aux invitations, ainsi que des actions de jeu comme les coups d’échecs.
 
+  Playground stocke des résultats de partie compacts liés aux identités de joueur Playground générées afin de fournir des statistiques de joueur. Les résultats stockés peuvent inclure la version du jeu, les heures de début et de fin, le résultat et le motif de fin, les rôles des participants et de petits compteurs propres au jeu, tels que les coups, les réponses, les temps de réponse, les primes réclamées, les tirs, les impacts, les dégâts, les vies, les K.-O. et les scores. Ils n’incluent pas les noms d’affichage ou avatars YouTube, le texte du chat en direct, le contenu des questions de trivia ni l’état complet de la partie.
+
   Playground n’envoie pas au serveur de jeu Playground le texte du chat en direct, votre nom d’affichage YouTube, l’URL de votre avatar YouTube, vos cookies YouTube ni vos identifiants YouTube.
 
   Séparément, la génération de questions HELP-A-FRIEND! Trivia peut envoyer des extraits sélectionnés de transcripts publics de vidéos YouTube et des identifiants de jeu au serveur de jeu Playground. Ces extraits proviennent du transcript de la vidéo, pas du chat en direct. Le serveur utilise OpenAI pour générer des questions de trivia à partir de ces extraits.
@@ -81,6 +83,8 @@ Lorsque la traduction ou les fonctions Playground sont activées et utilisées, 
 Vous pouvez effacer les données de l’extension depuis le popup de l’extension avec le bouton de réinitialisation. Cela efface les données locales et les paramètres synchronisés de l’extension, puis restaure les paramètres par défaut.
 
 Vous pouvez également supprimer l’extension de votre navigateur. Selon le navigateur, supprimer l’extension peut aussi supprimer son stockage local.
+
+La réinitialisation ou la suppression de l’extension ne supprime pas à elle seule les résultats de partie déjà stockés par Playground.
 
 ## Ce que Chat Enhancer ne fait pas
 

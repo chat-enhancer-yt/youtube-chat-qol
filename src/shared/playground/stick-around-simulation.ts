@@ -68,15 +68,33 @@ export type StickAroundBubble = Omit<StickAroundBubbleSnapshot, 'hitUserIds'> & 
 
 export type StickAroundParticle = StickAroundParticleSnapshot;
 
+export interface StickAroundPlayerResultStats {
+  bubbleHitsTaken: number;
+  damageDealt: number;
+  damageTaken: number;
+  fighterHitsDealt: number;
+  fighterHitsTaken: number;
+  knockouts: number;
+  lastOpponentHitByUserId?: string;
+  stocksLost: number;
+}
+
+export interface StickAroundTrackedSimulationSnapshot extends StickAroundSimulationSnapshot {
+  hazardsSpawned?: number;
+  resultStatsByUserId?: Record<string, StickAroundPlayerResultStats>;
+}
+
 export interface StickAroundSimulation {
   bubbles: StickAroundBubble[];
   flash: number;
   fighters: Record<string, StickAroundFighter>;
   frame: number;
+  hazardsSpawned: number;
   height: number;
   lastTime: number;
   particles: StickAroundParticle[];
   platforms: StickAroundPlatform[];
+  resultStatsByUserId: Record<string, StickAroundPlayerResultStats>;
   roundSeed: number;
   shake: number;
   spawnedHazardIds: Set<string>;
@@ -102,10 +120,15 @@ export function createStickAroundSimulation(
       [game.players.guest.userId]: createFighter(game.players.guest, 'guest', width * 0.76, height, now)
     },
     frame: 0,
+    hazardsSpawned: 0,
     height,
     lastTime: now,
     particles: [],
     platforms: createPlatforms(width, height, game.roundSeed),
+    resultStatsByUserId: {
+      [game.players.guest.userId]: createEmptyStickAroundPlayerResultStats(),
+      [game.players.host.userId]: createEmptyStickAroundPlayerResultStats()
+    },
     roundSeed: game.roundSeed,
     shake: 0,
     spawnedHazardIds: new Set<string>(),
@@ -131,7 +154,7 @@ export function getStickAroundArenaDimensions(
 }
 
 export function hydrateStickAroundSimulationSnapshot(
-  snapshot: StickAroundSimulationSnapshot
+  snapshot: StickAroundTrackedSimulationSnapshot
 ): StickAroundSimulation {
   return {
     ...snapshot,
@@ -139,13 +162,23 @@ export function hydrateStickAroundSimulationSnapshot(
       ...bubble,
       hitUserIds: new Set(bubble.hitUserIds)
     })),
+    hazardsSpawned: snapshot.hazardsSpawned || 0,
+    resultStatsByUserId: Object.fromEntries(
+      Object.keys(snapshot.fighters).map((userId) => [
+        userId,
+        {
+          ...createEmptyStickAroundPlayerResultStats(),
+          ...snapshot.resultStatsByUserId?.[userId]
+        }
+      ])
+    ),
     spawnedHazardIds: new Set(snapshot.spawnedHazardIds)
   };
 }
 
 export function serializeStickAroundSimulation(
   simulation: StickAroundSimulation
-): StickAroundSimulationSnapshot {
+): StickAroundTrackedSimulationSnapshot {
   return {
     bubbles: simulation.bubbles.map((bubble) => ({
       ...bubble,
@@ -157,10 +190,17 @@ export function serializeStickAroundSimulation(
     ])),
     flash: simulation.flash,
     frame: simulation.frame,
+    hazardsSpawned: simulation.hazardsSpawned,
     height: simulation.height,
     lastTime: simulation.lastTime,
     particles: simulation.particles.map((particle) => ({ ...particle })),
     platforms: simulation.platforms.map((platform) => ({ ...platform })),
+    resultStatsByUserId: Object.fromEntries(
+      Object.entries(simulation.resultStatsByUserId).map(([userId, stats]) => [
+        userId,
+        { ...stats }
+      ])
+    ),
     roundSeed: simulation.roundSeed,
     shake: simulation.shake,
     spawnedHazardIds: [...simulation.spawnedHazardIds],
@@ -170,17 +210,19 @@ export function serializeStickAroundSimulation(
 
 export function replaceStickAroundSimulation(
   target: StickAroundSimulation,
-  snapshot: StickAroundSimulationSnapshot
+  snapshot: StickAroundTrackedSimulationSnapshot
 ): void {
   const next = hydrateStickAroundSimulationSnapshot(snapshot);
   target.bubbles = next.bubbles;
   target.flash = next.flash;
   target.fighters = next.fighters;
   target.frame = next.frame;
+  target.hazardsSpawned = next.hazardsSpawned;
   target.height = next.height;
   target.lastTime = next.lastTime;
   target.particles = next.particles;
   target.platforms = next.platforms;
+  target.resultStatsByUserId = next.resultStatsByUserId;
   target.roundSeed = next.roundSeed;
   target.shake = next.shake;
   target.spawnedHazardIds = next.spawnedHazardIds;
@@ -395,6 +437,18 @@ function createFighter(
   };
 }
 
+export function createEmptyStickAroundPlayerResultStats(): StickAroundPlayerResultStats {
+  return {
+    bubbleHitsTaken: 0,
+    damageDealt: 0,
+    damageTaken: 0,
+    fighterHitsDealt: 0,
+    fighterHitsTaken: 0,
+    knockouts: 0,
+    stocksLost: 0
+  };
+}
+
 function ensureStickAroundFighters(simulation: StickAroundSimulation, game: PublicStickAroundGame, now: number): void {
   const players = [
     { player: game.players.host, role: 'host' as const, x: simulation.width * 0.24 },
@@ -402,6 +456,7 @@ function ensureStickAroundFighters(simulation: StickAroundSimulation, game: Publ
   ];
   players.forEach(({ player, role, x }) => {
     simulation.fighters[player.userId] ||= createFighter(player, role, x, simulation.height, now);
+    simulation.resultStatsByUserId[player.userId] ||= createEmptyStickAroundPlayerResultStats();
     const fighter = simulation.fighters[player.userId];
     fighter.label = player.displayName || fighter.label || 'Player';
   });
@@ -513,7 +568,7 @@ function applyStomp(
   attacker.collisionUntil = now + STOMP_COLLISION_COOLDOWN_MS;
   attacker.attackUntil = now + 220;
   const direction = attacker.x + FIGHTER_WIDTH / 2 < defender.x + FIGHTER_WIDTH / 2 ? 1 : -1;
-  applyDamage(simulation, defender, 11 + fallSpeed / 90, direction, now, '#ffd36b');
+  applyDamage(simulation, defender, 11 + fallSpeed / 90, direction, now, '#ffd36b', attacker);
 }
 
 function maybeApplyBumpAttack(
@@ -531,7 +586,15 @@ function maybeApplyBumpAttack(
   attacker.collisionUntil = now + SHOVE_COLLISION_COOLDOWN_MS;
   attacker.attackUntil = now + 200;
   attacker.vx *= SHOVE_RECOIL;
-  applyDamage(simulation, defender, 6 + shoveSpeed / 50, attacker.vx >= 0 ? 1 : -1, now, '#ffd36b');
+  applyDamage(
+    simulation,
+    defender,
+    6 + shoveSpeed / 50,
+    attacker.vx >= 0 ? 1 : -1,
+    now,
+    '#ffd36b',
+    attacker
+  );
 }
 
 function separateFighters(left: StickAroundFighter, right: StickAroundFighter): void {
@@ -604,6 +667,7 @@ function spawnStickAroundHazards(
   hazards.forEach((hazard) => {
     if (simulation.spawnedHazardIds.has(hazard.id) || hazard.spawnAt > now) return;
     simulation.spawnedHazardIds.add(hazard.id);
+    simulation.hazardsSpawned += 1;
     const random = createSeededRandom(hazard.seed);
     const text = getHazardText(hazard, messageTexts);
     const { height, width } = getBubbleSize(hazard, simulation.width);
@@ -670,9 +734,24 @@ function applyDamage(
   amount: number,
   direction: number,
   now: number,
-  color: string
+  color: string,
+  attacker?: StickAroundFighter
 ): boolean {
   if (fighter.invulnerableUntil > now) return false;
+  const defenderStats = simulation.resultStatsByUserId[fighter.userId] ||=
+    createEmptyStickAroundPlayerResultStats();
+  defenderStats.damageTaken += amount;
+  if (attacker) {
+    const attackerStats = simulation.resultStatsByUserId[attacker.userId] ||=
+      createEmptyStickAroundPlayerResultStats();
+    attackerStats.damageDealt += amount;
+    attackerStats.fighterHitsDealt += 1;
+    defenderStats.fighterHitsTaken += 1;
+    defenderStats.lastOpponentHitByUserId = attacker.userId;
+  } else {
+    defenderStats.bubbleHitsTaken += 1;
+    delete defenderStats.lastOpponentHitByUserId;
+  }
   fighter.damage += amount;
   fighter.hurtUntil = now + Math.min(780, 240 + fighter.damage * 4);
 
@@ -740,6 +819,15 @@ function loseStock(
 ): void {
   if (fighter.stocks <= 0) return;
   fighter.stocks -= 1;
+  const fighterStats = simulation.resultStatsByUserId[fighter.userId] ||=
+    createEmptyStickAroundPlayerResultStats();
+  fighterStats.stocksLost += 1;
+  if (fighterStats.lastOpponentHitByUserId) {
+    const attackerStats = simulation.resultStatsByUserId[fighterStats.lastOpponentHitByUserId] ||=
+      createEmptyStickAroundPlayerResultStats();
+    attackerStats.knockouts += 1;
+  }
+  delete fighterStats.lastOpponentHitByUserId;
   simulation.flash = Math.max(simulation.flash, 0.16);
   simulation.shake = Math.max(simulation.shake, 10);
   spawnParticles(

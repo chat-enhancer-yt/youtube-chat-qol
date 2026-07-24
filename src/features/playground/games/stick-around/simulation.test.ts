@@ -122,6 +122,7 @@ describe('Stick Around simulation', () => {
     ]), 1_000);
 
     expect(simulation.bubbles).toHaveLength(1);
+    expect(simulation.hazardsSpawned).toBe(1);
     expect(simulation.bubbles[0].text).toBe('hello from chat');
   });
 
@@ -180,6 +181,10 @@ describe('Stick Around simulation', () => {
     expect(simulation.flash).toBeGreaterThan(0);
     expect(simulation.particles.length).toBeGreaterThan(0);
     expect(simulation.shake).toBeGreaterThan(0);
+    expect(simulation.resultStatsByUserId['host-user']).toMatchObject({
+      bubbleHitsTaken: 1,
+      damageTaken: fighter.damage
+    });
   });
 
   it('lets invulnerable fighters get hit by overlapping bubbles after invulnerability ends', () => {
@@ -242,6 +247,23 @@ describe('Stick Around simulation', () => {
     expect(defender.vy).toBeLessThan(0);
     expect(attacker.vx).toBeLessThan(150);
     expect(attacker.x + 30).toBeLessThanOrEqual(defender.x);
+    expect(simulation.resultStatsByUserId['host-user']).toMatchObject({
+      damageDealt: defender.damage,
+      fighterHitsDealt: 1
+    });
+    expect(simulation.resultStatsByUserId['guest-user']).toMatchObject({
+      damageTaken: defender.damage,
+      fighterHitsTaken: 1
+    });
+
+    defender.stocks = 1;
+    defender.grounded = false;
+    defender.x = -110;
+    defender.y = 999;
+    stepStickAroundSimulation(simulation, game, {}, new Map(), 2_016);
+
+    expect(simulation.resultStatsByUserId['host-user'].knockouts).toBe(1);
+    expect(simulation.resultStatsByUserId['guest-user'].stocksLost).toBe(1);
   });
 
   it('does not spam contact hits while fighters remain overlapped', () => {

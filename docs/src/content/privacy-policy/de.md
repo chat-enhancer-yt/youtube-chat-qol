@@ -6,7 +6,7 @@ description: "Wie Chat Enhancer for YouTube lokale Speicherung, Übersetzung, Pl
 
 # Datenschutzerklärung
 
-Zuletzt aktualisiert: 21. Juni 2026
+Zuletzt aktualisiert: 24. Juli 2026
 
 Chat Enhancer for YouTube ist eine Browsererweiterung für den YouTube-Livechat. Sie soll kleine Chatfunktionen hinzufügen, ohne den YouTube-Chat zu ersetzen oder Analysedaten zu sammeln.
 
@@ -68,6 +68,8 @@ Wenn Übersetzung oder Playground-Funktionen aktiviert und verwendet werden, kö
 
   Playground-Nachrichten können die YouTube-Stream- oder Video-ID, deine generierte Playground-Spieleridentität, deinen generierten Spielernamen, deine Liste verfügbarer Spiele, Einladungen und Einladungsantworten sowie Spielaktionen wie Schachzüge enthalten.
 
+  Playground speichert kompakte Spielergebnisse, die mit generierten Playground-Spieleridentitäten verknüpft sind, um Spielerstatistiken bereitzustellen. Gespeicherte Ergebnisse können die Spielversion, Start- und Endzeiten, Ergebnis und Abschlussgrund, Teilnehmerrollen sowie kleine spielspezifische Zähler wie Züge, Antworten, Antwortzeiten, Claims, Schüsse, Treffer, Schaden, Leben, K.-o.-Erfolge und Punkte enthalten. Sie enthalten keine YouTube-Anzeigenamen oder -Avatare, keinen Livechat-Text, keine Inhalte von Trivia-Fragen und keinen vollständigen Spielzustand.
+
   Playground sendet keinen Livechat-Nachrichtentext, deinen YouTube-Anzeigenamen, deine YouTube-Avatar-URL, YouTube-Cookies oder YouTube-Anmeldedaten an den Playground-Spielserver.
 
   Separat kann die Generierung von HELP-A-FRIEND! Trivia-Fragen ausgewählte öffentliche YouTube-Videotranskriptausschnitte und Spielkennungen an den Playground-Spielserver senden. Diese Ausschnitte stammen aus dem Transkript des Videos, nicht aus dem Livechat. Der Server verwendet OpenAI, um aus diesen Ausschnitten Trivia-Fragen zu generieren.
@@ -81,6 +83,8 @@ Wenn Übersetzung oder Playground-Funktionen aktiviert und verwendet werden, kö
 Du kannst Erweiterungsdaten über die Erweiterungspopup mit der Zurücksetzen-Schaltfläche löschen. Dadurch werden lokale Erweiterungsdaten und synchronisierte Erweiterungseinstellungen gelöscht und anschließend die Standardeinstellungen wiederhergestellt.
 
 Du kannst die Erweiterung auch aus deinem Browser entfernen. Je nach Browser kann das Entfernen der Erweiterung auch ihren lokalen Erweiterungsspeicher löschen.
+
+Das Zurücksetzen oder Entfernen der Erweiterung löscht nicht automatisch Spielergebnisse, die bereits von Playground gespeichert wurden.
 
 ## Was Chat Enhancer nicht tut
 

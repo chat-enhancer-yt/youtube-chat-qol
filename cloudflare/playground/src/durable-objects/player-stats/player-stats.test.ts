@@ -139,6 +139,20 @@ describe('playground player stats', () => {
       outcome: 'loss',
       user_id: 'server:computer:chess:master'
     }]);
+    const storedSummary = storage.fakeSql.query<{ summary: string }>(`
+      SELECT summary
+      FROM matches_v1
+      WHERE match_id = ?
+    `, 'match-chess-win')[0]?.summary;
+    expect(JSON.parse(storedSummary || '')).toEqual({
+      plyCount: 12
+    });
+    expect(storage.fakeSql.query<{ name: string }>(`
+      SELECT name
+      FROM sqlite_schema
+      WHERE type = 'table'
+        AND name IN ('match_metrics_v1', 'participant_metrics_v1')
+    `)).toEqual([]);
   });
 
   it('treats repeated match receipts as idempotent and rejects conflicting results', async () => {
@@ -148,11 +162,42 @@ describe('playground player stats', () => {
     const match = createMatch({
       matchId: 'match-idempotent',
       participantUserIds: ['user-1', 'server:computer:chess:club'],
+      summary: {
+        plyCount: 12,
+        players: {
+          black: {
+            actions: 2,
+            captures: 1
+          },
+          white: {
+            actions: 1,
+            captures: 0
+          }
+        },
+        turnCount: 6
+      },
       winnerUserId: 'user-1'
     });
 
     const first = await recordMatch(stats, match);
-    const repeated = await recordMatch(stats, match);
+    const repeated = await recordMatch(stats, {
+      ...match,
+      participantUserIds: [...match.participantUserIds].reverse(),
+      summary: {
+        turnCount: 6,
+        players: {
+          white: {
+            captures: 0,
+            actions: 1
+          },
+          black: {
+            captures: 1,
+            actions: 2
+          }
+        },
+        plyCount: 12
+      }
+    });
     const conflict = await readError(recordMatch(stats, {
       ...match,
       winnerUserId: 'server:computer:chess:club'
@@ -160,6 +205,13 @@ describe('playground player stats', () => {
     const timestampConflict = await readError(recordMatch(stats, {
       ...match,
       finishedAt: match.finishedAt + 1
+    }));
+    const summaryConflict = await readError(recordMatch(stats, {
+      ...match,
+      summary: {
+        ...match.summary,
+        plyCount: 13
+      }
     }));
 
     await expect(first.json()).resolves.toMatchObject({
@@ -183,6 +235,14 @@ describe('playground player stats', () => {
       status: 409
     });
     expect(timestampConflict).toMatchObject({
+      body: {
+        error: {
+          code: 'match_conflict'
+        }
+      },
+      status: 409
+    });
+    expect(summaryConflict).toMatchObject({
       body: {
         error: {
           code: 'match_conflict'
@@ -349,10 +409,27 @@ describe('playground player stats', () => {
     const multiplayerResponse = await recordMatch(stats, {
       ...createMatch(),
       matchId: 'match-many-participants',
-      participantUserIds: Array.from({ length: 12 }, (_, index) => `user-${index + 1}`),
+      participantUserIds: Array.from({ length: 20 }, (_, index) => `user-${index + 1}`),
+      summary: {
+        nested: {
+          labels: ['anything', 'the game', 'needs'],
+          scoreDelta: -4
+        }
+      },
       winnerUserId: 'user-1'
     });
     expect(multiplayerResponse.status).toBe(200);
+    await expect(readError(recordMatch(stats, {
+      ...createMatch(),
+      summary: [] as unknown as PlayerMatchResultInput['summary']
+    }))).resolves.toMatchObject({
+      status: 400,
+      body: {
+        error: {
+          code: 'invalid_request'
+        }
+      }
+    });
     await expect(readError(stats.fetch(new Request(
       'https://player-stats.test/internal/player-stats/user?userId='
     )))).resolves.toMatchObject({
@@ -532,6 +609,9 @@ function createMatch(overrides: Partial<PlayerMatchResultInput> = {}): PlayerMat
     matchId: 'match-default',
     participantUserIds: ['user-1', 'user-2'],
     startedAt: 1_000,
+    summary: {
+      plyCount: 12
+    },
     winnerUserId: 'user-1',
     ...overrides
   };

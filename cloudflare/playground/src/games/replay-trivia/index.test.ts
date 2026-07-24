@@ -5,6 +5,7 @@ import {
   advanceReplayTriviaGame,
   answerReplayTriviaQuestion,
   createReplayTriviaGame,
+  getReplayTriviaMatchResult,
   replayTriviaGameModule,
   submitReplayTriviaQuestions,
   timeoutReplayTriviaQuestion,
@@ -218,6 +219,28 @@ describe('playground replay trivia game rules', () => {
     game = advanceReplayTriviaGame(game, createReplayTriviaAction(game, 'advance'), 19_200);
     game = advanceReplayTriviaGame(game, createReplayTriviaAction(game, 'advance'), 21_400);
     expect(game.status).toBe('finished');
+    expect(getReplayTriviaMatchResult(game)).toEqual({
+      finishReason: 'questionsCompleted',
+      summary: {
+        guest: {
+          bestStreak: 0,
+          correct: 0,
+          incorrect: 0,
+          responseTimeMsTotal: 0,
+          unanswered: 1,
+          userId: 'guest-user'
+        },
+        host: {
+          bestStreak: 1,
+          correct: 1,
+          incorrect: 0,
+          responseTimeMsTotal: 1_000,
+          unanswered: 0,
+          userId: 'host-user'
+        },
+        questionCount: 1
+      }
+    });
 
     const publicGame = toPublicReplayTriviaGame(game, (userId) => ({ displayName: userId, userId }));
     expect(publicGame.winnerUserId).toBe('host-user');

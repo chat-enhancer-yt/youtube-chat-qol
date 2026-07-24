@@ -1,6 +1,6 @@
 # Privacy
 
-Last updated: June 21, 2026
+Last updated: July 24, 2026
 
 Chat Enhancer for YouTube is a browser extension for YouTube live chat. It is designed to add small chat features without replacing YouTube chat or collecting analytics.
 
@@ -62,6 +62,8 @@ When translation or Playground features are enabled and used, data may be sent t
 
   Playground messages may include the YouTube stream or video identifier, your generated Playground player identity, your generated player name, your available game list, invites and invite responses, and game actions such as chess moves.
 
+  Playground stores compact match results linked to generated Playground player identities so it can provide player statistics. Stored results may include the game version, start and finish times, the outcome and finish reason, participant roles, and small game-specific counters such as moves, answers, response times, claims, shots, hits, damage, stocks, knockouts, and scores. They do not include YouTube display names or avatars, live chat text, trivia question content, or complete game state.
+
   Playground does not send live chat message text, your YouTube display name, your YouTube avatar URL, YouTube cookies, or YouTube credentials to the Playground game server.
 
   Separately, HELP-A-FRIEND! Trivia question generation may send selected public YouTube video transcript excerpts and game identifiers to the Playground game server. These excerpts come from the video's transcript, not from live chat. The server uses OpenAI to generate trivia questions from those excerpts.
@@ -75,6 +77,8 @@ When translation or Playground features are enabled and used, data may be sent t
 You can clear extension data from the extension popup by using the reset button. This clears local extension data and synced extension settings, then restores the default settings.
 
 You can also remove the extension from your browser. Depending on the browser, removing the extension may also remove its local extension storage.
+
+Resetting or removing the extension does not by itself delete match results already stored by Playground.
 
 ## What Chat Enhancer does not do
 

@@ -20,7 +20,13 @@ import {
   type ReplayTriviaPublicQuestion,
   type ReplayTriviaQuestion
 } from '../../../../../src/shared/playground/trivia';
-import type { GameActionInput, GameModule, GameRecord, PublicGameContext } from '../types';
+import type {
+  GameActionInput,
+  GameModule,
+  GameRecord,
+  GameResult,
+  PublicGameContext
+} from '../types';
 
 type PlayerRole = 'guest' | 'host';
 
@@ -64,7 +70,19 @@ const ReplayTriviaStoredQuestionSchema = z.strictObject({
   rightReply: z.string().min(1),
   wrongReply: z.string().min(1)
 });
+const ReplayTriviaResultStatsSchema = z.strictObject({
+  bestStreak: z.number().int().nonnegative(),
+  correct: z.number().int().nonnegative(),
+  currentStreak: z.number().int().nonnegative(),
+  incorrect: z.number().int().nonnegative(),
+  responseTimeMsTotal: z.number().int().nonnegative(),
+  unanswered: z.number().int().nonnegative()
+});
 const ReplayTriviaGameRecordSchema = z.strictObject({
+  answerSubmittedAtByUserId: z.record(
+    z.string(),
+    z.number().int().nonnegative()
+  ).optional(),
   answers: z.record(z.string(), ReplayTriviaChoiceSchema.nullable().optional()),
   currentQuestionIndex: z.number().int().nonnegative(),
   finishedAt: z.number().int().nonnegative().optional(),
@@ -78,6 +96,10 @@ const ReplayTriviaGameRecordSchema = z.strictObject({
   }),
   questionProviderUserId: z.string().min(1),
   questions: z.array(ReplayTriviaStoredQuestionSchema).max(MAX_QUESTIONS),
+  resultStatsByUserId: z.record(
+    z.string(),
+    ReplayTriviaResultStatsSchema
+  ).optional(),
   scoredQuestionIndexes: z.array(z.number().int().nonnegative()).max(MAX_QUESTIONS),
   scores: z.strictObject({
     guest: z.number().int().nonnegative(),
@@ -88,6 +110,7 @@ const ReplayTriviaGameRecordSchema = z.strictObject({
 });
 
 type ChoiceIndex = z.infer<typeof ReplayTriviaChoiceSchema>;
+type ReplayTriviaResultStats = z.infer<typeof ReplayTriviaResultStatsSchema>;
 type ReplayTriviaStoredQuestionLocalization = z.infer<
   typeof ReplayTriviaStoredQuestionLocalizationSchema
 >;
@@ -143,6 +166,9 @@ export const replayTriviaGameModule: GameModule = {
   createGame(gameId, playerUserIds) {
     return createReplayTriviaGame(gameId, playerUserIds[0], playerUserIds[1]);
   },
+  getMatchResult(game) {
+    return getReplayTriviaMatchResult(assertReplayTriviaGame(game));
+  },
   getRecipientUserIds(game) {
     const triviaGame = assertReplayTriviaGame(game);
     return [triviaGame.players.host, triviaGame.players.guest];
@@ -172,6 +198,7 @@ export function createReplayTriviaGame(
   now = Date.now()
 ): ReplayTriviaGameRecord {
   return {
+    answerSubmittedAtByUserId: {},
     answers: {},
     currentQuestionIndex: 0,
     gameId,
@@ -184,6 +211,7 @@ export function createReplayTriviaGame(
     },
     questionProviderUserId: hostUserId,
     questions: [],
+    resultStatsByUserId: createReplayTriviaResultStatsByUserId(hostUserId, guestUserId),
     scoredQuestionIndexes: [],
     scores: {
       guest: 0,
@@ -204,10 +232,15 @@ export function submitReplayTriviaQuestions(
   const questions = parseQuestionPack(input.payload?.questions);
   return {
     ...game,
+    answerSubmittedAtByUserId: {},
     answers: {},
     currentQuestionIndex: 0,
     phaseStartedAt: now,
     questions,
+    resultStatsByUserId: createReplayTriviaResultStatsByUserId(
+      game.players.host,
+      game.players.guest
+    ),
     scoredQuestionIndexes: [],
     status: 'countdown'
   };
@@ -237,6 +270,10 @@ export function answerReplayTriviaQuestion(
   const choiceIndex = parseChoiceIndex(input.payload?.choiceIndex);
   const nextGame = {
     ...game,
+    answerSubmittedAtByUserId: {
+      ...game.answerSubmittedAtByUserId,
+      [input.userId]: now
+    },
     answers: {
       ...game.answers,
       [input.userId]: choiceIndex
@@ -275,6 +312,7 @@ export function advanceReplayTriviaGame(
       }
       return {
         ...game,
+        answerSubmittedAtByUserId: {},
         answers: {},
         phaseStartedAt: now,
         status: 'question'
@@ -301,6 +339,7 @@ export function advanceReplayTriviaGame(
       }
       return {
         ...game,
+        answerSubmittedAtByUserId: {},
         answers: {},
         currentQuestionIndex: game.currentQuestionIndex + 1,
         phaseStartedAt: now,
@@ -370,17 +409,95 @@ function revealReplayTriviaRound(game: ReplayTriviaGameRecord, now: number): Rep
 
   const question = getCurrentStoredQuestion(game);
   const scores = { ...game.scores };
+  const resultStatsByUserId = getReplayTriviaResultStatsByUserId(game);
   (['host', 'guest'] as const).forEach((role) => {
-    const answer = game.answers[game.players[role]];
-    if (answer === question.correctChoiceIndex) scores[role] += 1;
+    const userId = game.players[role];
+    const answer = game.answers[userId];
+    const previousStats = resultStatsByUserId[userId] || createEmptyReplayTriviaResultStats();
+    const answered = answer !== undefined && answer !== null;
+    const correct = answered && answer === question.correctChoiceIndex;
+    const currentStreak = correct ? previousStats.currentStreak + 1 : 0;
+    const submittedAt = game.answerSubmittedAtByUserId?.[userId];
+    const responseTimeMs = answered && submittedAt !== undefined
+      ? Math.max(0, submittedAt - game.phaseStartedAt)
+      : 0;
+    resultStatsByUserId[userId] = {
+      bestStreak: Math.max(previousStats.bestStreak, currentStreak),
+      correct: previousStats.correct + (correct ? 1 : 0),
+      currentStreak,
+      incorrect: previousStats.incorrect + (answered && !correct ? 1 : 0),
+      responseTimeMsTotal: previousStats.responseTimeMsTotal + responseTimeMs,
+      unanswered: previousStats.unanswered + (answered ? 0 : 1)
+    };
+    if (correct) scores[role] += 1;
   });
 
   return {
     ...game,
     phaseStartedAt: now,
+    resultStatsByUserId,
     scoredQuestionIndexes: [...game.scoredQuestionIndexes, game.currentQuestionIndex],
     scores,
     status: 'reveal'
+  };
+}
+
+export function getReplayTriviaMatchResult(game: ReplayTriviaGameRecord): GameResult {
+  const resultStatsByUserId = getReplayTriviaResultStatsByUserId(game);
+  const getPlayerSummary = (role: PlayerRole) => {
+    const userId = game.players[role];
+    const stats = resultStatsByUserId[userId] || createEmptyReplayTriviaResultStats();
+    return {
+      bestStreak: stats.bestStreak,
+      correct: stats.correct,
+      incorrect: stats.incorrect,
+      responseTimeMsTotal: stats.responseTimeMsTotal,
+      unanswered: stats.unanswered,
+      userId
+    };
+  };
+  return {
+    finishReason: game.status === 'finished' ? 'questionsCompleted' : game.status,
+    summary: {
+      guest: getPlayerSummary('guest'),
+      host: getPlayerSummary('host'),
+      questionCount: game.questions.length
+    }
+  };
+}
+
+function createReplayTriviaResultStatsByUserId(
+  hostUserId: string,
+  guestUserId: string
+): Record<string, ReplayTriviaResultStats> {
+  return {
+    [guestUserId]: createEmptyReplayTriviaResultStats(),
+    [hostUserId]: createEmptyReplayTriviaResultStats()
+  };
+}
+
+function getReplayTriviaResultStatsByUserId(
+  game: ReplayTriviaGameRecord
+): Record<string, ReplayTriviaResultStats> {
+  return Object.fromEntries(
+    [game.players.host, game.players.guest].map((userId) => [
+      userId,
+      {
+        ...createEmptyReplayTriviaResultStats(),
+        ...game.resultStatsByUserId?.[userId]
+      }
+    ])
+  );
+}
+
+function createEmptyReplayTriviaResultStats(): ReplayTriviaResultStats {
+  return {
+    bestStreak: 0,
+    correct: 0,
+    currentStreak: 0,
+    incorrect: 0,
+    responseTimeMsTotal: 0,
+    unanswered: 0
   };
 }
 

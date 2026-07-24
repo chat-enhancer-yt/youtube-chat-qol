@@ -6,7 +6,7 @@ description: "Cara Chat Enhancer for YouTube menangani penyimpanan lokal, terjem
 
 # Privasi
 
-Terakhir diperbarui: 21 Juni 2026
+Terakhir diperbarui: 24 Juli 2026
 
 Chat Enhancer for YouTube adalah ekstensi browser untuk live chat YouTube. Ekstensi ini dirancang untuk menambahkan fitur chat kecil tanpa menggantikan chat YouTube atau mengumpulkan analitik.
 
@@ -68,6 +68,8 @@ Saat fitur terjemahan atau Playground diaktifkan dan digunakan, data dapat dikir
 
   Pesan Playground dapat mencakup pengenal stream atau video YouTube, identitas pemain Playground yang dibuat, nama pemain yang dibuat, daftar game yang tersedia, undangan dan respons undangan, serta aksi game seperti langkah catur.
 
+  Playground menyimpan hasil pertandingan ringkas yang ditautkan ke identitas pemain Playground yang dibuat agar dapat menyediakan statistik pemain. Hasil yang disimpan dapat mencakup versi game, waktu mulai dan selesai, hasil dan alasan berakhir, peran peserta, serta penghitung kecil khusus game seperti langkah, jawaban, waktu respons, klaim, tembakan, pukulan, kerusakan, nyawa, KO, dan skor. Hasil tersebut tidak mencakup nama tampilan atau avatar YouTube, teks live chat, isi pertanyaan trivia, atau status game lengkap.
+
   Playground tidak mengirim teks live chat, nama tampilan YouTube Anda, URL avatar YouTube Anda, cookie YouTube, atau kredensial YouTube ke server game Playground.
 
   Secara terpisah, pembuatan pertanyaan HELP-A-FRIEND! Trivia dapat mengirim cuplikan transkrip video YouTube publik yang dipilih dan pengenal game ke server game Playground. Cuplikan ini berasal dari transkrip video, bukan dari live chat. Server menggunakan OpenAI untuk membuat pertanyaan trivia dari cuplikan tersebut.
@@ -81,6 +83,8 @@ Saat fitur terjemahan atau Playground diaktifkan dan digunakan, data dapat dikir
 Anda dapat menghapus data ekstensi dari popup ekstensi dengan menggunakan tombol reset. Ini menghapus data ekstensi lokal dan pengaturan ekstensi yang disinkronkan, lalu memulihkan pengaturan default.
 
 Anda juga dapat menghapus ekstensi dari browser Anda. Tergantung browser, menghapus ekstensi juga dapat menghapus penyimpanan lokal ekstensi tersebut.
+
+Mereset atau menghapus ekstensi tidak dengan sendirinya menghapus hasil pertandingan yang sudah disimpan oleh Playground.
 
 ## Yang tidak dilakukan Chat Enhancer
 

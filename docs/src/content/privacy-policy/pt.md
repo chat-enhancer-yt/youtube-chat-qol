@@ -6,7 +6,7 @@ description: "Como o Chat Enhancer for YouTube lida com armazenamento local, tra
 
 # Privacidade
 
-Última atualização: 21 de junho de 2026
+Última atualização: 24 de julho de 2026
 
 Chat Enhancer for YouTube é uma extensão de navegador para o chat ao vivo do YouTube. Ela foi criada para adicionar pequenos recursos de chat sem substituir o chat do YouTube nem coletar análises.
 
@@ -68,6 +68,8 @@ Quando recursos de tradução ou Playground estão ativados e são usados, dados
 
   Mensagens do Playground podem incluir o identificador do stream ou vídeo do YouTube, sua identidade de jogador do Playground gerada, seu nome de jogador gerado, sua lista de jogos disponíveis, convites e respostas a convites, e ações de jogo como movimentos de xadrez.
 
+  O Playground armazena resultados compactos de partidas vinculados a identidades de jogador do Playground geradas para fornecer estatísticas de jogadores. Os resultados armazenados podem incluir a versão do jogo, horários de início e término, resultado e motivo do término, funções dos participantes e pequenos contadores específicos do jogo, como movimentos, respostas, tempos de resposta, recompensas reivindicadas, tiros, acertos, dano, vidas, nocautes e pontuações. Eles não incluem nomes de exibição nem avatares do YouTube, texto do chat ao vivo, conteúdo de perguntas de trivia ou o estado completo da partida.
+
   O Playground não envia texto do chat ao vivo, seu nome de exibição do YouTube, URL do seu avatar do YouTube, cookies do YouTube ou credenciais do YouTube ao servidor de jogos do Playground.
 
   Separadamente, a geração de perguntas do HELP-A-FRIEND! Trivia pode enviar trechos selecionados de transcrições públicas de vídeos do YouTube e identificadores de jogo ao servidor de jogos do Playground. Esses trechos vêm da transcrição do vídeo, não do chat ao vivo. O servidor usa OpenAI para gerar perguntas de trivia a partir desses trechos.
@@ -81,6 +83,8 @@ Quando recursos de tradução ou Playground estão ativados e são usados, dados
 Você pode limpar os dados da extensão no popup da extensão usando o botão de redefinição. Isso limpa dados locais da extensão e configurações sincronizadas da extensão, depois restaura as configurações padrão.
 
 Você também pode remover a extensão do seu navegador. Dependendo do navegador, remover a extensão também pode remover seu armazenamento local.
+
+Redefinir ou remover a extensão não exclui, por si só, resultados de partidas já armazenados pelo Playground.
 
 ## O que o Chat Enhancer não faz
 

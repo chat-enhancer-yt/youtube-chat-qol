@@ -6,7 +6,7 @@ description: "Chat Enhancer for YouTube 如何处理本地存储、翻译、Play
 
 # 隐私
 
-最后更新：2026 年 6 月 21 日
+最后更新：2026 年 7 月 24 日
 
 Chat Enhancer for YouTube 是一款用于 YouTube 实时聊天的浏览器扩展。它旨在为聊天添加小功能，而不是取代 YouTube 聊天或收集分析数据。
 
@@ -68,6 +68,8 @@ Chat Enhancer for YouTube 是一款用于 YouTube 实时聊天的浏览器扩展
 
   Playground 消息可能包括 YouTube 直播或视频标识符、你生成的 Playground 玩家身份、你生成的玩家名称、你的可用游戏列表、邀请和邀请回应，以及棋步等游戏操作。
 
+  为提供玩家统计数据，Playground 会存储与生成的 Playground 玩家身份关联的精简比赛结果。存储的结果可能包括游戏版本、开始与结束时间、比赛结果和结束原因、参与者角色，以及走子、答题、响应时间、领取悬赏、射击、命中、伤害、生命、击倒和得分等少量游戏专属计数。这些结果不包括 YouTube 显示名称或头像、实时聊天文本、trivia 问题内容或完整游戏状态。
+
   Playground 不会将实时聊天消息文本、你的 YouTube 显示名称、你的 YouTube 头像 URL、YouTube cookie 或 YouTube 凭据发送到 Playground 游戏服务器。
 
   另外，HELP-A-FRIEND! Trivia 问题生成可能会将选定的公开 YouTube 视频转录摘录和游戏标识符发送到 Playground 游戏服务器。这些摘录来自视频转录，而不是实时聊天。服务器使用 OpenAI 根据这些摘录生成 trivia 问题。
@@ -81,6 +83,8 @@ Chat Enhancer for YouTube 是一款用于 YouTube 实时聊天的浏览器扩展
 你可以在扩展弹窗中使用重置按钮清除扩展数据。这会清除本地扩展数据和同步的扩展设置，然后恢复默认设置。
 
 你也可以从浏览器中移除扩展。根据浏览器不同，移除扩展也可能会删除其本地扩展存储。
+
+重置或移除扩展本身不会删除 Playground 已存储的比赛结果。
 
 ## Chat Enhancer 不会做什么
 

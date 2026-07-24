@@ -28,6 +28,7 @@ type StoredMatchRow = Record<string, SqlStorageValue> & {
   game_version: number;
   match_id: string;
   started_at: number | null;
+  summary: string;
   winner_user_id: string | null;
 };
 
@@ -133,6 +134,7 @@ export class PlayerStats {
         started_at INTEGER,
         finished_at INTEGER NOT NULL,
         finish_reason TEXT NOT NULL,
+        summary TEXT NOT NULL,
         winner_user_id TEXT
       )
     `);
@@ -163,6 +165,7 @@ export class PlayerStats {
         started_at,
         finished_at,
         finish_reason,
+        summary,
         winner_user_id
       FROM matches_v1
       WHERE match_id = ?
@@ -194,8 +197,9 @@ export class PlayerStats {
           started_at,
           finished_at,
           finish_reason,
+          summary,
           winner_user_id
-        ) VALUES (?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
       `,
       input.matchId,
       input.gameType,
@@ -203,6 +207,7 @@ export class PlayerStats {
       input.startedAt ?? null,
       input.finishedAt,
       input.finishReason,
+      serializeMatchSummary(input),
       input.winnerUserId
     );
 
@@ -291,6 +296,7 @@ function isSameMatchResult(
     match.game_version !== input.gameVersion ||
     match.finish_reason !== input.finishReason ||
     match.started_at !== (input.startedAt ?? null) ||
+    match.summary !== serializeMatchSummary(input) ||
     match.winner_user_id !== input.winnerUserId
   ) {
     return false;
@@ -314,4 +320,10 @@ function isSameMatchResult(
         participant.outcome === expected.outcome &&
         participant.user_id === expected.user_id;
     });
+}
+
+function serializeMatchSummary(
+  input: Pick<PlayerMatchResultInput, 'summary'>
+): string {
+  return JSON.stringify(input.summary);
 }

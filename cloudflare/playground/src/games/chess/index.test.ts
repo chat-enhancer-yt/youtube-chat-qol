@@ -4,6 +4,7 @@ import {
   type ChessGameRecord,
   chessGameModule,
   createChessGame,
+  getChessMatchResult,
   getChessWinnerUserId,
   resignChessGame,
   toPublicChessGame,
@@ -69,6 +70,26 @@ describe('playground chess game rules', () => {
     expect(game.status).toBe('checkmate');
     expect(game.winner).toBe('black');
     expect(game.lastMoveSan).toBe('Qh4#');
+    expect(getChessMatchResult(game)).toEqual({
+      finishReason: 'checkmate',
+      summary: {
+        black: {
+          captures: 0,
+          castled: 0,
+          checks: 1,
+          promotions: 0,
+          userId: 'black-user'
+        },
+        plyCount: 4,
+        white: {
+          captures: 0,
+          castled: 0,
+          checks: 0,
+          promotions: 0,
+          userId: 'white-user'
+        }
+      }
+    });
   });
 
   it('rejects moves after a chess game has finished', () => {
@@ -236,7 +257,7 @@ describe('playground chess game rules', () => {
   it('accepts promotion values through module move payloads and handles missing winner records', () => {
     const game = {
       ...createChessGame('game-1', 'white-user', 'black-user'),
-      fen: '8/P7/8/8/8/8/8/k6K w - - 0 1',
+      fen: '1r6/P7/8/8/8/8/8/k6K w - - 0 1',
       pgn: '',
       turn: 'white'
     } as ChessGameRecord;
@@ -246,7 +267,7 @@ describe('playground chess game rules', () => {
       payload: {
         from: 'a7',
         promotion: 'q',
-        to: 'a8'
+        to: 'b8'
       },
       userId: 'white-user'
     }) as ChessGameRecord;
@@ -255,7 +276,11 @@ describe('playground chess game rules', () => {
     expect(promoted.lastMove).toEqual({
       from: 'a7',
       promotion: 'q',
-      to: 'a8'
+      to: 'b8'
+    });
+    expect(getChessMatchResult(promoted).summary.white).toMatchObject({
+      captures: 1,
+      promotions: 1
     });
     expect(getChessWinnerUserId({
       ...game,

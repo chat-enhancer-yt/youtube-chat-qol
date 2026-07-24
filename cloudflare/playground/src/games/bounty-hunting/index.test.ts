@@ -7,6 +7,7 @@ import { ProtocolError } from '../../protocol/validation';
 import {
   createBountyHuntingGame,
   finishBountyHuntingGame,
+  getBountyHuntingMatchResult,
   observeBountyHuntingMessage as applyBountyHuntingObservation,
   readyBountyHuntingPlayer,
   shootBountyHuntingMessage as applyBountyHuntingShot,
@@ -151,6 +152,33 @@ describe('playground Bounty Hunting game rules', () => {
     game = finishBountyHuntingGame(game, 69_000);
     expect(game.status).toBe('finished');
     expect(bountyHuntingGameModule.getWinnerUserId?.(game)).toBe('guest-user');
+    expect(getBountyHuntingMatchResult(game)).toEqual({
+      finishReason: 'timeExpired',
+      summary: {
+        bountyCount: 6,
+        claimedCount: 1,
+        guest: {
+          claims: 1,
+          claimsByType: {
+            mention: 1
+          },
+          highestClaimValue: 125,
+          misses: 0,
+          score: 125,
+          shots: 1,
+          userId: 'guest-user'
+        },
+        host: {
+          claims: 0,
+          claimsByType: {},
+          highestClaimValue: 0,
+          misses: 0,
+          score: 0,
+          shots: 0,
+          userId: 'host-user'
+        }
+      }
+    });
 
     const publicGame = toPublicBountyHuntingGame(game, (userId) => ({ displayName: userId, userId }));
     expect(publicGame.bounties.find((bounty) => bounty.id === 'mention-user')?.claim?.role).toBe('guest');
@@ -292,6 +320,10 @@ describe('playground Bounty Hunting game rules', () => {
       3_100 + BOUNTY_HUNTING_MISS_COOLDOWN_MS
     );
     expect(missedGame.claims).toHaveLength(0);
+    expect(getBountyHuntingMatchResult(missedGame).summary.host).toMatchObject({
+      misses: 1,
+      shots: 1
+    });
   });
 
   it('queues a self-witnessed shot until the opposing player witnesses the same match', () => {

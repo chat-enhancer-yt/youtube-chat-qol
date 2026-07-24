@@ -6,7 +6,7 @@ description: "Hoe Chat Enhancer for YouTube lokale opslag, vertaling, Playground
 
 # Privacy
 
-Laatst bijgewerkt: 21 juni 2026
+Laatst bijgewerkt: 24 juli 2026
 
 Chat Enhancer for YouTube is een browserextensie voor YouTube-livechat. De extensie is ontworpen om kleine chatfuncties toe te voegen zonder YouTube-chat te vervangen of analytics te verzamelen.
 
@@ -68,6 +68,8 @@ Wanneer vertaling of Playground-functies zijn ingeschakeld en worden gebruikt, k
 
   Playground-berichten kunnen de YouTube-stream- of video-ID, je gegenereerde Playground-spelersidentiteit, je gegenereerde spelersnaam, je lijst met beschikbare games, uitnodigingen en uitnodigingsreacties, en gameacties zoals schaakzetten bevatten.
 
+  Playground bewaart compacte wedstrijdresultaten die aan gegenereerde Playground-spelersidentiteiten zijn gekoppeld om spelersstatistieken te bieden. Opgeslagen resultaten kunnen de gameversie, begin- en eindtijden, de uitslag en eindreden, rollen van deelnemers en kleine gamespecifieke tellers bevatten, zoals zetten, antwoorden, reactietijden, claims, schoten, treffers, schade, levens, knock-outs en scores. Ze bevatten geen YouTube-weergavenamen of -avatars, livechattekst, inhoud van trivia-vragen of de volledige gamestatus.
+
   Playground stuurt geen livechatberichttekst, je YouTube-weergavenaam, je YouTube-avatar-URL, YouTube-cookies of YouTube-inloggegevens naar de Playground-gameserver.
 
   Afzonderlijk kan HELP-A-FRIEND! Trivia-vraaggeneratie geselecteerde openbare YouTube-videotranscriptfragmenten en game-ID’s naar de Playground-gameserver sturen. Deze fragmenten komen uit het transcript van de video, niet uit livechat. De server gebruikt OpenAI om trivia-vragen uit die fragmenten te genereren.
@@ -81,6 +83,8 @@ Wanneer vertaling of Playground-functies zijn ingeschakeld en worden gebruikt, k
 Je kunt extensiegegevens wissen vanuit de extensiepopup met de resetknop. Dit wist lokale extensiegegevens en gesynchroniseerde extensie-instellingen, en herstelt daarna de standaardinstellingen.
 
 Je kunt de extensie ook uit je browser verwijderen. Afhankelijk van de browser kan het verwijderen van de extensie ook de lokale opslag van de extensie verwijderen.
+
+Het resetten of verwijderen van de extensie verwijdert niet automatisch wedstrijdresultaten die Playground al heeft opgeslagen.
 
 ## Wat Chat Enhancer niet doet
 
