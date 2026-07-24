@@ -61,7 +61,12 @@ describe('playground chess game rules', () => {
   });
 
   it('detects checkmate and assigns the winner', () => {
-    let game = createChessGame('game-1', 'white-user', 'black-user');
+    let game = createChessGame(
+      'game-1',
+      'white-user',
+      'black-user',
+      Date.UTC(2026, 6, 24)
+    );
     game = applyChessMove(game, { from: 'f2', to: 'f3', userId: 'white-user' });
     game = applyChessMove(game, { from: 'e7', to: 'e5', userId: 'black-user' });
     game = applyChessMove(game, { from: 'g2', to: 'g4', userId: 'white-user' });
@@ -94,6 +99,27 @@ describe('playground chess game rules', () => {
     });
     expect(matchResult.summary.pgn).toEqual(expect.stringContaining('[White "white-user"]'));
     expect(matchResult.summary.pgn).toEqual(expect.stringContaining('[Black "black-user"]'));
+    expect(matchResult.summary.pgn).toEqual(
+      expect.stringContaining('[Event "Chat Enhancer Playground"]')
+    );
+    expect(matchResult.summary.pgn).toEqual(expect.stringContaining('[Site "Online"]'));
+    expect(matchResult.summary.pgn).toEqual(expect.stringContaining('[Date "2026.07.24"]'));
+    expect(matchResult.summary.pgn).toEqual(expect.stringContaining('[Round "-"]'));
+    expect(matchResult.summary.pgn).not.toEqual(expect.stringContaining('[UTCDate '));
+    expect(matchResult.summary.pgn).not.toEqual(expect.stringContaining('[UTCTime '));
+  });
+
+  it('uses an unknown PGN date when the game start time is missing or invalid', () => {
+    const game = createChessGame('game-1', 'white-user', 'black-user');
+
+    expect(getChessMatchResult({
+      ...game,
+      startedAt: undefined
+    }).summary.pgn).toEqual(expect.stringContaining('[Date "????.??.??"]'));
+    expect(getChessMatchResult({
+      ...game,
+      startedAt: Number.NaN
+    }).summary.pgn).toEqual(expect.stringContaining('[Date "????.??.??"]'));
   });
 
   it('rejects moves after a chess game has finished', () => {

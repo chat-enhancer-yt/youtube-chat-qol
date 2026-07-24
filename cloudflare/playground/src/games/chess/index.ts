@@ -213,6 +213,10 @@ export function getChessWinnerUserId(game: ChessGameRecord): string | null {
 export function getChessMatchResult(game: ChessGameRecord): GameResult {
   const chess = createChessState(game);
   const moves = chess.history({ verbose: true });
+  chess.setHeader('Event', 'Chat Enhancer Playground');
+  chess.setHeader('Site', 'Online');
+  chess.setHeader('Date', getChessPgnDate(game.startedAt));
+  chess.setHeader('Round', '-');
   chess.setHeader('White', game.players.white);
   chess.setHeader('Black', game.players.black);
   chess.setHeader('Result', getChessPgnResult(game));
@@ -254,6 +258,19 @@ function getChessPgnResult(game: ChessGameRecord): '0-1' | '1-0' | '1/2-1/2' | '
     if (game.winner === 'black') return '0-1';
   }
   return '*';
+}
+
+function getChessPgnDate(startedAt: number | undefined): string {
+  if (startedAt === undefined) return '????.??.??';
+  const date = new Date(startedAt);
+  if (Number.isNaN(date.getTime())) return '????.??.??';
+
+  const pad = (value: number): string => String(value).padStart(2, '0');
+  return [
+    String(date.getUTCFullYear()).padStart(4, '0'),
+    pad(date.getUTCMonth() + 1),
+    pad(date.getUTCDate())
+  ].join('.');
 }
 
 function createEmptyChessMetrics() {
