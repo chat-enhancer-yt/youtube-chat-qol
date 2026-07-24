@@ -213,6 +213,9 @@ export function getChessWinnerUserId(game: ChessGameRecord): string | null {
 export function getChessMatchResult(game: ChessGameRecord): GameResult {
   const chess = createChessState(game);
   const moves = chess.history({ verbose: true });
+  chess.setHeader('White', game.players.white);
+  chess.setHeader('Black', game.players.black);
+  chess.setHeader('Result', getChessPgnResult(game));
   const metrics: Record<PlayerColor, ReturnType<typeof createEmptyChessMetrics>> = {
     black: createEmptyChessMetrics(),
     white: createEmptyChessMetrics()
@@ -234,6 +237,7 @@ export function getChessMatchResult(game: ChessGameRecord): GameResult {
         ...metrics.black,
         userId: game.players.black
       },
+      pgn: chess.pgn(),
       plyCount: moves.length,
       white: {
         ...metrics.white,
@@ -241,6 +245,15 @@ export function getChessMatchResult(game: ChessGameRecord): GameResult {
       }
     }
   };
+}
+
+function getChessPgnResult(game: ChessGameRecord): '0-1' | '1-0' | '1/2-1/2' | '*' {
+  if (game.status === 'draw') return '1/2-1/2';
+  if (game.status === 'checkmate' || game.status === 'resigned') {
+    if (game.winner === 'white') return '1-0';
+    if (game.winner === 'black') return '0-1';
+  }
+  return '*';
 }
 
 function createEmptyChessMetrics() {

@@ -70,7 +70,8 @@ describe('playground chess game rules', () => {
     expect(game.status).toBe('checkmate');
     expect(game.winner).toBe('black');
     expect(game.lastMoveSan).toBe('Qh4#');
-    expect(getChessMatchResult(game)).toEqual({
+    const matchResult = getChessMatchResult(game);
+    expect(matchResult).toEqual({
       finishReason: 'checkmate',
       summary: {
         black: {
@@ -80,6 +81,7 @@ describe('playground chess game rules', () => {
           promotions: 0,
           userId: 'black-user'
         },
+        pgn: expect.stringContaining('1. f3 e5 2. g4 Qh4# 0-1'),
         plyCount: 4,
         white: {
           captures: 0,
@@ -90,6 +92,8 @@ describe('playground chess game rules', () => {
         }
       }
     });
+    expect(matchResult.summary.pgn).toEqual(expect.stringContaining('[White "white-user"]'));
+    expect(matchResult.summary.pgn).toEqual(expect.stringContaining('[Black "black-user"]'));
   });
 
   it('rejects moves after a chess game has finished', () => {

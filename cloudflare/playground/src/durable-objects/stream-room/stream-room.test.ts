@@ -1200,6 +1200,14 @@ describe('playground stream room', () => {
     room.handleInviteResponse(bob, lastMessage(bob, 'inviteReceived').invite.inviteId, true);
     const gameId = lastMessage(alice, 'gameStarted').game.gameId;
 
+    room.handleGameAction(alice, gameId, {
+      action: 'move',
+      payload: {
+        from: 'e2',
+        to: 'e4'
+      },
+      userId: alice.userId
+    });
     room.handleGameAction(bob, gameId, {
       action: 'leave',
       userId: bob.userId
@@ -1220,7 +1228,8 @@ describe('playground stream room', () => {
     });
     expect(room.createSnapshot(alice.userId).games).toHaveLength(0);
     expect(room.createSnapshot(bob.userId).games).toHaveLength(0);
-    expect(playerStats.getMatch(gameId)).toEqual({
+    const storedMatch = playerStats.getMatch(gameId);
+    expect(storedMatch).toEqual({
       abandonedByUserId: bob.userId,
       finishReason: 'playerLeft',
       gameType: 'chess',
@@ -1233,7 +1242,8 @@ describe('playground stream room', () => {
           promotions: 0,
           userId: bob.userId
         },
-        plyCount: 0,
+        pgn: expect.stringContaining('1. e4 *'),
+        plyCount: 1,
         white: {
           captures: 0,
           castled: 0,
@@ -1244,6 +1254,12 @@ describe('playground stream room', () => {
       },
       winnerUserId: null
     });
+    expect(storedMatch?.summary.pgn).toEqual(
+      expect.stringContaining(`[White "${alice.userId}"]`)
+    );
+    expect(storedMatch?.summary.pgn).toEqual(
+      expect.stringContaining(`[Black "${bob.userId}"]`)
+    );
     expect(playerStats.getWins(alice.userId, 'chess')).toBe(0);
     expect(playerStats.getWins(bob.userId, 'chess')).toBe(0);
   });
