@@ -525,7 +525,7 @@ describe('playground stream room', () => {
     });
   });
 
-  it('keeps ignored invites from starting a game', async () => {
+  it('hides ignored invites without notifying the inviter', async () => {
     const room = createRoom();
     const alice = createSession('alice-connection');
     const bob = createSession('bob-connection');
@@ -535,11 +535,28 @@ describe('playground stream room', () => {
     room.handleInvite(alice, 'chess', bob.userId);
 
     const inviteReceived = lastMessage(bob, 'inviteReceived');
+    const inviterUpdateCount = alice.socket.messages
+      .filter((message) => message.type === 'inviteUpdated')
+      .length;
     room.handleInviteResponse(bob, inviteReceived.invite.inviteId, false);
 
     expect(bob.socket.messages.some((message) => message.type === 'gameStarted')).toBe(false);
     expect(room.createSnapshot(bob.userId).games).toHaveLength(0);
-    expect(lastMessage(alice, 'inviteUpdated').invite.status).toBe('ignored');
+    expect(lastMessage(bob, 'inviteUpdated').invite.status).toBe('ignored');
+    expect(alice.socket.messages.filter((message) => message.type === 'inviteUpdated')).toHaveLength(
+      inviterUpdateCount
+    );
+    expect(room.createSnapshot(alice.userId).invites).toEqual([
+      expect.objectContaining({
+        inviteId: inviteReceived.invite.inviteId,
+        status: 'pending'
+      })
+    ]);
+    expect(room.createSnapshot(bob.userId).invites).toEqual([]);
+
+    room.handleCancelInvite(alice, 'chess', bob.userId);
+    expect(lastMessage(alice, 'inviteUpdated').invite.status).toBe('cancelled');
+    expect(lastMessage(bob, 'inviteUpdated').invite.status).toBe('cancelled');
   });
 
   it('keeps cancelled outgoing invites from starting a game', async () => {

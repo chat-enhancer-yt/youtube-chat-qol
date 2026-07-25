@@ -363,11 +363,11 @@ export class StreamRoom {
       toUser: hashLogValue(invite.toUserId)
     });
     const publicInvite = this.invites.toPublicInvite(invite, (publicUserId) => this.sessions.getPublicUser(publicUserId));
-    this.sendToUser(invite.fromUserId, { invite: publicInvite, type: 'inviteUpdated' });
     this.sendToUser(invite.toUserId, { invite: publicInvite, type: 'inviteUpdated' });
 
     if (!accept) return;
 
+    this.sendToUser(invite.fromUserId, { invite: publicInvite, type: 'inviteUpdated' });
     const game = getGameModule(invite.gameId).createGame(createId('game'), [invite.fromUserId, invite.toUserId]);
     this.gameState.set(game);
     this.logEvent('game_started', {

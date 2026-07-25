@@ -54,7 +54,7 @@ export class InviteManager {
     this.pruneExpiredInvites();
     return [...this.invites.values()]
       .find((invite) =>
-        invite.status === 'pending' &&
+        (invite.status === 'pending' || invite.status === 'ignored') &&
         invite.fromUserId === input.fromUserId &&
         invite.toUserId === input.toUserId &&
         invite.gameId === input.gameId
@@ -66,10 +66,22 @@ export class InviteManager {
     getPublicUser: (userId: string) => PublicUserIdentity
   ): PublicInvite[] {
     this.pruneExpiredInvites();
+    // Ignoring is private: dismiss it for the recipient while it remains pending
+    // and cancelable from the inviter's point of view.
     return [...this.invites.values()]
-      .filter((invite) => invite.status === 'pending')
-      .filter((invite) => Boolean(forUserId) && (invite.fromUserId === forUserId || invite.toUserId === forUserId))
-      .map((invite) => this.toPublicInvite(invite, getPublicUser));
+      .filter((invite) => {
+        if (!forUserId) return false;
+        if (invite.status === 'pending') {
+          return invite.fromUserId === forUserId || invite.toUserId === forUserId;
+        }
+        return invite.status === 'ignored' && invite.fromUserId === forUserId;
+      })
+      .map((invite) => {
+        const publicInvite = this.toPublicInvite(invite, getPublicUser);
+        return invite.status === 'ignored'
+          ? { ...publicInvite, status: 'pending' }
+          : publicInvite;
+      });
   }
 
   setInviteStatus(invite: PendingInvite, status: PendingInvite['status']): void {

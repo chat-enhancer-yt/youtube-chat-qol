@@ -1920,7 +1920,7 @@ describe('playground games header button', () => {
       message: {
         invite: {
           ...outgoingInvite,
-          status: 'ignored'
+          status: 'cancelled'
         },
         type: 'inviteUpdated'
       },
