@@ -5029,6 +5029,7 @@ figcaption {
 
   .store-version-alert-top {
     position: static;
+    z-index: auto;
     width: 100%;
     max-width: none;
     margin: 0;
