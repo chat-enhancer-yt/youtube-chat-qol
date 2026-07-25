@@ -720,7 +720,7 @@ export class StreamRoom {
           return this.sessions.getPublicUser(userId);
         }, this.createPublicGameContext(forUserId))),
       invites: this.invites.getPublicInvites(forUserId, (userId) => this.sessions.getPublicUser(userId)),
-      users: this.sessions.getPresenceUsers()
+      users: this.sessions.getAdvertisedPresenceUsers()
     };
   }
 

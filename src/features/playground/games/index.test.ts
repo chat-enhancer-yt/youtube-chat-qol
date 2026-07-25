@@ -1,12 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { DEFAULT_OPTIONS } from '../../../shared/options';
+import { DEFAULT_OPTIONS, normalizeOptions, type Options } from '../../../shared/options';
 import type { LobbySnapshot, PlaygroundBackgroundMessage, PublicGame } from '../../../shared/playground/protocol';
 import type { PublicStickAroundGame } from '../../../shared/playground/stick-around';
-import { setOptions } from '../../../shared/state';
+import { getOptions, setOptions } from '../../../shared/state';
 import { clearToast } from '../../../shared/toast';
 import {
   handleFeatureMutations,
-  handleFeatureOptionsChanged
+  handleFeatureOptionsChanged,
+  initFeatures
 } from '../../../content/dispatcher';
 
 const alertSoundMocks = vi.hoisted(() => ({
@@ -15,6 +16,7 @@ const alertSoundMocks = vi.hoisted(() => ({
 const minimizeAnimationMocks = vi.hoisted(() => ({
   animateGameSurfaceToGamesButton: vi.fn(() => true)
 }));
+const saveOptionsMock = vi.fn<(values: Partial<Options>) => void>();
 
 vi.mock('../../../shared/sounds/alert-sounds', () => alertSoundMocks);
 vi.mock('./minimize-animation', () => minimizeAnimationMocks);
@@ -47,6 +49,14 @@ describe('playground games header button', () => {
     mockPorts.length = 0;
     alertSoundMocks.playAlertSound.mockClear();
     minimizeAnimationMocks.animateGameSurfaceToGamesButton.mockClear();
+    saveOptionsMock.mockReset();
+    saveOptionsMock.mockImplementation((values) => {
+      const previousOptions = getOptions();
+      const nextOptions = normalizeOptions({ ...previousOptions, ...values });
+      setOptions(nextOptions);
+      handleFeatureOptionsChanged(previousOptions, nextOptions);
+    });
+    initFeatures({ saveOptions: saveOptionsMock });
     chrome.runtime.connect = vi.fn(() => createMockPort() as unknown as chrome.runtime.Port);
     vi.useFakeTimers();
   });
@@ -603,14 +613,19 @@ describe('playground games header button', () => {
     expect(document.querySelector('.ytcq-games-card')).not.toBeNull();
   });
 
-  it('shows pending invite and active game counts on the header button', async () => {
+  it('restores pending invite and active game counts before opening the lobby when invites are off', async () => {
     const header = createHeader();
     document.body.append(header);
-    setOptions({ ...DEFAULT_OPTIONS, playgroundEnabled: true, playgroundGamesAvailable: true });
+    setOptions({ ...DEFAULT_OPTIONS, playgroundEnabled: true, playgroundGamesAvailable: false });
 
     refreshGamesButton();
     await vi.runOnlyPendingTimersAsync();
 
+    expect(lastMockPort()?.messages.at(-1)).toMatchObject({
+      availableGames: [],
+      streamKey: 'stream-a',
+      type: 'ytcq:playground:init'
+    });
     const button = header.querySelector<HTMLButtonElement>('.ytcq-games-button')!;
     const badge = button.querySelector<HTMLElement>('.ytcq-games-badge')!;
     expect(badge.hidden).toBe(true);
@@ -1194,7 +1209,7 @@ describe('playground games header button', () => {
     expect(document.querySelector('.ytcq-bounty-hunting-canvas')?.classList.contains('ytcq-bounty-hunting-canvas-compact')).toBe(false);
   });
 
-  it('keeps stream availability separate from the default setting while reopening the card', () => {
+  it('persists lobby invite availability across panel reopens and streams', () => {
     const header = createHeader();
     document.body.append(header);
     setOptions({ ...DEFAULT_OPTIONS, playgroundEnabled: true, playgroundGamesAvailable: true });
@@ -1208,6 +1223,10 @@ describe('playground games header button', () => {
 
     document.querySelector<HTMLButtonElement>('.ytcq-games-availability')!.click();
     expect(document.querySelector('.ytcq-games-availability')?.getAttribute('aria-checked')).toBe('false');
+    expect(saveOptionsMock).toHaveBeenLastCalledWith({
+      playgroundGamesAvailable: false
+    });
+    expect(getOptions().playgroundGamesAvailable).toBe(false);
     expect(lastMockPort()?.messages.at(-1)).toEqual({
       availableGames: [],
       type: 'ytcq:playground:set-availability'
@@ -1223,7 +1242,7 @@ describe('playground games header button', () => {
     gamesButton.click();
 
     expect(lastMockPort()?.messages.at(-1)).toEqual({
-      availableGames: ['chess', 'bounty-hunting', 'stick-around'],
+      availableGames: [],
       languageCode: 'en',
       locale: 'en',
       streamKey: 'stream-b',
@@ -1231,7 +1250,7 @@ describe('playground games header button', () => {
     });
 
     lastMockPort()?.emit(createSnapshotMessage(createLobbySnapshot()));
-    expect(document.querySelector('.ytcq-games-availability')?.getAttribute('aria-checked')).toBe('true');
+    expect(document.querySelector('.ytcq-games-availability')?.getAttribute('aria-checked')).toBe('false');
   });
 
   it('removes ended games and tells the remaining player when the opponent leaves', () => {
@@ -1805,7 +1824,7 @@ describe('playground games header button', () => {
     });
   });
 
-  it('responds to lifecycle option changes while the card is open', () => {
+  it('syncs popup invite availability changes into the open lobby', () => {
     const header = createHeader();
     document.body.append(header);
     setOptions({ ...DEFAULT_OPTIONS, playgroundEnabled: true, playgroundGamesAvailable: true });
@@ -1820,13 +1839,10 @@ describe('playground games header button', () => {
     );
 
     expect(lastMockPort()?.messages.at(-1)).toEqual({
-      availableGames: ['chess', 'bounty-hunting', 'stick-around'],
-      languageCode: 'en',
-      locale: 'en',
-      streamKey: 'stream-a',
-      type: 'ytcq:playground:init'
+      availableGames: [],
+      type: 'ytcq:playground:set-availability'
     });
-    expect(document.querySelector('.ytcq-games-availability')?.getAttribute('aria-checked')).toBe('true');
+    expect(document.querySelector('.ytcq-games-availability')?.getAttribute('aria-checked')).toBe('false');
 
     setOptions({ ...DEFAULT_OPTIONS, playgroundEnabled: false, playgroundGamesAvailable: false });
     handleFeatureOptionsChanged(

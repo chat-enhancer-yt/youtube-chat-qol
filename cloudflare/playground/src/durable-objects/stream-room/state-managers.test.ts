@@ -394,6 +394,12 @@ describe('stream room state managers', () => {
 
     sessions.setAvailability(first, ['chess', 'replay-trivia']);
     expect(sessions.getPresenceUser('alice')?.availableGames).toEqual(['chess', 'replay-trivia']);
+    expect(sessions.getAdvertisedPresenceUsers()).toEqual([
+      expect.objectContaining({
+        availableGames: ['chess', 'replay-trivia'],
+        userId: 'alice'
+      })
+    ]);
     sessions.setDisplayName(second, 'Luna Chat');
     expect(sessions.getPresenceUser('alice')?.displayName).toBe('Luna Chat');
     expect(sessions.getPublicUser('alice')).toEqual({
@@ -405,6 +411,7 @@ describe('stream room state managers', () => {
     expect(sessions.getPresenceUser('alice')?.availableGames).toEqual(['replay-trivia']);
     expect(sessions.remove('connection-2')).toBe(second);
     expect(sessions.getPresenceUser('alice')).toBeUndefined();
+    expect(sessions.getAdvertisedPresenceUsers()).toEqual([]);
     expect(sessions.getPublicUser('alice')).toEqual({
       displayName: 'Luna Chat',
       userId: 'alice'
@@ -430,6 +437,7 @@ describe('stream room state managers', () => {
     sessions.setAvailability(current, []);
     expect(sessions.isUserAvailableForGame('current-user', 'bounty-hunting')).toBe(false);
     expect(sessions.hasCompatibleGameSession('current-user', 'bounty-hunting')).toBe(true);
+    expect(sessions.getAdvertisedPresenceUsers().map((user) => user.userId)).not.toContain('current-user');
 
     sessions.setAvailability(legacy, ['bounty-hunting']);
     expect(sessions.hasCompatibleGameSession('legacy-user', 'bounty-hunting')).toBe(false);

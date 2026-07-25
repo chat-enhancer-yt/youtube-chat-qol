@@ -243,7 +243,7 @@
     "gamesReplayTriviaStampBestie": "親友",
     "gamesReplayTriviaStampBlocked": "ブロック",
     "gamesAvailableToPlay": "招待を受け付ける",
-    "gamesAvailableHelper": "この配信のゲーム招待を受け取る。",
+    "gamesAvailableHelper": "配信に入るとプレイヤーリストに表示され、ゲーム招待を受け取れます。",
     "gamesActiveGame": "進行中のゲーム",
     "gamesResume": "再開",
     "gamesMinimize": "最小化",
@@ -508,7 +508,7 @@
       "message": "ゲーム"
     },
     "playgroundGamesAvailable": {
-      "message": "デフォルトで招待を受け付ける"
+      "message": "招待を受け付ける"
     },
     "playgroundGamesAvailableHelper": {
       "message": "配信に入るとプレイヤーリストに表示され、ゲーム招待を受け取れます。"

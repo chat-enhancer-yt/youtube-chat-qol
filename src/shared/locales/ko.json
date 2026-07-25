@@ -243,7 +243,7 @@
     "gamesReplayTriviaStampBestie": "절친",
     "gamesReplayTriviaStampBlocked": "차단됨",
     "gamesAvailableToPlay": "초대 받을 수 있음",
-    "gamesAvailableHelper": "이 스트림의 게임 초대를 받습니다.",
+    "gamesAvailableHelper": "스트림에 들어가면 플레이어 목록에 표시되고 게임 초대를 받을 수 있습니다.",
     "gamesActiveGame": "진행 중인 게임",
     "gamesResume": "계속",
     "gamesMinimize": "최소화",
@@ -505,7 +505,7 @@
       "message": "게임"
     },
     "playgroundGamesAvailable": {
-      "message": "기본적으로 초대 가능"
+      "message": "초대 받을 수 있음"
     },
     "playgroundGamesAvailableHelper": {
       "message": "스트림에 들어가면 플레이어 목록에 표시되고 게임 초대를 받을 수 있습니다."

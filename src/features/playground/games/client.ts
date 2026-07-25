@@ -67,7 +67,6 @@ const DEFAULT_STATE: PlaygroundClientState = {
 };
 
 let available = false;
-let availabilityStreamKey = '';
 let currentStreamKey = '';
 let actionErrorListeners = new Set<PlaygroundActionErrorListener>();
 let listeners = new Set<PlaygroundClientListener>();
@@ -97,7 +96,7 @@ export function getPlaygroundClientState(): PlaygroundClientState {
 
 export function getPlaygroundAvailability(defaultAvailable = false): boolean {
   const streamKey = getCurrentYouTubeChatStreamKey();
-  return streamKey && streamKey === availabilityStreamKey ? available : defaultAvailable;
+  return streamKey && streamKey === currentStreamKey ? available : defaultAvailable;
 }
 
 export function startPlaygroundClient(defaultAvailable = available): void {
@@ -111,8 +110,7 @@ export function startPlaygroundClient(defaultAvailable = available): void {
     return;
   }
 
-  if (availabilityStreamKey !== streamKey) {
-    availabilityStreamKey = streamKey;
+  if (currentStreamKey !== streamKey) {
     available = defaultAvailable;
   }
 
@@ -161,7 +159,6 @@ export function stopPlaygroundClient(): void {
   const port = playgroundPort;
   playgroundPort = null;
   available = false;
-  availabilityStreamKey = '';
   currentStreamKey = '';
   notifyGameClientReset();
   if (port) {

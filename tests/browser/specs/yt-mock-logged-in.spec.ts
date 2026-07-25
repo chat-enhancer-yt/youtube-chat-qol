@@ -63,6 +63,7 @@ import {
   playgroundIncomingInviteAcceptScenario,
   playgroundIncomingInviteIgnoreScenario,
   playgroundInviteCancelScenario,
+  playgroundRestoreStateWithInvitesOffScenario,
   playgroundStickAroundActiveOverlayControlsScenario,
   playgroundStickAroundComputerOverlayScenario,
   playgroundStickAroundLiteOverlayScenario,
@@ -178,6 +179,10 @@ test(
 test(
   'logged-in mock: Playground Games toggles lobby availability',
   playgroundAvailabilityToggleScenario
+);
+test(
+  'logged-in mock: Playground restores games and invites while invite availability is off',
+  playgroundRestoreStateWithInvitesOffScenario
 );
 test(
   'logged-in mock: Playground explains and blocks incompatible game versions',

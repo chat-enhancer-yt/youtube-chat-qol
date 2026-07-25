@@ -243,7 +243,7 @@
     "gamesReplayTriviaStampBestie": "BESTIE",
     "gamesReplayTriviaStampBlocked": "BLOCCATO",
     "gamesAvailableToPlay": "Disponibile agli inviti",
-    "gamesAvailableHelper": "Ricevi inviti di gioco per questa live.",
+    "gamesAvailableHelper": "Quando entri in una live, apparirai nell'elenco giocatori e potrai ricevere inviti di gioco.",
     "gamesActiveGame": "Partite attive",
     "gamesResume": "Riprendi",
     "gamesMinimize": "Riduci",
@@ -508,7 +508,7 @@
       "message": "Giochi"
     },
     "playgroundGamesAvailable": {
-      "message": "Disponibile agli inviti di default"
+      "message": "Disponibile agli inviti"
     },
     "playgroundGamesAvailableHelper": {
       "message": "Quando entri in una live, apparirai nell'elenco giocatori e potrai ricevere inviti di gioco."

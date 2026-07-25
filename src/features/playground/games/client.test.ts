@@ -116,7 +116,7 @@ describe('Playground games client', () => {
     expect(getPlaygroundClientState().incompatibleGames).toEqual([]);
   });
 
-  it('preserves current-stream availability until the stream changes', () => {
+  it('uses live availability until a new stream applies the persisted setting', () => {
     startPlaygroundClient(false);
     const port = lastMockPort()!;
 

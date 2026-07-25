@@ -84,6 +84,10 @@ export class SessionManager {
     return [...users.values()].sort((a, b) => a.displayName.localeCompare(b.displayName));
   }
 
+  getAdvertisedPresenceUsers(): PresenceUser[] {
+    return this.getPresenceUsers().filter((user) => user.availableGames.length > 0);
+  }
+
   getPublicUser(userId: string): PublicUserIdentity {
     const presence = this.getPresenceUser(userId);
     return {

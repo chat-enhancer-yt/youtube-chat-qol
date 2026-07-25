@@ -21,7 +21,10 @@ import {
   createMockPlaygroundSnapshot,
   installMockPlaygroundBackend
 } from '../support/playground-backend';
-import { withExtensionStorageValues } from '../support/extension-storage';
+import {
+  getExtensionStorageValues,
+  withExtensionStorageValues
+} from '../support/extension-storage';
 import {
   appendMockFixtureMessage,
   emitMockFixtureFeedMessage
@@ -31,6 +34,37 @@ import type { BrowserScenario, ChatSurface } from './types';
 const PLAYGROUND_ENABLED_OPTIONS = {
   playgroundEnabled: true,
   playgroundGamesAvailable: true
+};
+
+export const playgroundRestoreStateWithInvitesOffScenario: BrowserScenario = async ({ chat, context }) => {
+  const snapshot = createMockPlaygroundSnapshot({
+    games: [createBrowserChessGame({ gameId: 'restored-chess-game' })],
+    invites: [createBrowserInvite({ inviteId: 'restored-chess-invite' })]
+  });
+  const backend = await installMockPlaygroundBackend(context, { snapshot });
+
+  await withExtensionStorageValues(context, 'sync', {
+    playgroundEnabled: true,
+    playgroundGamesAvailable: false
+  }, async () => {
+    const hello = await backend.waitForClientMessage('hello');
+    expect(hello.availableGames).toEqual([]);
+
+    const gamesButton = chat.locator('.ytcq-games-button');
+    await expect(gamesButton).toHaveAttribute('aria-label', 'Games: Invites 1');
+    await expect(chat.locator('.ytcq-games-card')).toHaveCount(0);
+
+    await backend.sendServerMessage({
+      snapshot: {
+        ...snapshot,
+        invites: []
+      },
+      type: 'presenceSnapshot'
+    });
+
+    await expect(gamesButton).toHaveAttribute('aria-label', 'Games: Active games 1');
+    await expect(chat.locator('.ytcq-games-card')).toHaveCount(0);
+  });
 };
 
 export const playgroundChessInviteAndMoveScenario: BrowserScenario = async ({ chat, context }) => {
@@ -493,6 +527,10 @@ export const playgroundAvailabilityToggleScenario: BrowserScenario = async ({ ch
     );
     expect(disabled.availableGames).toEqual([]);
     await expect(availability).toHaveAttribute('aria-checked', 'false');
+    await expect.poll(async () => {
+      const stored = await getExtensionStorageValues(context, 'sync', ['playgroundGamesAvailable']);
+      return stored.playgroundGamesAvailable;
+    }).toBe(false);
 
     await availability.click();
     const enabled = await waitForClientMessage(backend, 'setAvailability', (message) =>
@@ -500,6 +538,10 @@ export const playgroundAvailabilityToggleScenario: BrowserScenario = async ({ ch
     );
     expect(enabled.availableGames).toEqual(['chess', 'bounty-hunting', 'stick-around']);
     await expect(availability).toHaveAttribute('aria-checked', 'true');
+    await expect.poll(async () => {
+      const stored = await getExtensionStorageValues(context, 'sync', ['playgroundGamesAvailable']);
+      return stored.playgroundGamesAvailable;
+    }).toBe(true);
   });
 };
 

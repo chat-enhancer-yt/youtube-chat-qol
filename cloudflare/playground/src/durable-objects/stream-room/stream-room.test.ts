@@ -1520,11 +1520,8 @@ describe('playground stream room', () => {
     expect(session.userId).not.toBe('');
     expect(session.availableGames.size).toBe(0);
     expect(session.gameVersions).toEqual({});
-    expect(lastMessage(session, 'helloAccepted').snapshot.users).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ userId: session.userId })
-      ])
-    );
+    expect(lastMessage(session, 'helloAccepted').snapshot.users.map((user) => user.userId))
+      .not.toContain(session.userId);
   });
 
   it('logs protocol-version, public-key, internal, and long protocol failures', async () => {
@@ -1734,7 +1731,7 @@ describe('playground stream room', () => {
       type: 'setAvailability'
     }));
 
-    expect(getPresenceUser(room, bob.userId, aliceOne.userId)?.availableGames).toEqual([]);
+    expect(getPresenceUser(room, bob.userId, aliceOne.userId)).toBeUndefined();
     expect(() => room.handleInvite(bob, 'chess', aliceOne.userId)).toThrowError(new ProtocolError(
       'user_unavailable',
       'That player is not available for this game.'
@@ -1794,7 +1791,7 @@ describe('playground stream room', () => {
 
     room.removeClient(bobCurrent.connectionId);
 
-    expect(getPresenceUser(room, alice.userId, bobCurrent.userId)?.availableGames).toEqual([]);
+    expect(getPresenceUser(room, alice.userId, bobCurrent.userId)).toBeUndefined();
     expect(() => room.handleInvite(alice, 'bounty-hunting', bobCurrent.userId)).toThrowError(new ProtocolError(
       'user_unavailable',
       'That player is not available for this game.'

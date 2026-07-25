@@ -6,7 +6,11 @@
  * modules so future games can be added without growing this file into a second
  * application entry point.
  */
-import { registerFeature, type FeatureMutationBatch } from '../../../content/dispatcher';
+import {
+  registerFeature,
+  type FeatureMutationBatch,
+  type SaveOptions
+} from '../../../content/dispatcher';
 import type { Options } from '../../../shared/options';
 import type {
   GameId,
@@ -78,6 +82,7 @@ let lastGamesPointerPosition: GamesPointerPosition | null = null;
 let knownIncomingInviteIds: Set<string> | null = null;
 let incomingInviteAlertsPrimed = false;
 let pendingStartedGameOpen: PendingStartedGameOpen | null = null;
+let savePlaygroundOptions: SaveOptions = () => {};
 
 interface GamesPointerPosition {
   x: number;
@@ -99,6 +104,9 @@ registerFeature({
   page: {
     boot: refreshGamesButton,
     cleanup: cleanupStaleGamesUi,
+    init: ({ saveOptions }) => {
+      savePlaygroundOptions = saveOptions;
+    },
     reset: cleanupStaleGamesUi,
     optionsChanged: handlePlaygroundOptionsChanged
   },
@@ -111,10 +119,8 @@ export function refreshGamesButton(): void {
     return;
   }
 
-  if (getOptions().playgroundGamesAvailable) {
-    ensureGamesClientSubscription();
-    startPlaygroundClient(true);
-  }
+  ensureGamesClientSubscription();
+  startPlaygroundClient(getOptions().playgroundGamesAvailable);
   scheduleGamesButtonWire();
 }
 
@@ -174,10 +180,18 @@ function removeOrphanedGameSurfaces(): void {
   ).forEach((surface) => surface.remove());
 }
 
-function handlePlaygroundOptionsChanged(_previousOptions: Options, nextOptions: Options): void {
+function handlePlaygroundOptionsChanged(previousOptions: Options, nextOptions: Options): void {
   if (!nextOptions.playgroundEnabled) {
     cleanupStaleGamesUi();
     return;
+  }
+
+  if (
+    previousOptions.playgroundEnabled &&
+    previousOptions.playgroundGamesAvailable !== nextOptions.playgroundGamesAvailable &&
+    getPlaygroundClientState().available !== nextOptions.playgroundGamesAvailable
+  ) {
+    setPlaygroundAvailability(nextOptions.playgroundGamesAvailable);
   }
 
   refreshGamesButton();
@@ -327,9 +341,14 @@ function createGamesViewActions(): GamesViewActions {
     onLeaveGame: leaveGame,
     onReconnect: reconnectGamesClient,
     onSelectGame: showPlayersView,
-    onSetAvailability: setPlaygroundAvailability,
+    onSetAvailability: setPersistedPlaygroundAvailability,
     onToggleActiveGame: toggleActiveGamePanel
   };
+}
+
+function setPersistedPlaygroundAvailability(available: boolean): void {
+  setPlaygroundAvailability(available);
+  savePlaygroundOptions({ playgroundGamesAvailable: available });
 }
 
 function reconnectGamesClient(): void {

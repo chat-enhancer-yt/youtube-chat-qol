@@ -243,7 +243,7 @@
     "gamesReplayTriviaStampBestie": "挚友",
     "gamesReplayTriviaStampBlocked": "已拉黑",
     "gamesAvailableToPlay": "可接收邀请",
-    "gamesAvailableHelper": "接收此直播的游戏邀请。",
+    "gamesAvailableHelper": "进入直播时，你会显示在玩家列表中并可以接收游戏邀请。",
     "gamesActiveGame": "进行中的游戏",
     "gamesResume": "继续",
     "gamesMinimize": "最小化",
@@ -508,7 +508,7 @@
       "message": "游戏"
     },
     "playgroundGamesAvailable": {
-      "message": "默认可接收邀请"
+      "message": "可接收邀请"
     },
     "playgroundGamesAvailableHelper": {
       "message": "进入直播时，你会显示在玩家列表中并可以接收游戏邀请。"
