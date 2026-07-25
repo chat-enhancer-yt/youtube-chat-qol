@@ -543,6 +543,12 @@
     "savedItemsEmpty": {
       "message": "Tin nhắn bạn lưu và người dùng bạn ghi nhớ sẽ xuất hiện ở đây."
     },
+    "filterBookmarks": {
+      "message": "Lọc dấu trang"
+    },
+    "noMatchingSavedItems": {
+      "message": "Không có mục đã lưu phù hợp."
+    },
     "rememberedUser": {
       "message": "Người dùng đã ghi nhớ"
     },

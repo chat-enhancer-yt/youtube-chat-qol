@@ -277,26 +277,51 @@ main {
 }
 
 .popup-tabs {
+  position: relative;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 4px;
   margin: 0 0 6px;
-  padding: 0 2px;
-  border-bottom: 1px solid var(--ytcq-popup-control-border);
+  padding: 3px;
+  border-radius: var(--ytcq-popup-squircle-radius-tab-container);
+  background: var(--ytcq-popup-row-bg);
+  isolation: isolate;
+}
+
+.popup-tabs::before {
+  position: absolute;
+  z-index: 0;
+  top: 50%;
+  left: 0;
+  width: var(--ytcq-popup-tab-highlight-width, 0);
+  height: var(--ytcq-popup-tab-highlight-height, 28px);
+  border-radius: var(--ytcq-popup-squircle-radius-tab);
+  background: var(--ytcq-popup-row-hover-bg);
+  content: "";
+  opacity: var(--ytcq-popup-tab-highlight-opacity, 0);
+  pointer-events: none;
+  transform: translate3d(var(--ytcq-popup-tab-highlight-x, 0), -50%, 0);
+  transition:
+    transform 190ms ease,
+    width 190ms ease,
+    height 190ms ease,
+    opacity 130ms ease;
 }
 
 .popup-tab {
   position: relative;
-  min-height: 24px;
-  padding: 2px 8px 5px;
+  z-index: 1;
+  min-height: 28px;
+  padding: 5px 8px;
   border: 0;
-  border-radius: 4px 4px 0 0;
+  border-radius: var(--ytcq-popup-squircle-radius-tab);
   color: var(--ytcq-popup-secondary-text);
   background: transparent;
   font-size: 11px;
   font-weight: 500;
   line-height: 14px;
   cursor: pointer;
+  transition: color 150ms ease;
 }
 
 .popup-tab:hover,
@@ -315,15 +340,11 @@ main {
   color: var(--ytcq-popup-action);
 }
 
-.popup-tab-active::after {
-  position: absolute;
-  right: 8px;
-  bottom: -1px;
-  left: 8px;
-  height: 2px;
-  border-radius: 2px 2px 0 0;
-  background: currentColor;
-  content: "";
+.popup-tab-with-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
 }
 
 .popup-tab-panels {
@@ -457,6 +478,8 @@ main {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .popup-tabs::before,
+  .popup-tab,
   #playgroundGamesSection {
     transition: none;
   }

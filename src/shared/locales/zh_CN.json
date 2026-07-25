@@ -546,6 +546,12 @@
     "savedItemsEmpty": {
       "message": "你保存的消息和记住的用户会显示在这里。"
     },
+    "filterBookmarks": {
+      "message": "筛选书签"
+    },
+    "noMatchingSavedItems": {
+      "message": "没有匹配的已保存项目。"
+    },
     "rememberedUser": {
       "message": "已记住用户"
     },

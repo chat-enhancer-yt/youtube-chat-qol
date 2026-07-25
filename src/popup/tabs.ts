@@ -3,13 +3,18 @@ import { controls } from './controls';
 const SCROLL_FADE_TOP_CLASS = 'popup-scroll-fade-top';
 const SCROLL_FADE_BOTTOM_CLASS = 'popup-scroll-fade-bottom';
 const SCROLL_EDGE_TOLERANCE_PX = 1;
+const NESTED_SCROLL_FADE_REGION_SELECTOR = '[data-popup-scroll-fade-region]';
+const NESTED_SCROLL_TARGET_SELECTOR = '[data-popup-scroll-target]';
 const POPUP_LAST_TAB_STORAGE_KEY = 'ytcqPopupLastTab';
 let popupScrollFadeRegion: HTMLElement | null = null;
 let popupScrollFadeRefreshTimer = 0;
 let popupTabSelectedByUser = false;
+let popupTabList: HTMLElement | null = null;
+let previewedPopupTab: HTMLButtonElement | null = null;
 
 export function initPopupTabs(): void {
   initPopupScrollFades();
+  initPopupTabHighlight();
   restoreLastPopupTab();
 
   controls.tabs.forEach((tab) => {
@@ -21,6 +26,51 @@ export function initPopupTabs(): void {
       chrome.storage.session?.set({ [POPUP_LAST_TAB_STORAGE_KEY]: targetId });
     });
   });
+}
+
+function initPopupTabHighlight(): void {
+  const tabList = document.querySelector<HTMLElement>('.popup-tabs');
+  if (!tabList) return;
+  popupTabList = tabList;
+
+  controls.tabs.forEach((tab) => {
+    const previewTab = () => {
+      previewedPopupTab = tab;
+      syncPopupTabHighlight();
+    };
+    tab.addEventListener('pointerenter', previewTab);
+    tab.addEventListener('focus', previewTab);
+  });
+
+  tabList.addEventListener('pointerleave', () => {
+    previewedPopupTab = null;
+    syncPopupTabHighlight();
+  });
+  tabList.addEventListener('focusout', (event) => {
+    if (event.relatedTarget instanceof Node && tabList.contains(event.relatedTarget)) return;
+
+    previewedPopupTab = null;
+    syncPopupTabHighlight();
+  });
+  window.addEventListener('resize', syncPopupTabHighlight);
+  syncPopupTabHighlight();
+}
+
+function syncPopupTabHighlight(): void {
+  const activeTab = controls.tabs.find((tab) => tab.getAttribute('aria-selected') === 'true');
+  positionPopupTabHighlight(previewedPopupTab || activeTab || null);
+}
+
+function positionPopupTabHighlight(tab: HTMLButtonElement | null): void {
+  if (!popupTabList || !tab) {
+    popupTabList?.style.setProperty('--ytcq-popup-tab-highlight-opacity', '0');
+    return;
+  }
+
+  popupTabList.style.setProperty('--ytcq-popup-tab-highlight-x', `${tab.offsetLeft}px`);
+  popupTabList.style.setProperty('--ytcq-popup-tab-highlight-width', `${tab.offsetWidth}px`);
+  popupTabList.style.setProperty('--ytcq-popup-tab-highlight-height', `${tab.offsetHeight}px`);
+  popupTabList.style.setProperty('--ytcq-popup-tab-highlight-opacity', '1');
 }
 
 function restoreLastPopupTab(): void {
@@ -54,9 +104,19 @@ function initPopupScrollFades(): void {
     panel.addEventListener('scroll', updatePopupScrollFades, { passive: true });
     panel.addEventListener('click', schedulePopupScrollFadeUpdate);
     panel.addEventListener('change', schedulePopupScrollFadeUpdate);
+    panel.addEventListener('input', schedulePopupScrollFadeUpdate);
   });
+  document
+    .querySelectorAll<HTMLElement>(NESTED_SCROLL_TARGET_SELECTOR)
+    .forEach((target) =>
+      target.addEventListener('scroll', updatePopupScrollFades, { passive: true })
+    );
   window.addEventListener('resize', schedulePopupScrollFadeUpdate);
 
+  schedulePopupScrollFadeUpdate();
+}
+
+export function refreshPopupScrollFades(): void {
   schedulePopupScrollFadeUpdate();
 }
 
@@ -73,18 +133,34 @@ function updatePopupScrollFades(): void {
   if (!popupScrollFadeRegion) return;
 
   const activePanel = controls.tabPanels.find((panel) => !panel.hidden);
-  const hasScrollableContent = activePanel
-    ? activePanel.scrollHeight > activePanel.clientHeight + SCROLL_EDGE_TOLERANCE_PX
+  const nestedScrollTarget = activePanel?.querySelector<HTMLElement>(
+    NESTED_SCROLL_TARGET_SELECTOR
+  );
+  const scrollTarget = nestedScrollTarget || activePanel;
+  const activeFadeRegion =
+    nestedScrollTarget?.closest<HTMLElement>(NESTED_SCROLL_FADE_REGION_SELECTOR) ||
+    popupScrollFadeRegion;
+
+  const hasScrollableContent = scrollTarget
+    ? scrollTarget.scrollHeight > scrollTarget.clientHeight + SCROLL_EDGE_TOLERANCE_PX
     : false;
-  const hasContentAbove = Boolean(activePanel && activePanel.scrollTop > SCROLL_EDGE_TOLERANCE_PX);
+  const hasContentAbove = Boolean(
+    scrollTarget && scrollTarget.scrollTop > SCROLL_EDGE_TOLERANCE_PX
+  );
   const hasContentBelow = Boolean(
-    activePanel &&
+    scrollTarget &&
     hasScrollableContent &&
-    activePanel.scrollTop + activePanel.clientHeight < activePanel.scrollHeight - SCROLL_EDGE_TOLERANCE_PX
+    scrollTarget.scrollTop + scrollTarget.clientHeight <
+      scrollTarget.scrollHeight - SCROLL_EDGE_TOLERANCE_PX
   );
 
-  popupScrollFadeRegion.classList.toggle(SCROLL_FADE_TOP_CLASS, hasContentAbove);
-  popupScrollFadeRegion.classList.toggle(SCROLL_FADE_BOTTOM_CLASS, hasContentBelow);
+  if (activeFadeRegion !== popupScrollFadeRegion) {
+    popupScrollFadeRegion.classList.remove(SCROLL_FADE_TOP_CLASS, SCROLL_FADE_BOTTOM_CLASS);
+  }
+
+  // Preserve hidden nested regions' classes so Firefox can restore their pseudo-elements.
+  activeFadeRegion.classList.toggle(SCROLL_FADE_TOP_CLASS, hasContentAbove);
+  activeFadeRegion.classList.toggle(SCROLL_FADE_BOTTOM_CLASS, hasContentBelow);
 }
 
 function selectPopupTab(targetId: string): void {
@@ -98,5 +174,6 @@ function selectPopupTab(targetId: string): void {
     panel.hidden = panel.id !== targetId;
   });
 
+  syncPopupTabHighlight();
   schedulePopupScrollFadeUpdate();
 }

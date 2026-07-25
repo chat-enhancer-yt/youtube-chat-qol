@@ -546,6 +546,12 @@
     "savedItemsEmpty": {
       "message": "Kaydettiğiniz mesajlar ve hatırladığınız kullanıcılar burada görünür."
     },
+    "filterBookmarks": {
+      "message": "Yer imlerini filtrele"
+    },
+    "noMatchingSavedItems": {
+      "message": "Eşleşen kayıtlı öğe yok."
+    },
     "rememberedUser": {
       "message": "Hatırlanan kullanıcı"
     },

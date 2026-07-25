@@ -546,6 +546,12 @@
     "savedItemsEmpty": {
       "message": "As mensagens que você salvar e os usuários que lembrar aparecerão aqui."
     },
+    "filterBookmarks": {
+      "message": "Filtrar marcadores"
+    },
+    "noMatchingSavedItems": {
+      "message": "Nenhum item salvo correspondente."
+    },
     "rememberedUser": {
       "message": "Usuário lembrado"
     },

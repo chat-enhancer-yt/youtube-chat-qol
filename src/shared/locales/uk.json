@@ -543,6 +543,12 @@
     "savedItemsEmpty": {
       "message": "Збережені повідомлення й запам’ятовані користувачі з’являться тут."
     },
+    "filterBookmarks": {
+      "message": "Фільтрувати закладки"
+    },
+    "noMatchingSavedItems": {
+      "message": "Немає відповідних збережених елементів."
+    },
     "rememberedUser": {
       "message": "Запам’ятований користувач"
     },

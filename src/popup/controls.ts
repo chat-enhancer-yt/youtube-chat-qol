@@ -8,6 +8,7 @@ export const controls = {
   extensionStatus: document.querySelector<HTMLElement>('[data-extension-status]'),
   extensionStatusText: document.querySelector<HTMLElement>('[data-extension-status-text]'),
   bookmarksCount: document.querySelector<HTMLElement>('#bookmarksCount'),
+  bookmarksFilter: document.querySelector<HTMLInputElement>('#bookmarksFilter'),
   bookmarksList: document.querySelector<HTMLElement>('#bookmarksList'),
   chatSkin: document.querySelector<HTMLSelectElement>('#chatSkin'),
   targetLanguage: document.querySelector<HTMLSelectElement>('#targetLanguage'),

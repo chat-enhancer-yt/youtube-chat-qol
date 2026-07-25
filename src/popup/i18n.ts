@@ -18,6 +18,13 @@ export function localizePopup(): string {
     if (key) element.setAttribute('aria-label', getExtensionMessage(key));
   });
 
+  document
+    .querySelectorAll<HTMLInputElement | HTMLTextAreaElement>('[data-i18n-placeholder]')
+    .forEach((element) => {
+      const key = element.dataset.i18nPlaceholder;
+      if (key) element.placeholder = getExtensionMessage(key);
+    });
+
   return popupLocale;
 }
 

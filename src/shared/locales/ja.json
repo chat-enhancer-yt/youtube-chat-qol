@@ -546,6 +546,12 @@
     "savedItemsEmpty": {
       "message": "保存したメッセージと記憶したユーザーがここに表示されます。"
     },
+    "filterBookmarks": {
+      "message": "ブックマークを絞り込む"
+    },
+    "noMatchingSavedItems": {
+      "message": "一致する保存済みアイテムはありません。"
+    },
     "rememberedUser": {
       "message": "記憶したユーザー"
     },

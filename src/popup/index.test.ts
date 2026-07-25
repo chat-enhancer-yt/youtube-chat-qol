@@ -15,9 +15,14 @@ describe('popup', () => {
       <a id="sourceCodeLink"></a>
       <a id="supportLink"></a>
       <button id="resetExtension"></button>
-      <button id="settingsTab" data-popup-tab-target="settingsPanel" aria-selected="true"></button>
-      <button id="bookmarksTab" data-popup-tab-target="bookmarksPanel" aria-selected="false"></button>
-      <button id="playgroundTab" data-popup-tab-target="playgroundPanel" aria-selected="false"></button>
+      <nav class="popup-tabs">
+        <button id="settingsTab" data-popup-tab-target="settingsPanel" aria-selected="true"></button>
+        <button id="bookmarksTab" data-popup-tab-target="bookmarksPanel" aria-selected="false">
+          <span data-i18n="bookmarks"></span>
+          <span id="bookmarksCount"></span>
+        </button>
+        <button id="playgroundTab" data-popup-tab-target="playgroundPanel" aria-selected="false"></button>
+      </nav>
       <div class="popup-tab-panels">
       <div id="settingsPanel" data-popup-tab-panel>
       <select id="targetLanguage"></select>
@@ -30,8 +35,9 @@ describe('popup', () => {
       <input id="liteModeEnabled" type="checkbox">
       </div>
       <div id="bookmarksPanel" data-popup-tab-panel hidden>
-        <span id="bookmarksCount"></span>
-        <div id="bookmarksList"></div>
+        <div class="bookmarks-list-shell" data-popup-scroll-fade-region>
+          <div id="bookmarksList" data-popup-scroll-target></div>
+        </div>
       </div>
       <div id="playgroundPanel" data-popup-tab-panel hidden>
         <label id="playgroundOption" class="option option-toggle">
@@ -486,7 +492,8 @@ describe('popup', () => {
     expect(document.querySelector<HTMLElement>('#settingsPanel')?.hidden).toBe(true);
     expect(document.querySelector<HTMLElement>('#bookmarksPanel')?.hidden).toBe(false);
     expect(document.querySelector<HTMLElement>('#playgroundPanel')?.hidden).toBe(true);
-    expect(document.querySelector('#bookmarksCount')?.textContent).toBe('savedItemsCount:1');
+    expect(document.querySelector('#bookmarksCount')?.closest('#bookmarksTab')).not.toBeNull();
+    expect(document.querySelector('#bookmarksCount')?.textContent).toBe('1');
     expect(document.querySelector('.bookmark-name')?.textContent).toBe('@ViewerOne');
     expect(document.querySelector('.bookmark-message')?.textContent).toBe('Saved chat message');
     expect(document.querySelector<HTMLImageElement>('.bookmark-avatar img')?.src).toBe(
@@ -514,8 +521,10 @@ describe('popup', () => {
     expect(document.querySelector<HTMLButtonElement>('.bookmark-source-button')?.title).toBe(
       'openStreamInNewWindow:Example stream'
     );
-    expect(document.querySelector('.bookmark-name-button')).toBeNull();
-
+    document.querySelector<HTMLButtonElement>('.bookmark-name-button')?.click();
+    expect(chrome.tabs.create).toHaveBeenCalledWith({
+      url: 'https://www.youtube.com/channel/viewer-channel'
+    });
     document.querySelector<HTMLButtonElement>('.bookmark-avatar-button')?.click();
     expect(chrome.tabs.create).toHaveBeenCalledWith({
       url: 'https://www.youtube.com/channel/viewer-channel'
@@ -611,13 +620,21 @@ describe('popup', () => {
       '@RingViewer',
       '@RingViewer'
     ]);
-    expect(document.querySelector('#bookmarksCount')?.textContent).toBe('savedItemsCount:2');
+    expect(document.querySelector('#bookmarksCount')?.textContent).toBe('2');
 
     const ringRow = rows[0];
     expect(ringRow.querySelector('.avatar-ring-label')?.textContent).toBe('rememberedUser');
     expect(ringRow.querySelector('.avatar-ring-avatar img')).not.toBeNull();
     expect(ringRow.style.getPropertyValue('--ytcq-popup-avatar-ring-color')).not.toBe('');
     const bookmarkRow = rows[1];
+    for (const row of rows) {
+      const handle = row.querySelector<HTMLButtonElement>('.bookmark-name-button');
+      expect(handle?.textContent).toBe('@RingViewer');
+      handle?.click();
+      expect(chrome.tabs.create).toHaveBeenLastCalledWith({
+        url: 'https://www.youtube.com/channel/ring-viewer-channel'
+      });
+    }
     expect(bookmarkRow.querySelector('.avatar-ring-avatar')).not.toBeNull();
     expect(bookmarkRow.style.getPropertyValue('--ytcq-popup-avatar-ring-color')).toBe(
       ringRow.style.getPropertyValue('--ytcq-popup-avatar-ring-color')
@@ -653,7 +670,7 @@ describe('popup', () => {
     await expect(chrome.storage.local.get(AVATAR_RINGS_STORAGE_KEY)).resolves.toEqual({
       [AVATAR_RINGS_STORAGE_KEY]: {}
     });
-    expect(document.querySelector('#bookmarksCount')?.textContent).toBe('savedItemsCount:1');
+    expect(document.querySelector('#bookmarksCount')?.textContent).toBe('1');
     expect(
       document.querySelector('.avatar-ring-row')?.classList.contains('bookmark-row-removed')
     ).toBe(true);
@@ -685,7 +702,7 @@ describe('popup', () => {
         'channel:ring-viewer-channel': ringRecord
       }
     });
-    expect(document.querySelector('#bookmarksCount')?.textContent).toBe('savedItemsCount:2');
+    expect(document.querySelector('#bookmarksCount')?.textContent).toBe('2');
     expect(document.querySelector('.avatar-ring-row .avatar-ring-avatar')).not.toBeNull();
     expect(
       document.querySelector('.bookmark-row:not(.avatar-ring-row) .avatar-ring-avatar')
@@ -715,6 +732,30 @@ describe('popup', () => {
     expect(document.querySelector<HTMLElement>('#playgroundPanel')?.hidden).toBe(false);
   });
 
+  it('moves the popup tab highlight across previews and selections', async () => {
+    const tabList = document.querySelector<HTMLElement>('.popup-tabs')!;
+    const settingsTab = document.querySelector<HTMLButtonElement>('#settingsTab')!;
+    const bookmarksTab = document.querySelector<HTMLButtonElement>('#bookmarksTab')!;
+    definePopupTabLayout(settingsTab, { left: 3, width: 104 });
+    definePopupTabLayout(bookmarksTab, { left: 111, width: 104 });
+
+    await import('./index');
+
+    expect(tabList.style.getPropertyValue('--ytcq-popup-tab-highlight-x')).toBe('3px');
+    expect(tabList.style.getPropertyValue('--ytcq-popup-tab-highlight-width')).toBe('104px');
+    expect(tabList.style.getPropertyValue('--ytcq-popup-tab-highlight-height')).toBe('28px');
+    expect(tabList.style.getPropertyValue('--ytcq-popup-tab-highlight-opacity')).toBe('1');
+
+    bookmarksTab.dispatchEvent(new Event('pointerenter'));
+    expect(tabList.style.getPropertyValue('--ytcq-popup-tab-highlight-x')).toBe('111px');
+
+    tabList.dispatchEvent(new Event('pointerleave'));
+    expect(tabList.style.getPropertyValue('--ytcq-popup-tab-highlight-x')).toBe('3px');
+
+    bookmarksTab.click();
+    expect(tabList.style.getPropertyValue('--ytcq-popup-tab-highlight-x')).toBe('111px');
+  });
+
   it('ignores a remembered popup tab that is no longer available', async () => {
     await chrome.storage.session.set({ ytcqPopupLastTab: 'missingPanel' });
 
@@ -737,15 +778,17 @@ describe('popup', () => {
       return Promise.resolve([]);
     }) as never);
     const settingsPanel = document.querySelector<HTMLElement>('#settingsPanel')!;
-    const bookmarksPanel = document.querySelector<HTMLElement>('#bookmarksPanel')!;
+    const bookmarksList = document.querySelector<HTMLElement>('#bookmarksList')!;
+    const bookmarksScrollRegion =
+      document.querySelector<HTMLElement>('[data-popup-scroll-fade-region]')!;
     Object.defineProperties(settingsPanel, {
       clientHeight: { configurable: true, value: 100 },
       scrollHeight: { configurable: true, value: 300 },
       scrollTop: { configurable: true, value: 0, writable: true }
     });
-    Object.defineProperties(bookmarksPanel, {
+    Object.defineProperties(bookmarksList, {
       clientHeight: { configurable: true, value: 100 },
-      scrollHeight: { configurable: true, value: 100 },
+      scrollHeight: { configurable: true, value: 300 },
       scrollTop: { configurable: true, value: 0, writable: true }
     });
 
@@ -768,6 +811,30 @@ describe('popup', () => {
     document.querySelector<HTMLButtonElement>('#bookmarksTab')?.click();
     expect(scrollRegion.classList.contains('popup-scroll-fade-top')).toBe(false);
     expect(scrollRegion.classList.contains('popup-scroll-fade-bottom')).toBe(false);
+    expect(bookmarksScrollRegion.classList.contains('popup-scroll-fade-top')).toBe(false);
+    expect(bookmarksScrollRegion.classList.contains('popup-scroll-fade-bottom')).toBe(true);
+
+    bookmarksList.scrollTop = 80;
+    bookmarksList.dispatchEvent(new Event('scroll'));
+    expect(bookmarksScrollRegion.classList.contains('popup-scroll-fade-top')).toBe(true);
+    expect(bookmarksScrollRegion.classList.contains('popup-scroll-fade-bottom')).toBe(true);
+
+    document.querySelector<HTMLButtonElement>('#settingsTab')?.click();
+    expect(scrollRegion.classList.contains('popup-scroll-fade-top')).toBe(true);
+    expect(scrollRegion.classList.contains('popup-scroll-fade-bottom')).toBe(false);
+    expect(bookmarksScrollRegion.classList.contains('popup-scroll-fade-top')).toBe(true);
+    expect(bookmarksScrollRegion.classList.contains('popup-scroll-fade-bottom')).toBe(true);
+
+    document.querySelector<HTMLButtonElement>('#bookmarksTab')?.click();
+    expect(scrollRegion.classList.contains('popup-scroll-fade-top')).toBe(false);
+    expect(scrollRegion.classList.contains('popup-scroll-fade-bottom')).toBe(false);
+    expect(bookmarksScrollRegion.classList.contains('popup-scroll-fade-top')).toBe(true);
+    expect(bookmarksScrollRegion.classList.contains('popup-scroll-fade-bottom')).toBe(true);
+
+    bookmarksList.scrollTop = 200;
+    bookmarksList.dispatchEvent(new Event('scroll'));
+    expect(bookmarksScrollRegion.classList.contains('popup-scroll-fade-top')).toBe(true);
+    expect(bookmarksScrollRegion.classList.contains('popup-scroll-fade-bottom')).toBe(false);
   });
 
   it('renders bookmark fallback rows, profile handles, and storage-change refreshes', async () => {
@@ -829,7 +896,17 @@ describe('popup', () => {
     expect(plainAvatar?.querySelector('.bookmark-avatar-open-icon')).toBeNull();
     expect(unknownAvatar?.querySelector('.bookmark-avatar-open-icon')).not.toBeNull();
 
-    expect(rows[0].querySelector('.bookmark-name-button')).toBeNull();
+    expect(rows[0].querySelector('.bookmark-name-button')).not.toBeNull();
+    expect(rows[1].querySelector('.bookmark-name-button')).toBeNull();
+    expect(rows[2].querySelector('.bookmark-name-button')).not.toBeNull();
+    rows[0].querySelector<HTMLButtonElement>('.bookmark-name-button')?.click();
+    expect(chrome.tabs.create).toHaveBeenCalledWith({
+      url: 'https://www.youtube.com/@AlphaUser'
+    });
+    rows[2].querySelector<HTMLButtonElement>('.bookmark-name-button')?.click();
+    expect(chrome.tabs.create).toHaveBeenCalledWith({
+      url: 'https://www.youtube.com/channel/channel-only'
+    });
     rows[0].querySelector<HTMLButtonElement>('.bookmark-source-button')?.click();
     expect(chrome.tabs.create).toHaveBeenCalledWith({
       url: 'https://www.youtube.com/watch?v=stream-a'
@@ -954,6 +1031,7 @@ describe('popup', () => {
       <span data-i18n="translation"></span>
       <button data-i18n-title="openChannel"></button>
       <button data-i18n-aria-label="close"></button>
+      <input data-i18n-placeholder="filterBookmarks">
       <span data-i18n="">unchanged text</span>
       <button data-i18n-title="" title="unchanged title"></button>
       <button data-i18n-aria-label="" aria-label="unchanged label"></button>
@@ -981,6 +1059,10 @@ describe('popup', () => {
     expect(
       document.querySelector('[data-i18n-aria-label="close"]')?.getAttribute('aria-label')
     ).toBe('Close');
+    expect(
+      document.querySelector<HTMLInputElement>('[data-i18n-placeholder="filterBookmarks"]')
+        ?.placeholder
+    ).toBe('filterBookmarks');
     expect(document.querySelector('[data-i18n=""]')?.textContent).toBe('unchanged text');
     expect(document.querySelector('[data-i18n-title=""]')?.getAttribute('title')).toBe(
       'unchanged title'
@@ -1771,5 +1853,16 @@ function installMatchMedia(matches: boolean): void {
       removeEventListener: vi.fn(),
       removeListener: vi.fn()
     }))
+  });
+}
+
+function definePopupTabLayout(
+  tab: HTMLButtonElement,
+  { left, width }: { left: number; width: number }
+): void {
+  Object.defineProperties(tab, {
+    offsetHeight: { configurable: true, value: 28 },
+    offsetLeft: { configurable: true, value: left },
+    offsetWidth: { configurable: true, value: width }
   });
 }

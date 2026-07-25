@@ -543,6 +543,12 @@
     "savedItemsEmpty": {
       "message": "Nachrichten, die du speicherst, und Nutzer, die du dir merkst, werden hier angezeigt."
     },
+    "filterBookmarks": {
+      "message": "Lesezeichen filtern"
+    },
+    "noMatchingSavedItems": {
+      "message": "Keine passenden gespeicherten Elemente."
+    },
     "rememberedUser": {
       "message": "Gemerkter Nutzer"
     },

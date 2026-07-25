@@ -546,6 +546,12 @@
     "savedItemsEmpty": {
       "message": "ستظهر هنا الرسائل التي تحفظها والمستخدمون الذين تتذكّرهم."
     },
+    "filterBookmarks": {
+      "message": "تصفية الإشارات"
+    },
+    "noMatchingSavedItems": {
+      "message": "لا توجد عناصر محفوظة مطابقة"
+    },
     "rememberedUser": {
       "message": "مستخدم تم تذكّره"
     },

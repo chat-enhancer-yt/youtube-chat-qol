@@ -543,6 +543,12 @@
     "savedItemsEmpty": {
       "message": "پیام‌هایی که ذخیره می‌کنید و کاربرانی که به‌خاطر می‌سپارید اینجا نمایش داده می‌شوند."
     },
+    "filterBookmarks": {
+      "message": "فیلتر کردن نشانک‌ها"
+    },
+    "noMatchingSavedItems": {
+      "message": "هیچ مورد ذخیره‌شدهٔ منطبقی نیست."
+    },
     "rememberedUser": {
       "message": "کاربر به‌خاطر سپرده‌شده"
     },

@@ -546,6 +546,12 @@
     "savedItemsEmpty": {
       "message": "आपके सहेजे गए संदेश और याद रखे गए उपयोगकर्ता यहाँ दिखाई देंगे।"
     },
+    "filterBookmarks": {
+      "message": "बुकमार्क फ़िल्टर करें"
+    },
+    "noMatchingSavedItems": {
+      "message": "कोई मेल खाता सहेजा गया आइटम नहीं है।"
+    },
     "rememberedUser": {
       "message": "याद रखा गया उपयोगकर्ता"
     },

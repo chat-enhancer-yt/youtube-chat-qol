@@ -546,6 +546,12 @@
     "savedItemsEmpty": {
       "message": "Сохранённые сообщения и запомненные пользователи появятся здесь."
     },
+    "filterBookmarks": {
+      "message": "Фильтр закладок"
+    },
+    "noMatchingSavedItems": {
+      "message": "Нет подходящих сохранённых элементов."
+    },
     "rememberedUser": {
       "message": "Запомненный пользователь"
     },

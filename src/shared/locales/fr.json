@@ -543,6 +543,12 @@
     "savedItemsEmpty": {
       "message": "Les messages enregistrés et les utilisateurs mémorisés apparaîtront ici."
     },
+    "filterBookmarks": {
+      "message": "Filtrer les favoris"
+    },
+    "noMatchingSavedItems": {
+      "message": "Aucun élément enregistré correspondant."
+    },
     "rememberedUser": {
       "message": "Utilisateur mémorisé"
     },

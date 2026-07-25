@@ -546,6 +546,12 @@
     "savedItemsEmpty": {
       "message": "Pesan yang Anda simpan dan pengguna yang Anda ingat akan muncul di sini."
     },
+    "filterBookmarks": {
+      "message": "Filter bookmark"
+    },
+    "noMatchingSavedItems": {
+      "message": "Tidak ada item tersimpan yang cocok."
+    },
     "rememberedUser": {
       "message": "Pengguna yang diingat"
     },

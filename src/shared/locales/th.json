@@ -543,6 +543,12 @@
     "savedItemsEmpty": {
       "message": "ข้อความที่คุณบันทึกและผู้ใช้ที่คุณจดจำจะปรากฏที่นี่"
     },
+    "filterBookmarks": {
+      "message": "กรองบุ๊กมาร์ก"
+    },
+    "noMatchingSavedItems": {
+      "message": "ไม่มีรายการที่บันทึกไว้ตรงกัน"
+    },
     "rememberedUser": {
       "message": "ผู้ใช้ที่จดจำ"
     },

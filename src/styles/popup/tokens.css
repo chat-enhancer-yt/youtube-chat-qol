@@ -6,6 +6,8 @@
   --ytcq-popup-card-bg: #fff;
   --ytcq-popup-row-bg: rgba(0, 0, 0, 0.04);
   --ytcq-popup-row-hover-bg: rgba(0, 0, 0, 0.07);
+  --ytcq-popup-bookmark-bg: rgba(0, 0, 0, 0.065);
+  --ytcq-popup-bookmark-hover-bg: rgba(0, 0, 0, 0.095);
   --ytcq-popup-control-bg: #fff;
   --ytcq-popup-control-tint: rgba(0, 0, 0, 0.04);
   --ytcq-popup-control-border: rgba(0, 0, 0, 0.22);
@@ -16,13 +18,14 @@
   --ytcq-popup-logo-red-start: #fe0031;
   --ytcq-popup-logo-red-end: #fd0032;
   --ytcq-popup-squircle-corner-shape: squircle;
-  --ytcq-popup-squircle-radius-small: 4px;
-  --ytcq-popup-squircle-radius-badge: 5px;
-  --ytcq-popup-squircle-radius-control: 6px;
-  --ytcq-popup-squircle-radius-compact: 7px;
-  --ytcq-popup-squircle-radius-surface: 8px;
-  --ytcq-popup-squircle-radius-tab: 4px 4px 0 0;
-  --ytcq-popup-squircle-radius-tab-mark: 2px 2px 0 0;
+  /* Circular fallbacks read rounder than squircles, especially on compact UI. */
+  --ytcq-popup-squircle-radius-small: 5px;
+  --ytcq-popup-squircle-radius-badge: 7px;
+  --ytcq-popup-squircle-radius-control: 7px;
+  --ytcq-popup-squircle-radius-compact: 8px;
+  --ytcq-popup-squircle-radius-surface: 12px;
+  --ytcq-popup-squircle-radius-tab: 10px;
+  --ytcq-popup-squircle-radius-tab-container: 13px;
   font-family: "Inter", Arial, sans-serif;
 }
 
@@ -39,21 +42,24 @@
     --ytcq-popup-squircle-radius-control: 12px;
     --ytcq-popup-squircle-radius-compact: 14px;
     --ytcq-popup-squircle-radius-surface: 18px;
-    --ytcq-popup-squircle-radius-tab: 12px 12px 0 0;
-    --ytcq-popup-squircle-radius-tab-mark: 5px 5px 0 0;
+    --ytcq-popup-squircle-radius-tab: 999px;
+    --ytcq-popup-squircle-radius-tab-container: 999px;
   }
 }
 
 .brand-link,
 .header-actions,
+.bookmarks-filter input,
+.bookmarks-count,
 .popup-reset-dialog,
 .popup-reset-dialog-button,
+.popup-tabs,
+.popup-tabs::before,
 .popup-tab,
-.popup-tab-active::after,
 .settings-section,
 .playground-profile,
 .playground-display-name-field input,
-.bookmarks-section,
+.bookmarks-header,
 .bookmark-row,
 .option:hover,
 .option-beta-badge,
@@ -67,6 +73,8 @@ input[type="number"] {
     --ytcq-popup-card-bg: #282828;
     --ytcq-popup-row-bg: rgba(255, 255, 255, 0.08);
     --ytcq-popup-row-hover-bg: rgba(255, 255, 255, 0.12);
+    --ytcq-popup-bookmark-bg: rgba(255, 255, 255, 0.045);
+    --ytcq-popup-bookmark-hover-bg: rgba(255, 255, 255, 0.08);
     --ytcq-popup-control-bg: #282828;
     --ytcq-popup-control-tint: rgba(255, 255, 255, 0.06);
     --ytcq-popup-control-border: rgba(255, 255, 255, 0.24);

@@ -92,6 +92,44 @@ export const bookmarkPopupRenderingScenario: BrowserScenario = async ({ context 
         await popup.locator('#bookmarksTab').click();
         const message = popup.locator('.bookmark-message');
         await expect(message).toHaveText(LONG_BOOKMARK_MESSAGE);
+        await expect(popup.locator('#bookmarksTab #bookmarksCount')).toHaveText('2');
+        await test.step('Render bookmark scroll fades above the list content', async () => {
+          const shell = popup.locator('.bookmarks-list-shell');
+          const list = popup.locator('#bookmarksList');
+          await list.evaluate((element) => {
+            element.style.maxHeight = '60px';
+            element.dispatchEvent(new Event('scroll'));
+          });
+          await expect(shell).toHaveClass(/popup-scroll-fade-bottom/);
+          await expect
+            .poll(() => shell.evaluate((element) => getComputedStyle(element, '::after').opacity))
+            .toBe('1');
+          await list.evaluate((element) => {
+            element.style.removeProperty('max-height');
+            element.dispatchEvent(new Event('scroll'));
+          });
+        });
+        await test.step('Filter bookmark rows live without covering visible results', async () => {
+          const filter = popup.locator('#bookmarksFilter');
+          const bookmarkRow = popup.locator('.bookmark-row:not(.avatar-ring-row)');
+          const rememberedUserRow = popup.locator('.avatar-ring-row');
+          const noMatches = popup.locator('.bookmarks-filter-empty');
+
+          await filter.fill('archiveviewer deliberately stream');
+          await expect(bookmarkRow).toBeVisible();
+          await expect(rememberedUserRow).toBeHidden();
+          await expect(noMatches).toBeHidden();
+
+          await filter.fill('not-here');
+          await expect(bookmarkRow).toBeHidden();
+          await expect(rememberedUserRow).toBeHidden();
+          await expect(noMatches).toBeVisible();
+
+          await filter.clear();
+          await expect(bookmarkRow).toBeVisible();
+          await expect(rememberedUserRow).toBeVisible();
+          await expect(noMatches).toBeHidden();
+        });
         await test.step('Animate remembered-author rings on and off every affected row', async () => {
           const avatar = popup.locator(
             '.bookmark-row:not(.avatar-ring-row) .avatar-ring-avatar'

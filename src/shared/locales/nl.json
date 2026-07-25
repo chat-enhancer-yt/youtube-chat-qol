@@ -543,6 +543,12 @@
     "savedItemsEmpty": {
       "message": "Berichten die je opslaat en gebruikers die je onthoudt, verschijnen hier."
     },
+    "filterBookmarks": {
+      "message": "Bladwijzers filteren"
+    },
+    "noMatchingSavedItems": {
+      "message": "Geen overeenkomende opgeslagen items."
+    },
     "rememberedUser": {
       "message": "Onthouden gebruiker"
     },

@@ -543,6 +543,12 @@
     "savedItemsEmpty": {
       "message": "Zapisane wiadomości i zapamiętani użytkownicy pojawią się tutaj."
     },
+    "filterBookmarks": {
+      "message": "Filtruj zakładki"
+    },
+    "noMatchingSavedItems": {
+      "message": "Brak pasujących zapisanych elementów."
+    },
     "rememberedUser": {
       "message": "Zapamiętany użytkownik"
     },

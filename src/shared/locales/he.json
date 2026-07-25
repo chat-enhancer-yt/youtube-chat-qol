@@ -543,6 +543,12 @@
     "savedItemsEmpty": {
       "message": "הודעות שתשמרו ומשתמשים שתזכרו יופיעו כאן."
     },
+    "filterBookmarks": {
+      "message": "סינון סימניות"
+    },
+    "noMatchingSavedItems": {
+      "message": "אין פריטים שמורים תואמים."
+    },
     "rememberedUser": {
       "message": "משתמש שנשמר בזיכרון"
     },
