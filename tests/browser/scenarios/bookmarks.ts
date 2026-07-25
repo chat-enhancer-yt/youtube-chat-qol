@@ -28,6 +28,12 @@ interface StoredBookmarkRecord {
   sourceUrl?: string;
 }
 
+const LONG_BOOKMARK_MESSAGE = [
+  'This deliberately long saved message verifies that every line remains visible in the popup.',
+  'It continues with enough text to wrap well beyond the previous three-line limit.',
+  'The final portion must remain readable without clipping or truncation.'
+].join(' ');
+
 export const bookmarkMessageMenuScenario: BrowserScenario = async ({ chat, context }) => {
   await withExtensionStorageValues(
     context,
@@ -44,6 +50,49 @@ export const bookmarkMessageMenuScenario: BrowserScenario = async ({ chat, conte
       await expectBookmarkIconShowsAddedTime(chat, source);
       await expectBookmarkListedInPopupAndRemove(context, source.authorName);
       await expectBookmarkCount(context, 0);
+    }
+  );
+};
+
+export const bookmarkLongMessagePopupScenario: BrowserScenario = async ({ context }) => {
+  await withExtensionStorageValues(
+    context,
+    'local',
+    {
+      [BOOKMARKS_STORAGE_KEY]: {
+        'message:long-message-stream:long-message-1': {
+          authorName: '@ArchiveViewer',
+          message: {
+            contentParts: [{ text: LONG_BOOKMARK_MESSAGE, type: 'text' }],
+            messageId: 'long-message-1',
+            text: LONG_BOOKMARK_MESSAGE,
+            timestamp: 1_700_000_000_000,
+            timestampText: '10:13 PM'
+          },
+          savedAt: 1_700_000_001_000,
+          sourceKey: 'long-message-stream',
+          sourceTitle: 'Long message stream',
+          sourceUrl: 'https://www.youtube.com/watch?v=abcdefghijk'
+        }
+      }
+    },
+    async () => {
+      const popup = await openExtensionPopup(context);
+
+      try {
+        await popup.locator('#bookmarksTab').click();
+        const message = popup.locator('.bookmark-message');
+        await expect(message).toHaveText(LONG_BOOKMARK_MESSAGE);
+
+        const dimensions = await message.evaluate((element) => ({
+          clientHeight: element.clientHeight,
+          scrollHeight: element.scrollHeight
+        }));
+        expect(dimensions.clientHeight).toBeGreaterThan(48);
+        expect(dimensions.scrollHeight).toBe(dimensions.clientHeight);
+      } finally {
+        await popup.close().catch(() => undefined);
+      }
     }
   );
 };

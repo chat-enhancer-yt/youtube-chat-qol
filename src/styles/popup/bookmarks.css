@@ -192,14 +192,10 @@
 }
 
 .bookmark-message {
-  display: -webkit-box;
-  overflow: hidden;
   color: var(--ytcq-popup-text);
   font-size: 12px;
   line-height: 16px;
   overflow-wrap: anywhere;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 3;
 }
 
 .bookmark-message img {

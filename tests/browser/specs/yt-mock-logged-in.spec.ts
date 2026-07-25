@@ -25,7 +25,10 @@ import {
   inboxKeywordOverlapPreservesProfileMentionScenario,
   inboxRecordCreationAndJumpScenario
 } from '../scenarios/inbox';
-import { bookmarkMessageMenuScenario } from '../scenarios/bookmarks';
+import {
+  bookmarkLongMessagePopupScenario,
+  bookmarkMessageMenuScenario
+} from '../scenarios/bookmarks';
 import {
   liteModeMockRenderingAndFallbackScenario,
   liteModeStoredPreferenceReloadScenario,
@@ -83,6 +86,10 @@ test(
 test(
   'logged-in mock: saved message persists and appears in Bookmarks',
   bookmarkMessageMenuScenario
+);
+test(
+  'logged-in mock: popup shows the full saved message text',
+  bookmarkLongMessagePopupScenario
 );
 test('logged-in mock: mention menu action writes a draft only', mentionMenuDraftScenario);
 test('logged-in mock: quote menu action writes a draft only', quoteMenuDraftScenario);
