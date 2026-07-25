@@ -584,7 +584,8 @@ describe('popup', () => {
       },
       [BOOKMARKS_STORAGE_KEY]: {
         'message:bookmark-stream:message-1': {
-          authorName: '@BookmarkViewer',
+          authorName: '@RingViewer',
+          channelId: 'ring-viewer-channel',
           message: {
             contentParts: [{ text: 'Older saved message', type: 'text' }],
             messageId: 'message-1',
@@ -608,7 +609,7 @@ describe('popup', () => {
     expect(rows[0].classList.contains('avatar-ring-row')).toBe(true);
     expect(rows.map((row) => row.querySelector('.bookmark-name')?.textContent)).toEqual([
       '@RingViewer',
-      '@BookmarkViewer'
+      '@RingViewer'
     ]);
     expect(document.querySelector('#bookmarksCount')?.textContent).toBe('savedItemsCount:2');
 
@@ -616,6 +617,11 @@ describe('popup', () => {
     expect(ringRow.querySelector('.avatar-ring-label')?.textContent).toBe('rememberedUser');
     expect(ringRow.querySelector('.avatar-ring-avatar img')).not.toBeNull();
     expect(ringRow.style.getPropertyValue('--ytcq-popup-avatar-ring-color')).not.toBe('');
+    const bookmarkRow = rows[1];
+    expect(bookmarkRow.querySelector('.avatar-ring-avatar')).not.toBeNull();
+    expect(bookmarkRow.style.getPropertyValue('--ytcq-popup-avatar-ring-color')).toBe(
+      ringRow.style.getPropertyValue('--ytcq-popup-avatar-ring-color')
+    );
     const ringTime = ringRow.querySelector<HTMLTimeElement>('.avatar-ring-added-time');
     expect(ringTime?.dateTime).toBe(new Date(ringAddedAt).toISOString());
     expect(ringTime?.textContent).toBe(
@@ -651,6 +657,24 @@ describe('popup', () => {
     expect(
       document.querySelector('.avatar-ring-row')?.classList.contains('bookmark-row-removed')
     ).toBe(true);
+    expect(document.querySelector('.avatar-ring-row .avatar-ring-avatar')).toBeNull();
+    const departingRememberedUserAvatar = document.querySelector(
+      '.avatar-ring-row .avatar-ring-avatar-out'
+    );
+    expect(departingRememberedUserAvatar).not.toBeNull();
+    expect(
+      document.querySelector('.bookmark-row:not(.avatar-ring-row) .avatar-ring-avatar')
+    ).toBeNull();
+    const departingBookmarkAvatar = document.querySelector(
+      '.bookmark-row:not(.avatar-ring-row) .avatar-ring-avatar-out'
+    );
+    expect(departingBookmarkAvatar).not.toBeNull();
+    departingRememberedUserAvatar?.dispatchEvent(new Event('animationend'));
+    departingBookmarkAvatar?.dispatchEvent(new Event('animationend'));
+    expect(document.querySelector('.avatar-ring-row .avatar-ring-avatar-out')).toBeNull();
+    expect(
+      document.querySelector('.bookmark-row:not(.avatar-ring-row) .avatar-ring-avatar-out')
+    ).toBeNull();
     expect(document.querySelector<HTMLButtonElement>('.avatar-ring-action-button')?.title).toBe(
       'rememberUser'
     );
@@ -662,6 +686,10 @@ describe('popup', () => {
       }
     });
     expect(document.querySelector('#bookmarksCount')?.textContent).toBe('savedItemsCount:2');
+    expect(document.querySelector('.avatar-ring-row .avatar-ring-avatar')).not.toBeNull();
+    expect(
+      document.querySelector('.bookmark-row:not(.avatar-ring-row) .avatar-ring-avatar')
+    ).not.toBeNull();
   });
 
   it('restores and remembers the last selected popup tab', async () => {

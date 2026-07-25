@@ -17,6 +17,7 @@ import {
 import {
   BOOKMARKS_STORAGE_KEY,
   LEGACY_BOOKMARKS_STORAGE_KEY,
+  bookmarkAuthorsMatch,
   getBookmarkAuthorColor,
   getBookmarkTargetUrl,
   normalizeStoredBookmarks,
@@ -111,6 +112,7 @@ function handleSavedItemsStorageChange(
 function renderSavedItems(): void {
   if (!controls.bookmarksCount || !controls.bookmarksList) return;
 
+  const previousBookmarkRingColors = getRenderedBookmarkRingColors(controls.bookmarksList);
   const entries = getVisibleSavedItemEntries().sort((firstEntry, secondEntry) => {
     const firstTime = getSavedItemAddedAt(firstEntry);
     const secondTime = getSavedItemAddedAt(secondEntry);
@@ -137,7 +139,22 @@ function renderSavedItems(): void {
     return;
   }
 
-  controls.bookmarksList.append(...entries.map(createSavedItemRow));
+  controls.bookmarksList.append(
+    ...entries.map((entry) =>
+      createSavedItemRow(entry, previousBookmarkRingColors.get(entry.key) || '')
+    )
+  );
+}
+
+function getRenderedBookmarkRingColors(list: HTMLElement): Map<string, string> {
+  const ringColors = new Map<string, string>();
+  list.querySelectorAll<HTMLElement>('.bookmark-row[data-bookmark-key]').forEach((row) => {
+    const key = row.dataset.bookmarkKey || '';
+    const ring = row.querySelector('.avatar-ring-avatar, .avatar-ring-avatar-out');
+    const color = row.style.getPropertyValue('--ytcq-popup-avatar-ring-color');
+    if (key && ring && color) ringColors.set(key, color);
+  });
+  return ringColors;
 }
 
 function getVisibleSavedItemEntries(): SavedItemEntry[] {
@@ -168,15 +185,29 @@ function getSavedItemAddedAt(entry: SavedItemEntry): number {
   return entry.kind === 'bookmark' ? entry.record.savedAt : entry.record.addedAt;
 }
 
-function createSavedItemRow(entry: SavedItemEntry): HTMLElement {
+function createSavedItemRow(entry: SavedItemEntry, previousBookmarkRingColor = ''): HTMLElement {
   return entry.kind === 'bookmark'
-    ? createBookmarkRow(entry.key, entry.record, entry.active)
+    ? createBookmarkRow(entry.key, entry.record, entry.active, previousBookmarkRingColor)
     : createAvatarRingRow(entry.key, entry.record, entry.active);
 }
 
-function createBookmarkRow(key: string, record: BookmarkRecord, active: boolean): HTMLElement {
+function createBookmarkRow(
+  key: string,
+  record: BookmarkRecord,
+  active: boolean,
+  previousAvatarRingColor: string
+): HTMLElement {
   const channelUrl = getSavedItemChannelUrl(record);
-  const avatar = createSavedItemAvatar(record, channelUrl);
+  const avatarRing = Array.from(currentAvatarRings.values()).find((candidate) =>
+    bookmarkAuthorsMatch(record, candidate)
+  );
+  const animateAvatarRingOut = !avatarRing && Boolean(previousAvatarRingColor);
+  const avatar = createSavedItemAvatar(
+    record,
+    channelUrl,
+    Boolean(avatarRing),
+    animateAvatarRingOut
+  );
   const copy = el<HTMLSpanElement>(<span class="bookmark-copy" />);
   copy.append(createBookmarkHeader(record));
 
@@ -209,18 +240,24 @@ function createBookmarkRow(key: string, record: BookmarkRecord, active: boolean)
     </button>
   );
 
-  return el<HTMLElement>(
+  const row = el<HTMLElement>(
     <article class={`bookmark-row${active ? '' : ' bookmark-row-removed'}`}>
       {avatar}
       {copy}
       <span class="bookmark-actions">{actionButton}</span>
     </article>
   );
+  row.dataset.bookmarkKey = key;
+  const avatarRingColor = avatarRing ? getAvatarRingColor(avatarRing) : previousAvatarRingColor;
+  if (avatarRingColor) {
+    row.style.setProperty('--ytcq-popup-avatar-ring-color', avatarRingColor);
+  }
+  return row;
 }
 
 function createAvatarRingRow(key: string, record: AvatarRingRecord, active: boolean): HTMLElement {
   const channelUrl = getSavedItemChannelUrl(record);
-  const avatar = createSavedItemAvatar(record, channelUrl, true);
+  const avatar = createSavedItemAvatar(record, channelUrl, active, !active);
   const copy = el<HTMLSpanElement>(<span class="bookmark-copy avatar-ring-copy" />);
   copy.append(createAvatarRingHeader(record));
   copy.append(
@@ -296,14 +333,17 @@ function createSavedItemHeader(authorName: string): HTMLElement {
 function createSavedItemAvatar(
   record: SavedItemAuthor,
   channelUrl: string,
-  avatarRing = false
+  avatarRing = false,
+  animateAvatarRingOut = false
 ): HTMLElement {
   const content = record.avatarUrl ? (
     <img src={record.avatarUrl} alt="" referrerPolicy="no-referrer" />
   ) : (
     getSavedItemAuthorInitial(record.authorName)
   );
-  const avatarClass = `bookmark-avatar${avatarRing ? ' avatar-ring-avatar' : ''}`;
+  const avatarClass = `bookmark-avatar${avatarRing ? ' avatar-ring-avatar' : ''}${
+    animateAvatarRingOut ? ' avatar-ring-avatar-out' : ''
+  }`;
   const element = channelUrl
     ? el<HTMLButtonElement>(
         <button
@@ -318,6 +358,13 @@ function createSavedItemAvatar(
         </button>
       )
     : el<HTMLSpanElement>(<span class={avatarClass}>{content}</span>);
+  if (animateAvatarRingOut) {
+    element.addEventListener(
+      'animationend',
+      () => element.classList.remove('avatar-ring-avatar-out'),
+      { once: true }
+    );
+  }
   element.style.setProperty('--bookmark-author-color', getBookmarkAuthorColor(record));
   return element;
 }

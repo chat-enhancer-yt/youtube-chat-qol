@@ -5,6 +5,7 @@
  * and removing the bookmark again.
  */
 import { expect, test, type BrowserContext, type Locator, type Page } from '@playwright/test';
+import { AVATAR_RINGS_STORAGE_KEY } from '../../../src/shared/avatar-rings';
 import { BOOKMARKS_STORAGE_KEY } from '../../../src/shared/bookmarks';
 import { getExtensionId } from '../support/extension';
 import {
@@ -54,11 +55,19 @@ export const bookmarkMessageMenuScenario: BrowserScenario = async ({ chat, conte
   );
 };
 
-export const bookmarkLongMessagePopupScenario: BrowserScenario = async ({ context }) => {
+export const bookmarkPopupRenderingScenario: BrowserScenario = async ({ context }) => {
   await withExtensionStorageValues(
     context,
     'local',
     {
+      [AVATAR_RINGS_STORAGE_KEY]: {
+        'author:@archiveviewer': {
+          addedAt: 1_700_000_002_000,
+          authorName: '@ArchiveViewer',
+          sourceTitle: 'Long message stream',
+          sourceUrl: 'https://www.youtube.com/watch?v=abcdefghijk'
+        }
+      },
       [BOOKMARKS_STORAGE_KEY]: {
         'message:long-message-stream:long-message-1': {
           authorName: '@ArchiveViewer',
@@ -83,6 +92,36 @@ export const bookmarkLongMessagePopupScenario: BrowserScenario = async ({ contex
         await popup.locator('#bookmarksTab').click();
         const message = popup.locator('.bookmark-message');
         await expect(message).toHaveText(LONG_BOOKMARK_MESSAGE);
+        await test.step('Animate remembered-author rings on and off every affected row', async () => {
+          const avatar = popup.locator(
+            '.bookmark-row:not(.avatar-ring-row) .avatar-ring-avatar'
+          );
+          await expect(avatar).toHaveCSS('animation-name', 'ytcq-popup-avatar-ring-in');
+          await expect(avatar).toHaveCSS('animation-duration', '0.16s');
+
+          await popup
+            .locator('.avatar-ring-row:not(.avatar-ring-row-removed) .avatar-ring-action-button')
+            .click();
+          const departingRememberedUserAvatar = popup.locator(
+            '.avatar-ring-row-removed .avatar-ring-avatar-out'
+          );
+          await expect(departingRememberedUserAvatar).toHaveCSS(
+            'animation-name',
+            'ytcq-popup-avatar-ring-out'
+          );
+          await expect(departingRememberedUserAvatar).toHaveCSS(
+            'animation-duration',
+            '0.16s'
+          );
+          const departingAvatar = popup.locator(
+            '.bookmark-row:not(.avatar-ring-row) .avatar-ring-avatar-out'
+          );
+          await expect(departingAvatar).toHaveCSS(
+            'animation-name',
+            'ytcq-popup-avatar-ring-out'
+          );
+          await expect(departingAvatar).toHaveCSS('animation-duration', '0.16s');
+        });
 
         const dimensions = await message.evaluate((element) => ({
           clientHeight: element.clientHeight,

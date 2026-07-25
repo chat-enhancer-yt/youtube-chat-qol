@@ -26,8 +26,8 @@ import {
   inboxRecordCreationAndJumpScenario
 } from '../scenarios/inbox';
 import {
-  bookmarkLongMessagePopupScenario,
-  bookmarkMessageMenuScenario
+  bookmarkMessageMenuScenario,
+  bookmarkPopupRenderingScenario
 } from '../scenarios/bookmarks';
 import {
   liteModeMockRenderingAndFallbackScenario,
@@ -88,8 +88,8 @@ test(
   bookmarkMessageMenuScenario
 );
 test(
-  'logged-in mock: popup shows the full saved message text',
-  bookmarkLongMessagePopupScenario
+  'logged-in mock: popup fully renders saved messages and remembered rings',
+  bookmarkPopupRenderingScenario
 );
 test('logged-in mock: mention menu action writes a draft only', mentionMenuDraftScenario);
 test('logged-in mock: quote menu action writes a draft only', quoteMenuDraftScenario);
