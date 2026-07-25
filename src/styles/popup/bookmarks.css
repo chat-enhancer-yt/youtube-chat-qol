@@ -343,6 +343,14 @@
   height: 22px;
 }
 
+.avatar-ring-action-button .ytcq-avatar-ring-icon-badge {
+  stroke-width: 1.3;
+}
+
+.avatar-ring-action-button .ytcq-avatar-ring-icon-badge-symbol {
+  stroke-width: 1.4;
+}
+
 .avatar-ring-row-removed .avatar-ring-action-button {
   color: var(--ytcq-popup-secondary-text);
 }
