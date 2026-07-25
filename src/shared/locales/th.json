@@ -387,6 +387,9 @@
     "appearance": {
       "message": "รูปลักษณ์"
     },
+    "performance": {
+      "message": "ประสิทธิภาพ"
+    },
     "liteMode": {
       "message": "โหมดเบา"
     },

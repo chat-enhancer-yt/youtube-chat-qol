@@ -390,6 +390,9 @@
     "appearance": {
       "message": "Appearance"
     },
+    "performance": {
+      "message": "Performance"
+    },
     "liteMode": {
       "message": "Lite mode"
     },

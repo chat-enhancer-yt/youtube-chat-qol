@@ -387,6 +387,9 @@
     "appearance": {
       "message": "外觀"
     },
+    "performance": {
+      "message": "效能"
+    },
     "liteMode": {
       "message": "輕量模式"
     },

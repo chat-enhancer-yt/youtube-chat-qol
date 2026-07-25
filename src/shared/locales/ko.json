@@ -387,6 +387,9 @@
     "appearance": {
       "message": "모양"
     },
+    "performance": {
+      "message": "성능"
+    },
     "liteMode": {
       "message": "라이트 모드"
     },

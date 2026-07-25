@@ -390,6 +390,9 @@
     "appearance": {
       "message": "表示"
     },
+    "performance": {
+      "message": "パフォーマンス"
+    },
     "liteMode": {
       "message": "軽量モード"
     },

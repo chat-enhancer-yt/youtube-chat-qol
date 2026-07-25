@@ -387,6 +387,9 @@
     "appearance": {
       "message": "Giao diện"
     },
+    "performance": {
+      "message": "Hiệu suất"
+    },
     "liteMode": {
       "message": "Chế độ nhẹ"
     },

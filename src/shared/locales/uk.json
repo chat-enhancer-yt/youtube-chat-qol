@@ -387,6 +387,9 @@
     "appearance": {
       "message": "Вигляд"
     },
+    "performance": {
+      "message": "Продуктивність"
+    },
     "liteMode": {
       "message": "Полегшений режим"
     },

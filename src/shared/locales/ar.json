@@ -390,6 +390,9 @@
     "appearance": {
       "message": "المظهر"
     },
+    "performance": {
+      "message": "الأداء"
+    },
     "liteMode": {
       "message": "الوضع الخفيف"
     },

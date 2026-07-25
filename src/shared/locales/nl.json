@@ -387,6 +387,9 @@
     "appearance": {
       "message": "Weergave"
     },
+    "performance": {
+      "message": "Prestaties"
+    },
     "liteMode": {
       "message": "Lite-modus"
     },

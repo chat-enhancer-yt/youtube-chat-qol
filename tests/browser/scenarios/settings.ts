@@ -137,6 +137,9 @@ async function changePopupLiteMode({
 }): Promise<void> {
   await test.step('Enable Lite mode from the popup', async () => {
     await expect(
+      popup.locator('section.settings-section:has(#liteModeEnabled) > h2')
+    ).toHaveText('Performance');
+    await expect(
       popup.locator('label:has(#liteModeEnabled) .option-beta-badge')
     ).toHaveText('Beta');
     await popup.locator('#liteModeEnabled').setChecked(true);

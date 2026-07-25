@@ -390,6 +390,9 @@
     "appearance": {
       "message": "Görünüm"
     },
+    "performance": {
+      "message": "Performans"
+    },
     "liteMode": {
       "message": "Lite mod"
     },

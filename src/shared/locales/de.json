@@ -387,6 +387,9 @@
     "appearance": {
       "message": "Darstellung"
     },
+    "performance": {
+      "message": "Leistung"
+    },
     "liteMode": {
       "message": "Lite-Modus"
     },

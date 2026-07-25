@@ -387,6 +387,9 @@
     "appearance": {
       "message": "ظاهر"
     },
+    "performance": {
+      "message": "عملکرد"
+    },
     "liteMode": {
       "message": "حالت سبک"
     },

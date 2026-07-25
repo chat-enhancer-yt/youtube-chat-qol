@@ -390,6 +390,9 @@
     "appearance": {
       "message": "Tampilan"
     },
+    "performance": {
+      "message": "Performa"
+    },
     "liteMode": {
       "message": "Mode ringan"
     },

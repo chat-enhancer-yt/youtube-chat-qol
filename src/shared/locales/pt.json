@@ -390,6 +390,9 @@
     "appearance": {
       "message": "Aparência"
     },
+    "performance": {
+      "message": "Desempenho"
+    },
     "liteMode": {
       "message": "Modo leve"
     },

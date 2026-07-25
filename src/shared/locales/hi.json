@@ -390,6 +390,9 @@
     "appearance": {
       "message": "रूप"
     },
+    "performance": {
+      "message": "प्रदर्शन"
+    },
     "liteMode": {
       "message": "लाइट मोड"
     },

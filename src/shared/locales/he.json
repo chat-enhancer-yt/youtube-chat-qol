@@ -387,6 +387,9 @@
     "appearance": {
       "message": "מראה"
     },
+    "performance": {
+      "message": "ביצועים"
+    },
     "liteMode": {
       "message": "מצב קל"
     },

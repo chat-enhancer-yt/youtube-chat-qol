@@ -390,6 +390,9 @@
     "appearance": {
       "message": "Внешний вид"
     },
+    "performance": {
+      "message": "Производительность"
+    },
     "liteMode": {
       "message": "Облегчённый режим"
     },

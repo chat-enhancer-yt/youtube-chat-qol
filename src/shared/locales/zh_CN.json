@@ -390,6 +390,9 @@
     "appearance": {
       "message": "外观"
     },
+    "performance": {
+      "message": "性能"
+    },
     "liteMode": {
       "message": "轻量模式"
     },
