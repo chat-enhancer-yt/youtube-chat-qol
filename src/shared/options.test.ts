@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest';
 import {
   DEFAULT_OPTIONS,
   DEFAULT_TRANSLATION_TARGET,
-  getPlaygroundDisabledUpdate,
   getTargetLanguageUpdate,
   getTranslationToggleTarget,
   normalizeOptions
@@ -33,7 +32,7 @@ describe('shared option helpers', () => {
       sound: false,
       startupEffect: false,
       playgroundEnabled: true,
-      playgroundGamesAvailable: true,
+      playgroundGamesAvailable: false,
       translationDisplay: 'below'
     })).toMatchObject({
       sound: false,
@@ -41,16 +40,13 @@ describe('shared option helpers', () => {
       chatSkin: 'aero',
       liteModeEnabled: true,
       playgroundEnabled: true,
-      playgroundGamesAvailable: true,
+      playgroundGamesAvailable: false,
       translationDisplay: 'below'
     });
   });
 
-  it('clears child playground options when playground is disabled', () => {
-    expect(getPlaygroundDisabledUpdate()).toEqual({
-      playgroundEnabled: false,
-      playgroundGamesAvailable: false
-    });
+  it('enables game invites by default when no preference is stored', () => {
+    expect(normalizeOptions({}).playgroundGamesAvailable).toBe(true);
   });
 
   it('chooses a target when toggling translation back on', () => {

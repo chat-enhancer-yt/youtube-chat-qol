@@ -15,7 +15,6 @@ import {
 import { playAlertSoundPreview } from '../shared/sounds/alert-sounds';
 import {
   DEFAULT_OPTIONS,
-  getPlaygroundDisabledUpdate,
   getTargetLanguageUpdate,
   normalizeOptions,
   type Options
@@ -114,10 +113,9 @@ export function initSettingsControls(popupLocale: string): void {
 
   playgroundEnabled.addEventListener('change', () => {
     const enabled = playgroundEnabled.checked;
-    if (!enabled) clearPlaygroundOptionControls();
     updatePlaygroundProfile(enabled);
     updatePlaygroundGamesVisibility(enabled, true);
-    save(enabled ? { playgroundEnabled: true } : getPlaygroundDisabledUpdate());
+    save({ playgroundEnabled: enabled });
   });
 
   playgroundGamesAvailable.addEventListener('change', () => {
@@ -167,8 +165,7 @@ export function applyOptionsToControls(options: Partial<Options>): void {
   startupEffect.disabled = prefersReducedMotion();
   startupEffect.checked = normalized.startupEffect && !startupEffect.disabled;
   playgroundEnabled.checked = normalized.playgroundEnabled;
-  playgroundGamesAvailable.checked =
-    normalized.playgroundEnabled && normalized.playgroundGamesAvailable;
+  playgroundGamesAvailable.checked = normalized.playgroundGamesAvailable;
   updatePlaygroundProfile(normalized.playgroundEnabled);
   updatePlaygroundGamesVisibility(normalized.playgroundEnabled);
 }
@@ -231,13 +228,6 @@ function updatePlaygroundGamesVisibility(playgroundEnabled: boolean, animated = 
   window.setTimeout(() => {
     if (token === playgroundGamesVisibilityToken) section.hidden = true;
   }, PLAYGROUND_GROUP_ANIMATION_MS);
-}
-
-function clearPlaygroundOptionControls(): void {
-  const settingsControls = getSettingsControls();
-  if (settingsControls) {
-    settingsControls.playgroundGamesAvailable.checked = false;
-  }
 }
 
 function updatePlaygroundProfile(playgroundEnabled: boolean): void {

@@ -243,7 +243,7 @@
     "gamesReplayTriviaStampBestie": "НАЙКРАЩИЙ ДРУГ",
     "gamesReplayTriviaStampBlocked": "ЗАБЛОКОВАНО",
     "gamesAvailableToPlay": "Доступний для запрошень",
-    "gamesAvailableHelper": "Коли ви входите в трансляцію, ви з'являєтеся у списку гравців і можете отримувати ігрові запрошення.",
+    "gamesAvailableHelper": "З’являйтеся у списках гравців і отримуйте запрошення.",
     "gamesActiveGame": "Активні ігри",
     "gamesResume": "Продовжити",
     "gamesMinimize": "Згорнути",
@@ -508,7 +508,7 @@
       "message": "Доступний для запрошень"
     },
     "playgroundGamesAvailableHelper": {
-      "message": "Коли ви входите в трансляцію, ви з'являєтеся у списку гравців і можете отримувати ігрові запрошення."
+      "message": "З’являйтеся у списках гравців і отримуйте запрошення."
     },
     "learnMore": {
       "message": "Докладніше"

@@ -243,7 +243,7 @@
     "gamesReplayTriviaStampBestie": "BESTIE",
     "gamesReplayTriviaStampBlocked": "BLOCKED",
     "gamesAvailableToPlay": "Receive game invites",
-    "gamesAvailableHelper": "Your Playground name appears in player lists so others can invite you.",
+    "gamesAvailableHelper": "Appear in player lists and receive invites.",
     "gamesActiveGame": "Active games",
     "gamesResume": "Resume",
     "gamesMinimize": "Minimize",
@@ -511,7 +511,7 @@
       "message": "Receive game invites"
     },
     "playgroundGamesAvailableHelper": {
-      "message": "Your Playground name appears in player lists so others can invite you."
+      "message": "Appear in player lists and receive invites."
     },
     "learnMore": {
       "message": "Learn more"

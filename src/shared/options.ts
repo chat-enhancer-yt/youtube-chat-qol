@@ -26,13 +26,7 @@ export interface Options {
   playgroundGamesAvailable: boolean;
 }
 
-export type PlaygroundOptionKey = 'playgroundGamesAvailable';
-
 export const DEFAULT_TRANSLATION_TARGET = 'en';
-
-const DISABLED_PLAYGROUND_OPTIONS: Pick<Options, PlaygroundOptionKey> = {
-  playgroundGamesAvailable: false
-};
 
 export const DEFAULT_OPTIONS: Options = {
   chatSkin: DEFAULT_CHAT_SKIN,
@@ -44,7 +38,7 @@ export const DEFAULT_OPTIONS: Options = {
   sound: true,
   startupEffect: true,
   playgroundEnabled: false,
-  ...DISABLED_PLAYGROUND_OPTIONS
+  playgroundGamesAvailable: true
 };
 
 const TRANSLATION_DISPLAY_OPTIONS: readonly (readonly [TranslationDisplay, string])[] = [
@@ -74,7 +68,10 @@ export function normalizeOptions(value: Partial<Options> | Record<string, unknow
     sound: candidate.sound !== false,
     startupEffect: candidate.startupEffect !== false,
     playgroundEnabled: candidate.playgroundEnabled === true,
-    playgroundGamesAvailable: candidate.playgroundGamesAvailable === true
+    playgroundGamesAvailable:
+      typeof candidate.playgroundGamesAvailable === 'boolean'
+        ? candidate.playgroundGamesAvailable
+        : DEFAULT_OPTIONS.playgroundGamesAvailable
   };
 }
 
@@ -92,11 +89,4 @@ export function getTargetLanguageUpdate(targetLanguage: string, lastTranslationT
     : lastTranslationTarget
       ? { targetLanguage: '', lastTranslationTarget }
       : { targetLanguage: '' };
-}
-
-export function getPlaygroundDisabledUpdate(): Pick<Options, 'playgroundEnabled' | PlaygroundOptionKey> {
-  return {
-    playgroundEnabled: false,
-    ...DISABLED_PLAYGROUND_OPTIONS
-  };
 }

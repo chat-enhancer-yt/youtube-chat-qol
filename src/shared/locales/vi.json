@@ -243,7 +243,7 @@
     "gamesReplayTriviaStampBestie": "BẠN THÂN",
     "gamesReplayTriviaStampBlocked": "ĐÃ CHẶN",
     "gamesAvailableToPlay": "Sẵn sàng nhận lời mời",
-    "gamesAvailableHelper": "Khi vào một livestream, bạn sẽ xuất hiện trong danh sách người chơi và có thể nhận lời mời chơi game.",
+    "gamesAvailableHelper": "Xuất hiện trong danh sách người chơi và nhận lời mời.",
     "gamesActiveGame": "Trò chơi đang mở",
     "gamesResume": "Tiếp tục",
     "gamesMinimize": "Thu nhỏ",
@@ -508,7 +508,7 @@
       "message": "Sẵn sàng nhận lời mời"
     },
     "playgroundGamesAvailableHelper": {
-      "message": "Khi vào một livestream, bạn sẽ xuất hiện trong danh sách người chơi và có thể nhận lời mời chơi game."
+      "message": "Xuất hiện trong danh sách người chơi và nhận lời mời."
     },
     "learnMore": {
       "message": "Tìm hiểu thêm"

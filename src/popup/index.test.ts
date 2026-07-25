@@ -1226,15 +1226,14 @@ describe('popup', () => {
     expect(playgroundProfileWins.title).toBe('playgroundWins: 0');
     expect(playgroundProfileWins.getAttribute('aria-label')).toBe('playgroundWins: 0');
     expect(playgroundProfileWinsCount.textContent).toBe('0');
-    expect(playgroundGamesAvailable.checked).toBe(false);
+    expect(playgroundGamesAvailable.checked).toBe(true);
     expect(chrome.storage.sync.set).toHaveBeenCalledWith({
-      playgroundEnabled: false,
-      playgroundGamesAvailable: false
+      playgroundEnabled: false
     });
-    playgroundGamesAvailable.checked = true;
+    playgroundGamesAvailable.checked = false;
     playgroundGamesAvailable.dispatchEvent(new Event('change', { bubbles: true }));
     expect(chrome.storage.sync.set).toHaveBeenCalledWith({
-      playgroundGamesAvailable: true
+      playgroundGamesAvailable: false
     });
     await vi.advanceTimersByTimeAsync(180);
     expect(playgroundGamesSection.hidden).toBe(true);

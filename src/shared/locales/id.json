@@ -243,7 +243,7 @@
     "gamesReplayTriviaStampBestie": "SAHABAT",
     "gamesReplayTriviaStampBlocked": "DIBLOKIR",
     "gamesAvailableToPlay": "Tersedia untuk undangan",
-    "gamesAvailableHelper": "Saat masuk ke live, Anda akan muncul di daftar pemain dan dapat menerima undangan game.",
+    "gamesAvailableHelper": "Tampil di daftar pemain dan terima undangan.",
     "gamesActiveGame": "Game aktif",
     "gamesResume": "Lanjutkan",
     "gamesMinimize": "Minimalkan",
@@ -511,7 +511,7 @@
       "message": "Tersedia untuk undangan"
     },
     "playgroundGamesAvailableHelper": {
-      "message": "Saat masuk ke live, Anda akan muncul di daftar pemain dan dapat menerima undangan game."
+      "message": "Tampil di daftar pemain dan terima undangan."
     },
     "learnMore": {
       "message": "Pelajari selengkapnya"

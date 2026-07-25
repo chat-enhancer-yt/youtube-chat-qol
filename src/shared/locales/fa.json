@@ -243,7 +243,7 @@
     "gamesReplayTriviaStampBestie": "بهترین دوست",
     "gamesReplayTriviaStampBlocked": "مسدود",
     "gamesAvailableToPlay": "آماده دریافت دعوت",
-    "gamesAvailableHelper": "وقتی وارد یک پخش می‌شوید، در فهرست بازیکنان ظاهر می‌شوید و می‌توانید دعوت‌های بازی را دریافت کنید.",
+    "gamesAvailableHelper": "در فهرست بازیکنان ظاهر شوید و دعوت دریافت کنید.",
     "gamesActiveGame": "بازی‌های فعال",
     "gamesResume": "ادامه",
     "gamesMinimize": "کوچک کردن",
@@ -508,7 +508,7 @@
       "message": "آماده دریافت دعوت"
     },
     "playgroundGamesAvailableHelper": {
-      "message": "وقتی وارد یک پخش می‌شوید، در فهرست بازیکنان ظاهر می‌شوید و می‌توانید دعوت‌های بازی را دریافت کنید."
+      "message": "در فهرست بازیکنان ظاهر شوید و دعوت دریافت کنید."
     },
     "learnMore": {
       "message": "بیشتر بدانید"

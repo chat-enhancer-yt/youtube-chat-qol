@@ -243,7 +243,7 @@
     "gamesReplayTriviaStampBestie": "MEJOR AMIGO",
     "gamesReplayTriviaStampBlocked": "BLOQUEADO",
     "gamesAvailableToPlay": "Disponible para invitaciones",
-    "gamesAvailableHelper": "Cuando entres en un directo, aparecerás en la lista de jugadores y podrás recibir invitaciones de juego.",
+    "gamesAvailableHelper": "Aparece en las listas de jugadores y recibe invitaciones.",
     "gamesActiveGame": "Partidas activas",
     "gamesResume": "Continuar",
     "gamesMinimize": "Minimizar",
@@ -508,7 +508,7 @@
       "message": "Disponible para invitaciones"
     },
     "playgroundGamesAvailableHelper": {
-      "message": "Cuando entres en un directo, aparecerás en la lista de jugadores y podrás recibir invitaciones de juego."
+      "message": "Aparece en las listas de jugadores y recibe invitaciones."
     },
     "learnMore": {
       "message": "Más información"

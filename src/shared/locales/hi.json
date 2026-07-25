@@ -243,7 +243,7 @@
     "gamesReplayTriviaStampBestie": "बेस्ट फ्रेंड",
     "gamesReplayTriviaStampBlocked": "ब्लॉक",
     "gamesAvailableToPlay": "आमंत्रणों के लिए उपलब्ध",
-    "gamesAvailableHelper": "जब आप किसी स्ट्रीम में प्रवेश करेंगे, तो आप खिलाड़ी सूची में दिखेंगे और गेम आमंत्रण प्राप्त कर सकेंगे.",
+    "gamesAvailableHelper": "खिलाड़ी सूचियों में दिखें और आमंत्रण पाएं।",
     "gamesActiveGame": "सक्रिय गेम",
     "gamesResume": "फिर शुरू करें",
     "gamesMinimize": "छोटा करें",
@@ -511,7 +511,7 @@
       "message": "आमंत्रणों के लिए उपलब्ध"
     },
     "playgroundGamesAvailableHelper": {
-      "message": "जब आप किसी स्ट्रीम में प्रवेश करेंगे, तो आप खिलाड़ी सूची में दिखेंगे और गेम आमंत्रण प्राप्त कर सकेंगे."
+      "message": "खिलाड़ी सूचियों में दिखें और आमंत्रण पाएं।"
     },
     "learnMore": {
       "message": "और जानें"

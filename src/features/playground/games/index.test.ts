@@ -1601,7 +1601,7 @@ describe('playground games header button', () => {
     const reconnectButton = getActionButton('Reconnect');
     reconnectButton.click();
     expect(lastMockPort()?.messages.at(-1)).toMatchObject({
-      availableGames: [],
+      availableGames: ['chess', 'bounty-hunting', 'stick-around'],
       streamKey: 'stream-a',
       type: 'ytcq:playground:init'
     });

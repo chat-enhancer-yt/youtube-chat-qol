@@ -243,7 +243,7 @@
     "gamesReplayTriviaStampBestie": "BESTIE",
     "gamesReplayTriviaStampBlocked": "GEBLOKKEERD",
     "gamesAvailableToPlay": "Beschikbaar voor uitnodigingen",
-    "gamesAvailableHelper": "Wanneer je een stream binnengaat, verschijn je in de spelerslijst en kun je game-uitnodigingen ontvangen.",
+    "gamesAvailableHelper": "Verschijn in spelerslijsten en ontvang uitnodigingen.",
     "gamesActiveGame": "Actieve spellen",
     "gamesResume": "Hervatten",
     "gamesMinimize": "Minimaliseren",
@@ -508,7 +508,7 @@
       "message": "Beschikbaar voor uitnodigingen"
     },
     "playgroundGamesAvailableHelper": {
-      "message": "Wanneer je een stream binnengaat, verschijn je in de spelerslijst en kun je game-uitnodigingen ontvangen."
+      "message": "Verschijn in spelerslijsten en ontvang uitnodigingen."
     },
     "learnMore": {
       "message": "Meer informatie"
