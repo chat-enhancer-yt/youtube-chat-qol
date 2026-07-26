@@ -24,7 +24,6 @@ import {
   serializeBookmarks,
   type BookmarkRecord
 } from '../shared/bookmarks';
-import { normalizeComparableText } from '../shared/text';
 import { appendRichMessageText } from '../youtube/rich-text';
 import { controls } from './controls';
 import { getExtensionMessage } from './i18n';
@@ -163,26 +162,26 @@ function applySavedItemsFilter(): void {
   const { bookmarksFilter, bookmarksList } = controls;
   if (!bookmarksFilter || !bookmarksList) return;
 
-  const queryTerms = normalizeComparableText(bookmarksFilter.value).split(' ').filter(Boolean);
+  const query = bookmarksFilter.value.toLowerCase();
   const rows = Array.from(bookmarksList.querySelectorAll<HTMLElement>('.bookmark-row'));
   let hasVisibleRow = false;
 
   for (const row of rows) {
     const searchText = row.dataset.bookmarkSearch || '';
-    const matches = queryTerms.every((term) => searchText.includes(term));
+    const matches = searchText.includes(query);
     row.hidden = !matches;
-    updateSavedItemSearchHighlights(row, matches ? queryTerms : []);
+    updateSavedItemSearchHighlights(row, matches ? query : '');
     hasVisibleRow ||= matches;
   }
 
-  const noMatches = queryTerms.length > 0 && rows.length > 0 && !hasVisibleRow;
+  const noMatches = Boolean(query) && rows.length > 0 && !hasVisibleRow;
   const filterEmpty = bookmarksList.querySelector<HTMLElement>('.bookmarks-filter-empty');
   if (filterEmpty) filterEmpty.hidden = !noMatches;
   bookmarksList.classList.toggle('bookmarks-list-empty', noMatches);
   refreshPopupScrollFades();
 }
 
-function updateSavedItemSearchHighlights(row: HTMLElement, queryTerms: string[]): void {
+function updateSavedItemSearchHighlights(row: HTMLElement, query: string): void {
   const copy = row.querySelector<HTMLElement>('.bookmark-copy');
   if (!copy) return;
 
@@ -190,7 +189,7 @@ function updateSavedItemSearchHighlights(row: HTMLElement, queryTerms: string[])
     .querySelectorAll<HTMLElement>(`.${BOOKMARK_SEARCH_HIGHLIGHT_CLASS}`)
     .forEach((highlight) => highlight.replaceWith(...Array.from(highlight.childNodes)));
   copy.normalize();
-  if (!queryTerms.length) return;
+  if (!query) return;
 
   const textNodes: Text[] = [];
   const walker = document.createTreeWalker(copy, NodeFilter.SHOW_TEXT);
@@ -200,31 +199,20 @@ function updateSavedItemSearchHighlights(row: HTMLElement, queryTerms: string[])
     current = walker.nextNode();
   }
 
-  textNodes.forEach((node) => highlightSavedItemTextNode(node, queryTerms));
+  textNodes.forEach((node) => highlightSavedItemTextNode(node, query));
 }
 
-function highlightSavedItemTextNode(node: Text, queryTerms: string[]): void {
+function highlightSavedItemTextNode(node: Text, query: string): void {
   const text = node.nodeValue || '';
   const { normalizedText, sourceRanges } = getSavedItemHighlightText(text);
   const matches: Array<{ index: number; length: number }> = [];
   let cursor = 0;
 
   while (cursor < normalizedText.length) {
-    let nextIndex = -1;
-    let nextLength = 0;
-
-    queryTerms.forEach((term) => {
-      const index = normalizedText.indexOf(term, cursor);
-      if (index < 0) return;
-      if (nextIndex < 0 || index < nextIndex || (index === nextIndex && term.length > nextLength)) {
-        nextIndex = index;
-        nextLength = term.length;
-      }
-    });
-
+    const nextIndex = normalizedText.indexOf(query, cursor);
     if (nextIndex < 0) break;
     const sourceStart = sourceRanges[nextIndex]?.start;
-    const sourceEnd = sourceRanges[nextIndex + nextLength - 1]?.end;
+    const sourceEnd = sourceRanges[nextIndex + query.length - 1]?.end;
     if (sourceStart !== undefined && sourceEnd !== undefined) {
       const previous = matches.at(-1);
       if (previous && sourceStart < previous.index + previous.length) {
@@ -233,7 +221,7 @@ function highlightSavedItemTextNode(node: Text, queryTerms: string[]): void {
         matches.push({ index: sourceStart, length: sourceEnd - sourceStart });
       }
     }
-    cursor = nextIndex + nextLength;
+    cursor = nextIndex + query.length;
   }
 
   if (!matches.length) return;
@@ -266,7 +254,7 @@ function getSavedItemHighlightText(text: string): {
   for (const match of text.matchAll(/(?:\P{M}\p{M}*|\p{M}+)/gu)) {
     const sourceText = match[0];
     const start = match.index;
-    const normalizedSegment = /^\s+$/u.test(sourceText) ? ' ' : normalizeComparableText(sourceText);
+    const normalizedSegment = sourceText.toLowerCase();
     normalizedText += normalizedSegment;
     for (let index = 0; index < normalizedSegment.length; index += 1) {
       sourceRanges.push({ start, end: start + sourceText.length });
@@ -327,17 +315,18 @@ function createSavedItemRow(entry: SavedItemEntry, previousAvatarRingColor = '')
 
 function getSavedItemSearchText(entry: SavedItemEntry): string {
   const message = entry.kind === 'bookmark' ? entry.record.message : null;
-  return normalizeComparableText(
-    [
-      entry.record.authorName,
-      entry.record.channelId,
-      entry.record.sourceTitle,
-      entry.record.sourceUrl,
-      message?.text,
-      message?.timestampText,
-      entry.kind === 'avatar-ring' ? getExtensionMessage('rememberedUser') : ''
-    ].join(' ')
-  );
+  return [
+    entry.record.authorName,
+    entry.record.channelId,
+    entry.record.sourceTitle,
+    entry.record.sourceUrl,
+    message?.text,
+    message?.timestampText,
+    entry.kind === 'avatar-ring' ? getExtensionMessage('rememberedUser') : ''
+  ]
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase();
 }
 
 function createBookmarkRow(

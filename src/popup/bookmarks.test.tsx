@@ -71,7 +71,7 @@ describe('popup bookmark filter', () => {
     const bookmarkRow = document.querySelector<HTMLElement>('.bookmark-row:not(.avatar-ring-row)')!;
     const rememberedUserRow = document.querySelector<HTMLElement>('.avatar-ring-row')!;
 
-    filter.value = 'alpha launch space';
+    filter.value = 'LAUNCH WINDOW OPENS';
     filter.dispatchEvent(new Event('input'));
     expect(bookmarkRow.hidden).toBe(false);
     expect(rememberedUserRow.hidden).toBe(true);
@@ -80,9 +80,16 @@ describe('popup bookmark filter', () => {
       Array.from(bookmarkRow.querySelectorAll('.bookmark-search-highlight')).map(
         (highlight) => highlight.textContent
       )
-    ).toEqual(['Alpha', 'Launch', 'Space']);
+    ).toEqual(['Launch window opens']);
 
-    filter.value = 'beta garden';
+    filter.value = 'LAUNCH  WINDOW OPENS';
+    filter.dispatchEvent(new Event('input'));
+    expect(bookmarkRow.hidden).toBe(true);
+    expect(rememberedUserRow.hidden).toBe(true);
+    expect(document.querySelector('.bookmark-search-highlight')).toBeNull();
+    expect(document.querySelector<HTMLElement>('.bookmarks-filter-empty')?.hidden).toBe(false);
+
+    filter.value = 'garden stream';
     filter.dispatchEvent(new Event('input'));
     expect(bookmarkRow.hidden).toBe(true);
     expect(rememberedUserRow.hidden).toBe(false);
@@ -91,9 +98,9 @@ describe('popup bookmark filter', () => {
       Array.from(rememberedUserRow.querySelectorAll('.bookmark-search-highlight')).map(
         (highlight) => highlight.textContent
       )
-    ).toEqual(['Beta', 'Garden']);
+    ).toEqual(['Garden stream']);
 
-    filter.value = 'missing';
+    filter.value = 'beta garden';
     filter.dispatchEvent(new Event('input'));
     expect(bookmarkRow.hidden).toBe(true);
     expect(rememberedUserRow.hidden).toBe(true);

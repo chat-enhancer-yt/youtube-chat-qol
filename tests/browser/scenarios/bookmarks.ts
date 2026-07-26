@@ -147,22 +147,24 @@ export const bookmarkPopupRenderingScenario: BrowserScenario = async ({ context 
           const rememberedUserRow = popup.locator('.avatar-ring-row');
           const noMatches = popup.locator('.bookmarks-filter-empty');
 
-          await filter.fill('archiveviewer deliberately stream');
+          await filter.fill('DELIBERATELY LONG SAVED MESSAGE');
           await expect(bookmarkRow).toBeVisible();
           await expect(rememberedUserRow).toBeHidden();
           await expect(noMatches).toBeHidden();
           const highlights = bookmarkRow.locator('.bookmark-search-highlight');
-          await expect(highlights).toHaveText([
-            'ArchiveViewer',
-            'deliberately',
-            'stream'
-          ]);
+          await expect(highlights).toHaveText(['deliberately long saved message']);
           await expect(highlights.first()).toHaveCSS(
             'background-color',
             'rgba(255, 183, 77, 0.24)'
           );
 
-          await filter.fill('not-here');
+          await filter.fill('DELIBERATELY  LONG SAVED MESSAGE');
+          await expect(bookmarkRow).toBeHidden();
+          await expect(rememberedUserRow).toBeHidden();
+          await expect(noMatches).toBeVisible();
+          await expect(popup.locator('.bookmark-search-highlight')).toHaveCount(0);
+
+          await filter.fill('archiveviewer deliberately');
           await expect(bookmarkRow).toBeHidden();
           await expect(rememberedUserRow).toBeHidden();
           await expect(noMatches).toBeVisible();
