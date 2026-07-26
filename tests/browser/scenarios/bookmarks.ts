@@ -137,6 +137,9 @@ export const bookmarkPopupRenderingScenario: BrowserScenario = async ({ context 
           await expect(avatar).toHaveCSS('animation-name', 'ytcq-popup-avatar-ring-in');
           await expect(avatar).toHaveCSS('animation-duration', '0.16s');
 
+          await popup.addStyleTag({
+            content: '.avatar-ring-avatar-out { animation-play-state: paused !important; }'
+          });
           await popup
             .locator('.avatar-ring-row:not(.avatar-ring-row-removed) .avatar-ring-action-button')
             .click();
