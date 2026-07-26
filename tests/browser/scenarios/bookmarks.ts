@@ -151,16 +151,28 @@ export const bookmarkPopupRenderingScenario: BrowserScenario = async ({ context 
           await expect(bookmarkRow).toBeVisible();
           await expect(rememberedUserRow).toBeHidden();
           await expect(noMatches).toBeHidden();
+          const highlights = bookmarkRow.locator('.bookmark-search-highlight');
+          await expect(highlights).toHaveText([
+            'ArchiveViewer',
+            'deliberately',
+            'stream'
+          ]);
+          await expect(highlights.first()).toHaveCSS(
+            'background-color',
+            'rgba(255, 183, 77, 0.24)'
+          );
 
           await filter.fill('not-here');
           await expect(bookmarkRow).toBeHidden();
           await expect(rememberedUserRow).toBeHidden();
           await expect(noMatches).toBeVisible();
+          await expect(popup.locator('.bookmark-search-highlight')).toHaveCount(0);
 
           await filter.clear();
           await expect(bookmarkRow).toBeVisible();
           await expect(rememberedUserRow).toBeVisible();
           await expect(noMatches).toBeHidden();
+          await expect(popup.locator('.bookmark-search-highlight')).toHaveCount(0);
         });
         await test.step('Animate remembered-author rings on and off every affected row', async () => {
           const avatar = popup.locator(

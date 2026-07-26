@@ -34,6 +34,7 @@ const recentlyRemovedBookmarks = new Map<string, BookmarkRecord>();
 const recentlyRemovedAvatarRings = new Map<string, AvatarRingRecord>();
 let currentBookmarks = new Map<string, BookmarkRecord>();
 let currentAvatarRings = new Map<string, AvatarRingRecord>();
+const BOOKMARK_SEARCH_HIGHLIGHT_CLASS = 'bookmark-search-highlight';
 
 type SavedItemEntry =
   | {
@@ -170,6 +171,7 @@ function applySavedItemsFilter(): void {
     const searchText = row.dataset.bookmarkSearch || '';
     const matches = queryTerms.every((term) => searchText.includes(term));
     row.hidden = !matches;
+    updateSavedItemSearchHighlights(row, matches ? queryTerms : []);
     hasVisibleRow ||= matches;
   }
 
@@ -178,6 +180,100 @@ function applySavedItemsFilter(): void {
   if (filterEmpty) filterEmpty.hidden = !noMatches;
   bookmarksList.classList.toggle('bookmarks-list-empty', noMatches);
   refreshPopupScrollFades();
+}
+
+function updateSavedItemSearchHighlights(row: HTMLElement, queryTerms: string[]): void {
+  const copy = row.querySelector<HTMLElement>('.bookmark-copy');
+  if (!copy) return;
+
+  copy
+    .querySelectorAll<HTMLElement>(`.${BOOKMARK_SEARCH_HIGHLIGHT_CLASS}`)
+    .forEach((highlight) => highlight.replaceWith(...Array.from(highlight.childNodes)));
+  copy.normalize();
+  if (!queryTerms.length) return;
+
+  const textNodes: Text[] = [];
+  const walker = document.createTreeWalker(copy, NodeFilter.SHOW_TEXT);
+  let current = walker.nextNode();
+  while (current) {
+    if (current instanceof Text && current.nodeValue) textNodes.push(current);
+    current = walker.nextNode();
+  }
+
+  textNodes.forEach((node) => highlightSavedItemTextNode(node, queryTerms));
+}
+
+function highlightSavedItemTextNode(node: Text, queryTerms: string[]): void {
+  const text = node.nodeValue || '';
+  const { normalizedText, sourceRanges } = getSavedItemHighlightText(text);
+  const matches: Array<{ index: number; length: number }> = [];
+  let cursor = 0;
+
+  while (cursor < normalizedText.length) {
+    let nextIndex = -1;
+    let nextLength = 0;
+
+    queryTerms.forEach((term) => {
+      const index = normalizedText.indexOf(term, cursor);
+      if (index < 0) return;
+      if (nextIndex < 0 || index < nextIndex || (index === nextIndex && term.length > nextLength)) {
+        nextIndex = index;
+        nextLength = term.length;
+      }
+    });
+
+    if (nextIndex < 0) break;
+    const sourceStart = sourceRanges[nextIndex]?.start;
+    const sourceEnd = sourceRanges[nextIndex + nextLength - 1]?.end;
+    if (sourceStart !== undefined && sourceEnd !== undefined) {
+      const previous = matches.at(-1);
+      if (previous && sourceStart < previous.index + previous.length) {
+        previous.length = Math.max(previous.index + previous.length, sourceEnd) - previous.index;
+      } else {
+        matches.push({ index: sourceStart, length: sourceEnd - sourceStart });
+      }
+    }
+    cursor = nextIndex + nextLength;
+  }
+
+  if (!matches.length) return;
+
+  const fragment = document.createDocumentFragment();
+  cursor = 0;
+  matches.forEach((match) => {
+    if (match.index > cursor) {
+      fragment.append(document.createTextNode(text.slice(cursor, match.index)));
+    }
+    const end = match.index + match.length;
+    fragment.append(
+      el<HTMLSpanElement>(
+        <span class={BOOKMARK_SEARCH_HIGHLIGHT_CLASS}>{text.slice(match.index, end)}</span>
+      )
+    );
+    cursor = end;
+  });
+  if (cursor < text.length) fragment.append(document.createTextNode(text.slice(cursor)));
+  node.replaceWith(fragment);
+}
+
+function getSavedItemHighlightText(text: string): {
+  normalizedText: string;
+  sourceRanges: Array<{ start: number; end: number }>;
+} {
+  let normalizedText = '';
+  const sourceRanges: Array<{ start: number; end: number }> = [];
+
+  for (const match of text.matchAll(/(?:\P{M}\p{M}*|\p{M}+)/gu)) {
+    const sourceText = match[0];
+    const start = match.index;
+    const normalizedSegment = /^\s+$/u.test(sourceText) ? ' ' : normalizeComparableText(sourceText);
+    normalizedText += normalizedSegment;
+    for (let index = 0; index < normalizedSegment.length; index += 1) {
+      sourceRanges.push({ start, end: start + sourceText.length });
+    }
+  }
+
+  return { normalizedText, sourceRanges };
 }
 
 function getRenderedBookmarkRingColors(list: HTMLElement): Map<string, string> {

@@ -304,6 +304,14 @@
   overflow-wrap: anywhere;
 }
 
+.bookmark-search-highlight {
+  border-radius: 2px;
+  color: var(--ytcq-popup-text);
+  background: rgba(255, 183, 77, 0.24);
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
 .bookmark-message img {
   width: 16px;
   height: 16px;

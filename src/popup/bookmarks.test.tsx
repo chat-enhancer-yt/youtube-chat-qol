@@ -31,9 +31,19 @@ describe('popup bookmark filter', () => {
           authorName: '@AlphaViewer',
           channelId: 'alpha-channel',
           message: {
-            contentParts: [{ text: 'Launch window opens soon', type: 'text' }],
+            contentParts: [
+              {
+                alt: ':rocket:',
+                className: 'emoji',
+                emojiId: 'rocket',
+                src: 'https://example.com/rocket.png',
+                tooltip: 'Rocket',
+                type: 'emoji'
+              },
+              { text: ' Launch window opens soon', type: 'text' }
+            ],
             messageId: 'message-1',
-            text: 'Launch window opens soon',
+            text: ':rocket: Launch window opens soon',
             timestamp: 1_700_000_000_000,
             timestampText: '10:00 PM'
           },
@@ -66,16 +76,28 @@ describe('popup bookmark filter', () => {
     expect(bookmarkRow.hidden).toBe(false);
     expect(rememberedUserRow.hidden).toBe(true);
     expect(document.querySelector('#bookmarksCount')?.textContent).toBe('2');
+    expect(
+      Array.from(bookmarkRow.querySelectorAll('.bookmark-search-highlight')).map(
+        (highlight) => highlight.textContent
+      )
+    ).toEqual(['Alpha', 'Launch', 'Space']);
 
     filter.value = 'beta garden';
     filter.dispatchEvent(new Event('input'));
     expect(bookmarkRow.hidden).toBe(true);
     expect(rememberedUserRow.hidden).toBe(false);
+    expect(bookmarkRow.querySelector('.bookmark-search-highlight')).toBeNull();
+    expect(
+      Array.from(rememberedUserRow.querySelectorAll('.bookmark-search-highlight')).map(
+        (highlight) => highlight.textContent
+      )
+    ).toEqual(['Beta', 'Garden']);
 
     filter.value = 'missing';
     filter.dispatchEvent(new Event('input'));
     expect(bookmarkRow.hidden).toBe(true);
     expect(rememberedUserRow.hidden).toBe(true);
+    expect(document.querySelector('.bookmark-search-highlight')).toBeNull();
     expect(document.querySelector<HTMLElement>('.bookmarks-filter-empty')?.hidden).toBe(false);
     expect(document.querySelector('.bookmarks-filter-empty')?.textContent).toBe(
       'noMatchingSavedItems'
@@ -86,6 +108,13 @@ describe('popup bookmark filter', () => {
     filter.dispatchEvent(new Event('input'));
     expect(bookmarkRow.hidden).toBe(false);
     expect(rememberedUserRow.hidden).toBe(false);
+    expect(document.querySelector('.bookmark-search-highlight')).toBeNull();
+    expect(bookmarkRow.querySelector('.bookmark-message')?.textContent).toBe(
+      ' Launch window opens soon'
+    );
+    expect(bookmarkRow.querySelector('.bookmark-message img')?.getAttribute('alt')).toBe(
+      ':rocket:'
+    );
     expect(document.querySelector<HTMLElement>('.bookmarks-filter-empty')?.hidden).toBe(true);
     expect(document.querySelector('#bookmarksCount')?.textContent).toBe('2');
   });
