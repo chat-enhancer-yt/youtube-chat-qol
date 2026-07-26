@@ -5,6 +5,7 @@ const SCROLL_FADE_BOTTOM_CLASS = 'popup-scroll-fade-bottom';
 const SCROLL_EDGE_TOLERANCE_PX = 1;
 const NESTED_SCROLL_FADE_REGION_SELECTOR = '[data-popup-scroll-fade-region]';
 const NESTED_SCROLL_TARGET_SELECTOR = '[data-popup-scroll-target]';
+const POPUP_TAB_HIGHLIGHT_ANIMATED_CLASS = 'popup-tab-highlight-animated';
 const POPUP_LAST_TAB_STORAGE_KEY = 'ytcqPopupLastTab';
 let popupScrollFadeRegion: HTMLElement | null = null;
 let popupScrollFadeRefreshTimer = 0;
@@ -21,6 +22,7 @@ export function initPopupTabs(): void {
     tab.addEventListener('click', () => {
       const targetId = tab.dataset.popupTabTarget;
       if (!targetId) return;
+      enablePopupTabHighlightAnimation();
       popupTabSelectedByUser = true;
       selectPopupTab(targetId);
       chrome.storage.session?.set({ [POPUP_LAST_TAB_STORAGE_KEY]: targetId });
@@ -35,6 +37,7 @@ function initPopupTabHighlight(): void {
 
   controls.tabs.forEach((tab) => {
     const previewTab = () => {
+      enablePopupTabHighlightAnimation();
       previewedPopupTab = tab;
       syncPopupTabHighlight();
     };
@@ -54,6 +57,10 @@ function initPopupTabHighlight(): void {
   });
   window.addEventListener('resize', syncPopupTabHighlight);
   syncPopupTabHighlight();
+}
+
+function enablePopupTabHighlightAnimation(): void {
+  popupTabList?.classList.add(POPUP_TAB_HIGHLIGHT_ANIMATED_CLASS);
 }
 
 function syncPopupTabHighlight(): void {

@@ -89,6 +89,27 @@ export const bookmarkPopupRenderingScenario: BrowserScenario = async ({ context 
       const popup = await openExtensionPopup(context);
 
       try {
+        await test.step('Place the initial tab highlight without animating', async () => {
+          const tabList = popup.locator('.popup-tabs');
+          await expect(tabList).not.toHaveClass(/popup-tab-highlight-animated/);
+          await expect
+            .poll(() =>
+              tabList.evaluate(
+                (element) => getComputedStyle(element, '::before').transitionDuration
+              )
+            )
+            .toBe('0s');
+
+          await popup.locator('#bookmarksTab').hover();
+          await expect(tabList).toHaveClass(/popup-tab-highlight-animated/);
+          await expect
+            .poll(() =>
+              tabList.evaluate(
+                (element) => getComputedStyle(element, '::before').transitionDuration
+              )
+            )
+            .not.toBe('0s');
+        });
         await popup.locator('#bookmarksTab').click();
         const message = popup.locator('.bookmark-message');
         await expect(message).toHaveText(LONG_BOOKMARK_MESSAGE);

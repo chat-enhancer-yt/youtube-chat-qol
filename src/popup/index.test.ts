@@ -717,6 +717,11 @@ describe('popup', () => {
     expect(
       document.querySelector<HTMLButtonElement>('#bookmarksTab')?.getAttribute('aria-selected')
     ).toBe('true');
+    expect(
+      document
+        .querySelector('.popup-tabs')
+        ?.classList.contains('popup-tab-highlight-animated')
+    ).toBe(false);
     expect(document.querySelector<HTMLElement>('#settingsPanel')?.hidden).toBe(true);
     expect(document.querySelector<HTMLElement>('#bookmarksPanel')?.hidden).toBe(false);
 
@@ -741,18 +746,22 @@ describe('popup', () => {
 
     await import('./index');
 
+    expect(tabList.classList.contains('popup-tab-highlight-animated')).toBe(false);
     expect(tabList.style.getPropertyValue('--ytcq-popup-tab-highlight-x')).toBe('3px');
     expect(tabList.style.getPropertyValue('--ytcq-popup-tab-highlight-width')).toBe('104px');
     expect(tabList.style.getPropertyValue('--ytcq-popup-tab-highlight-height')).toBe('28px');
     expect(tabList.style.getPropertyValue('--ytcq-popup-tab-highlight-opacity')).toBe('1');
 
     bookmarksTab.dispatchEvent(new Event('pointerenter'));
+    expect(tabList.classList.contains('popup-tab-highlight-animated')).toBe(true);
     expect(tabList.style.getPropertyValue('--ytcq-popup-tab-highlight-x')).toBe('111px');
 
     tabList.dispatchEvent(new Event('pointerleave'));
     expect(tabList.style.getPropertyValue('--ytcq-popup-tab-highlight-x')).toBe('3px');
 
+    tabList.classList.remove('popup-tab-highlight-animated');
     bookmarksTab.click();
+    expect(tabList.classList.contains('popup-tab-highlight-animated')).toBe(true);
     expect(tabList.style.getPropertyValue('--ytcq-popup-tab-highlight-x')).toBe('111px');
   });
 
