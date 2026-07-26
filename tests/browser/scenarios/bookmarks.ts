@@ -93,6 +93,38 @@ export const bookmarkPopupRenderingScenario: BrowserScenario = async ({ context 
         const message = popup.locator('.bookmark-message');
         await expect(message).toHaveText(LONG_BOOKMARK_MESSAGE);
         await expect(popup.locator('#bookmarksTab #bookmarksCount')).toHaveText('2');
+        await test.step('Fit localized tab labels on one line without clipping', async () => {
+          await popup.evaluate(() => {
+            const settingsTab = document.querySelector('#settingsTab');
+            const bookmarksLabel = document.querySelector('#bookmarksTab > span:first-child');
+            const playgroundTab = document.querySelector('#playgroundTab');
+            if (!settingsTab || !bookmarksLabel || !playgroundTab) {
+              throw new Error('Expected every popup tab label');
+            }
+            settingsTab.textContent = 'Einstellungen';
+            bookmarksLabel.textContent = 'Lesezeichen';
+            playgroundTab.textContent = 'Playground';
+            window.dispatchEvent(new Event('resize'));
+          });
+          const dimensions = await popup.locator('.popup-tabs').evaluate((element) => {
+            const bookmarksLabel = element.querySelector<HTMLElement>(
+              '#bookmarksTab > span:first-child'
+            );
+            if (!bookmarksLabel) throw new Error('Expected the Bookmarks tab label');
+            const styles = getComputedStyle(bookmarksLabel);
+            return {
+              clientWidth: element.clientWidth,
+              labelClientWidth: bookmarksLabel.clientWidth,
+              labelHeight: bookmarksLabel.getBoundingClientRect().height,
+              labelScrollWidth: bookmarksLabel.scrollWidth,
+              lineHeight: Number.parseFloat(styles.lineHeight),
+              scrollWidth: element.scrollWidth
+            };
+          });
+          expect(dimensions.scrollWidth).toBe(dimensions.clientWidth);
+          expect(dimensions.labelScrollWidth).toBe(dimensions.labelClientWidth);
+          expect(dimensions.labelHeight).toBeLessThanOrEqual(dimensions.lineHeight);
+        });
         await test.step('Render bookmark scroll fades above the list content', async () => {
           const shell = popup.locator('.bookmarks-list-shell');
           const list = popup.locator('#bookmarksList');
