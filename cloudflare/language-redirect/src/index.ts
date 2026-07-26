@@ -1,30 +1,16 @@
-const DEFAULT_LOCALE = 'en';
+import { defaultLocale, localeMeta, locales } from '../../../docs/src/data/locale-config';
+
+const DEFAULT_LOCALE = defaultLocale;
 const LANGUAGE_COOKIE = 'ce_lang';
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
-const SUPPORTED_LOCALES = new Set([
-  'ar',
-  'de',
-  'en',
-  'es',
-  'fa',
-  'fr',
-  'he',
-  'hi',
-  'id',
-  'it',
-  'ja',
-  'ko',
-  'nl',
-  'pl',
-  'pt',
-  'ru',
-  'th',
-  'tr',
-  'uk',
-  'vi',
-  'zh-TW',
-  'zh-CN'
-]);
+const SUPPORTED_LOCALES = new Set<string>(
+  locales.map((locale) => localeMeta[locale].path || locale)
+);
+const LOCALIZED_PATH_SEGMENTS = new Set(
+  Array.from(SUPPORTED_LOCALES)
+    .filter((locale) => locale !== DEFAULT_LOCALE)
+    .map((locale) => locale.toLowerCase())
+);
 
 interface LanguagePreference {
   locale: string;
@@ -41,7 +27,7 @@ export default {
 
     const explicitLocale = normalizeLocale(url.searchParams.get('lang') || url.searchParams.get('hl'));
     if (explicitLocale) {
-      return redirectWithLocaleCookie(request, url, explicitLocale);
+      return redirectToLocalePage(request, url, explicitLocale, true);
     }
 
     const cookieLocale = normalizeLocale(getCookie(request, LANGUAGE_COOKIE));
@@ -49,44 +35,59 @@ export default {
     const preferredLocale = cookieLocale || headerLocale;
 
     if (!preferredLocale || preferredLocale === DEFAULT_LOCALE) {
-      return fetchHomepage(request);
+      return fetchPage(request);
     }
 
-    return redirectIfLocalePageExists(request, url, preferredLocale);
+    return redirectToLocalePage(request, url, preferredLocale, false);
   }
 };
 
 export function shouldHandleRequest(request: Request, url: URL): boolean {
   if (request.method !== 'GET' && request.method !== 'HEAD') return false;
-  if (url.pathname !== '/' && url.pathname !== '/index.html') return false;
+  if (!isPagePath(url.pathname) || hasLocalePathPrefix(url.pathname)) return false;
+  const fetchDestination = request.headers.get('Sec-Fetch-Dest');
+  if (fetchDestination && fetchDestination !== 'document' && fetchDestination !== 'iframe') return false;
   if (isBot(request.headers.get('User-Agent'))) return false;
   return true;
 }
 
-async function redirectWithLocaleCookie(request: Request, url: URL, locale: string): Promise<Response> {
-  const destinationPath = locale === DEFAULT_LOCALE ? '/' : `/${locale}/`;
-  const destinationUrl = new URL(destinationPath, url);
-  destinationUrl.search = '';
-
-  if (locale !== DEFAULT_LOCALE) {
-    const localePageExists = await localePageExistsAt(request, destinationUrl);
-    if (!localePageExists) {
-      return fetchHomepage(request);
-    }
-  }
-
-  return createRedirect(destinationUrl, locale);
+function isPagePath(pathname: string): boolean {
+  const lastSegment = pathname.split('/').pop() || '';
+  return !lastSegment.includes('.') || lastSegment.endsWith('.html');
 }
 
-async function redirectIfLocalePageExists(request: Request, url: URL, locale: string): Promise<Response> {
-  const destinationUrl = new URL(`/${locale}/`, url);
+function hasLocalePathPrefix(pathname: string): boolean {
+  const firstSegment = pathname.split('/').filter(Boolean)[0]?.toLowerCase() || '';
+  return LOCALIZED_PATH_SEGMENTS.has(firstSegment);
+}
+
+async function redirectToLocalePage(
+  request: Request,
+  url: URL,
+  locale: string,
+  removeLanguageParams: boolean
+): Promise<Response> {
+  const destinationUrl = createLocalePageUrl(url, locale, removeLanguageParams);
+  if (locale === DEFAULT_LOCALE) return createRedirect(destinationUrl, locale);
+
   const localePageExists = await localePageExistsAt(request, destinationUrl);
-  if (!localePageExists) return fetchHomepage(request);
+  if (!localePageExists) return fetchPage(request);
 
   return createRedirect(destinationUrl, locale);
 }
 
-async function fetchHomepage(request: Request): Promise<Response> {
+function createLocalePageUrl(url: URL, locale: string, removeLanguageParams: boolean): URL {
+  const destinationUrl = new URL(url);
+  const pagePath = url.pathname === '/index.html' ? '/' : url.pathname;
+  destinationUrl.pathname = locale === DEFAULT_LOCALE ? pagePath : `/${locale}${pagePath}`;
+  if (removeLanguageParams) {
+    destinationUrl.searchParams.delete('lang');
+    destinationUrl.searchParams.delete('hl');
+  }
+  return destinationUrl;
+}
+
+async function fetchPage(request: Request): Promise<Response> {
   const response = await fetch(request);
   const nextHeaders = new Headers(response.headers);
   appendVary(nextHeaders, 'Accept-Language');

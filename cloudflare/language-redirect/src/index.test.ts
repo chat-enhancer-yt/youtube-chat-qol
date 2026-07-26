@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { defaultLocale, localeMeta, locales } from '../../../docs/src/data/locale-config';
 import worker from './index';
 import {
   appendVary,
@@ -18,6 +19,21 @@ afterEach(() => {
 });
 
 describe('language redirect worker helpers', () => {
+  it('derives supported locale routes from the shared docs configuration', () => {
+    const localizedPaths = locales
+      .map((locale) => localeMeta[locale].path)
+      .filter(Boolean);
+
+    expect(localeMeta[defaultLocale].path).toBe('');
+    expect(locales.filter((locale) => !localeMeta[locale].path)).toEqual([defaultLocale]);
+    expect(new Set(localizedPaths.map((path) => path.toLowerCase())).size).toBe(localizedPaths.length);
+
+    for (const locale of locales) {
+      const redirectLocale = localeMeta[locale].path || locale;
+      expect(normalizeLocale(redirectLocale)).toBe(redirectLocale);
+    }
+  });
+
   it('normalizes supported locale aliases', () => {
     expect(normalizeLocale('ES-mx')).toBe('es');
     expect(normalizeLocale('pt_BR')).toBe('pt');
@@ -39,18 +55,40 @@ describe('language redirect worker helpers', () => {
     expect(pickAcceptLanguage(null)).toBe('');
   });
 
-  it('handles only homepage GET and HEAD requests from non-bots', () => {
+  it('handles unlocalized HTML page GET and HEAD requests from non-bots', () => {
     expect(shouldHandleRequest(
       new Request('https://chatenhancer.com/'),
       new URL('https://chatenhancer.com/')
+    )).toBe(true);
+    expect(shouldHandleRequest(
+      new Request('https://chatenhancer.com/support/'),
+      new URL('https://chatenhancer.com/support/')
+    )).toBe(true);
+    expect(shouldHandleRequest(
+      new Request('https://chatenhancer.com/blog/release-notes/'),
+      new URL('https://chatenhancer.com/blog/release-notes/')
     )).toBe(true);
     expect(shouldHandleRequest(
       new Request('https://chatenhancer.com/index.html', { method: 'HEAD' }),
       new URL('https://chatenhancer.com/index.html')
     )).toBe(true);
     expect(shouldHandleRequest(
+      new Request('https://chatenhancer.com/fr/support/'),
+      new URL('https://chatenhancer.com/fr/support/')
+    )).toBe(false);
+    expect(shouldHandleRequest(
+      new Request('https://chatenhancer.com/zh-CN/blog/'),
+      new URL('https://chatenhancer.com/zh-CN/blog/')
+    )).toBe(false);
+    expect(shouldHandleRequest(
       new Request('https://chatenhancer.com/styles.css'),
       new URL('https://chatenhancer.com/styles.css')
+    )).toBe(false);
+    expect(shouldHandleRequest(
+      new Request('https://chatenhancer.com/pagefind/search', {
+        headers: { 'Sec-Fetch-Dest': 'empty' }
+      }),
+      new URL('https://chatenhancer.com/pagefind/search')
     )).toBe(false);
     expect(shouldHandleRequest(
       new Request('https://chatenhancer.com/', { method: 'POST' }),
@@ -120,11 +158,27 @@ describe('language redirect worker fetch', () => {
     }));
   });
 
+  it('preserves an inner page path and unrelated query parameters', async () => {
+    const fetchMock = vi.fn<typeof fetch>(async () => new Response(null, { status: 200 }));
+    globalThis.fetch = fetchMock;
+
+    const response = await worker.fetch(new Request(
+      'https://chatenhancer.com/support/?lang=ja&hl=fr&source=footer'
+    ));
+
+    expect(response.status).toBe(302);
+    expect(response.headers.get('Location')).toBe('https://chatenhancer.com/ja/support/?source=footer');
+    expect(response.headers.get('Set-Cookie')).toContain('ce_lang=ja');
+    const probeRequest = fetchMock.mock.calls[0]?.[0];
+    expect(probeRequest).toBeInstanceOf(Request);
+    expect((probeRequest as Request).url).toBe('https://chatenhancer.com/ja/support/?source=footer');
+  });
+
   it('redirects explicit default locale to the homepage without probing', async () => {
     const fetchMock = vi.fn(async () => new Response(null, { status: 200 }));
     globalThis.fetch = fetchMock;
 
-    const response = await worker.fetch(new Request('https://chatenhancer.com/?hl=en'));
+    const response = await worker.fetch(new Request('https://chatenhancer.com/index.html?hl=en'));
 
     expect(response.status).toBe(302);
     expect(response.headers.get('Location')).toBe('https://chatenhancer.com/');
@@ -132,11 +186,11 @@ describe('language redirect worker fetch', () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it('falls back to the homepage when a locale page does not exist', async () => {
+  it('falls back to the requested page when its localized page does not exist', async () => {
     const fetchMock = vi
       .fn()
       .mockResolvedValueOnce(new Response(null, { status: 404 }))
-      .mockResolvedValueOnce(new Response('homepage', {
+      .mockResolvedValueOnce(new Response('support', {
         headers: {
           Vary: 'Accept-Encoding'
         },
@@ -144,50 +198,50 @@ describe('language redirect worker fetch', () => {
       }));
     globalThis.fetch = fetchMock;
 
-    const response = await worker.fetch(new Request('https://chatenhancer.com/?lang=ja'));
+    const response = await worker.fetch(new Request('https://chatenhancer.com/support/?lang=ja'));
 
     expect(response.status).toBe(200);
-    expect(await response.text()).toBe('homepage');
+    expect(await response.text()).toBe('support');
     expect(response.headers.get('Vary')).toBe('Accept-Encoding, Accept-Language, Cookie');
   });
 
-  it('falls back to the homepage when no non-default locale is preferred', async () => {
-    const fetchMock = vi.fn(async () => new Response('homepage', { status: 200 }));
+  it('serves the requested page when no non-default locale is preferred', async () => {
+    const fetchMock = vi.fn(async () => new Response('support', { status: 200 }));
     globalThis.fetch = fetchMock;
 
-    const response = await worker.fetch(new Request('https://chatenhancer.com/', {
+    const response = await worker.fetch(new Request('https://chatenhancer.com/support/', {
       headers: {
         'Accept-Language': 'en-US,en;q=0.9'
       }
     }));
 
     expect(response.status).toBe(200);
-    expect(await response.text()).toBe('homepage');
+    expect(await response.text()).toBe('support');
     expect(fetchMock).toHaveBeenCalledOnce();
   });
 
-  it('falls back to homepage when probing the preferred locale fails', async () => {
+  it('falls back to the requested page when probing the preferred locale fails', async () => {
     const fetchMock = vi
       .fn()
       .mockRejectedValueOnce(new Error('probe failed'))
-      .mockResolvedValueOnce(new Response('homepage', { status: 200 }));
+      .mockResolvedValueOnce(new Response('privacy', { status: 200 }));
     globalThis.fetch = fetchMock;
 
-    const response = await worker.fetch(new Request('https://chatenhancer.com/', {
+    const response = await worker.fetch(new Request('https://chatenhancer.com/privacy/', {
       headers: {
         'Accept-Language': 'fr'
       }
     }));
 
     expect(response.status).toBe(200);
-    expect(await response.text()).toBe('homepage');
+    expect(await response.text()).toBe('privacy');
   });
 
-  it('uses cookie locale before Accept-Language locale', async () => {
+  it('redirects inner pages and uses cookie locale before Accept-Language locale', async () => {
     const fetchMock = vi.fn(async () => new Response(null, { status: 200 }));
     globalThis.fetch = fetchMock;
 
-    const response = await worker.fetch(new Request('https://chatenhancer.com/', {
+    const response = await worker.fetch(new Request('https://chatenhancer.com/blog/?view=grid', {
       headers: {
         'Accept-Language': 'fr;q=1',
         Cookie: 'ce_lang=es'
@@ -195,7 +249,26 @@ describe('language redirect worker fetch', () => {
     }));
 
     expect(response.status).toBe(302);
-    expect(response.headers.get('Location')).toBe('https://chatenhancer.com/es/');
+    expect(response.headers.get('Location')).toBe('https://chatenhancer.com/es/blog/?view=grid');
+  });
+
+  it('passes through pages that already have a locale prefix', async () => {
+    const fetchMock = vi.fn(async () => new Response('localized support', { status: 200 }));
+    globalThis.fetch = fetchMock;
+    const request = new Request('https://chatenhancer.com/fr/support/', {
+      headers: {
+        'Accept-Language': 'es',
+        Cookie: 'ce_lang=ja'
+      }
+    });
+
+    const response = await worker.fetch(request);
+
+    expect(response.status).toBe(200);
+    expect(await response.text()).toBe('localized support');
+    expect(response.headers.get('Location')).toBeNull();
+    expect(fetchMock).toHaveBeenCalledOnce();
+    expect(fetchMock).toHaveBeenCalledWith(request);
   });
 
   it('passes through assets without language redirect handling', async () => {
