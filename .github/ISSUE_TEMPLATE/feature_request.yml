@@ -21,16 +21,8 @@ body:
     id: solution
     attributes:
       label: What would you like to happen?
-      description: Describe the behavior you want, not just the UI.
+      description: Describe the behavior you want and where you would expect to use it.
       placeholder: "Example: Save matching messages in the inbox and highlight the matched words."
-    validations:
-      required: true
-
-  - type: input
-    id: surface
-    attributes:
-      label: Where should this live?
-      description: Name the part of YouTube chat or the extension where you would expect to use it.
     validations:
       required: true
 

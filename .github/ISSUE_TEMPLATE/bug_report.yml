@@ -8,19 +8,11 @@ body:
       value: |
         Thanks for reporting a bug. Please include enough detail to reproduce the issue without exposing private chat content.
 
-  - type: input
-    id: affected-area
-    attributes:
-      label: What part is affected?
-      description: Name the feature or part of the extension that is not working.
-    validations:
-      required: true
-
   - type: textarea
     id: problem
     attributes:
       label: What happened?
-      description: Describe the problem and what you expected to happen instead.
+      description: Describe what happened, where it happened, and what you expected instead.
       placeholder: "Example: The Inbox button appears, but clicking it does not open the inbox."
     validations:
       required: true
@@ -39,47 +31,17 @@ body:
       required: true
 
   - type: input
-    id: youtube-ui-change
-    attributes:
-      label: Related YouTube UI change
-      description: If this began after YouTube's chat UI changed, describe what looked different.
-
-  - type: input
-    id: chat-location
-    attributes:
-      label: Where does it happen?
-      description: For example, live chat, chat replay, popout chat, fullscreen, or the extension popup.
-    validations:
-      required: true
-
-  - type: input
     id: video-url
     attributes:
       label: Example video or livestream URL
       description: Optional. Only include a URL if it is public and safe to share.
       placeholder: "https://www.youtube.com/watch?v=..."
 
-  - type: input
-    id: browser
+  - type: textarea
+    id: environment
     attributes:
-      label: Browser
-      description: Include the browser version if available.
-    validations:
-      required: true
-
-  - type: input
-    id: extension-version
-    attributes:
-      label: Extension version
-      description: You can find this in the extension popup.
-    validations:
-      required: true
-
-  - type: input
-    id: install-source
-    attributes:
-      label: Install source
-      description: For example, a browser store, the Mac App Store, or an unpacked development build.
+      label: Browser and extension details
+      description: Include the browser and version, extension version, and install source.
     validations:
       required: true
 
@@ -87,8 +49,7 @@ body:
     id: settings
     attributes:
       label: Relevant settings
-      description: Mention any related settings, such as translation target, display mode, draft translation, inbox sound, watched keywords, Lite mode, chat theme, Playground, startup effect, or opening channels in a popup window.
-      placeholder: "Translate to: English; display mode: replace; inbox sound: off; keywords: robot, coffee"
+      description: Include only settings that seem related to the problem.
 
   - type: textarea
     id: screenshots
@@ -107,4 +68,4 @@ body:
     id: extra
     attributes:
       label: Additional context
-      description: Add anything else that may help reproduce or understand the bug.
+      description: Add relevant YouTube UI changes or anything else that may help explain the bug.
