@@ -14,6 +14,23 @@ describe('playground worker routes', () => {
     vi.unstubAllGlobals();
   });
 
+  it('redirects the root hostname to the public Playground page', async () => {
+    const getResponse = await worker.fetch(new Request('https://playground.chatenhancer.com/'), createEnv());
+    const headResponse = await worker.fetch(new Request('https://playground.chatenhancer.com/', {
+      method: 'HEAD'
+    }), createEnv());
+    const postResponse = await worker.fetch(new Request('https://playground.chatenhancer.com/', {
+      method: 'POST'
+    }), createEnv());
+
+    expect(getResponse.status).toBe(308);
+    expect(getResponse.headers.get('Location')).toBe('https://chatenhancer.com/playground/');
+    expect(headResponse.status).toBe(308);
+    expect(headResponse.headers.get('Location')).toBe('https://chatenhancer.com/playground/');
+    expect(postResponse.status).toBe(405);
+    expect(postResponse.headers.get('Location')).toBeNull();
+  });
+
   it('returns health status with CORS headers', async () => {
     const response = await worker.fetch(new Request('https://playground.chatenhancer.com/health', {
       headers: {

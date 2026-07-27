@@ -9,10 +9,12 @@ import { captchaPassesRouteModule } from '../durable-objects/captcha-passes/rout
 import { streamRoomRouteModule } from '../durable-objects/stream-room/routes';
 import { playerStatsRouteModule } from '../durable-objects/player-stats/routes';
 import { replayTriviaRouteModule } from '../games/replay-trivia/routes';
+import { docsRedirectRouteModule } from './docs-redirect';
 import { healthRouteModule } from './health';
 import type { RouteModule } from './types';
 
 export const ENABLED_ROUTE_MODULES: readonly RouteModule[] = [
+  docsRedirectRouteModule,
   healthRouteModule,
   captchaPassesRouteModule,
   playerStatsRouteModule,
