@@ -2,46 +2,13 @@
 
 Describe the change and the user-facing behavior it affects.
 
-## Type of change
-
-- [ ] Bug fix
-- [ ] Feature
-- [ ] UI polish
-- [ ] Refactor
-- [ ] Documentation
-- [ ] Build/release
-
 ## Testing
 
-- [ ] `npm run verify`
-- [ ] `npm run test:browser`
-- [ ] `npm run docs:build` if docs changed
-- [ ] Tested in Chrome
-- [ ] Tested in Firefox
-- [ ] Not applicable
-
-## YouTube chat surfaces touched
-
-- [ ] Message rendering / translation
-- [ ] Message action menu
-- [ ] Chat settings menu
-- [ ] Chat input / commands
-- [ ] Emoji picker
-- [ ] Avatar/profile card
-- [ ] Inbox / keyword highlights
-- [ ] Inbox sound / tab alert
-- [ ] Background chat updates / reconnect
-- [ ] Extension popup
-- [ ] Docs/assets only
-- [ ] Other:
+List the automated commands and manual browser checks you ran. If something was not tested, say why.
 
 ## Privacy and data
 
-- [ ] No new data is stored or sent.
-- [ ] This changes local storage behavior.
-- [ ] This changes synced settings behavior.
-- [ ] This changes network behavior.
-- [ ] Privacy documentation was updated if needed.
+Describe any changes to local or synced storage, network or backend behavior, and privacy documentation. Write "No change" if none.
 
 ## Notes
 

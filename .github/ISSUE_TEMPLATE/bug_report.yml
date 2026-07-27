@@ -8,25 +8,11 @@ body:
       value: |
         Thanks for reporting a bug. Please include enough detail to reproduce the issue without exposing private chat content.
 
-  - type: dropdown
+  - type: input
     id: affected-area
     attributes:
       label: What part is affected?
-      options:
-        - Extension button missing or inactive
-        - Translation
-        - Draft translation
-        - Mention / Quote message menu
-        - Author click or Alt/Option-click
-        - Focus mode
-        - Avatar profile card / recent messages
-        - Inbox / keyword highlights
-        - Inbox sound
-        - Tab alerts / background chat updates
-        - Frequent emoji row
-        - Chat commands
-        - Extension popup
-        - Other
+      description: Name the feature or part of the extension that is not working.
     validations:
       required: true
 
@@ -52,29 +38,17 @@ body:
     validations:
       required: true
 
-  - type: dropdown
+  - type: input
     id: youtube-ui-change
     attributes:
-      label: Did this start after YouTube's chat UI looked different?
-      options:
-        - Not sure
-        - "Yes"
-        - "No"
-    validations:
-      required: true
+      label: Related YouTube UI change
+      description: If this began after YouTube's chat UI changed, describe what looked different.
 
-  - type: dropdown
+  - type: input
     id: chat-location
     attributes:
       label: Where does it happen?
-      options:
-        - Normal watch page live chat
-        - Live chat replay
-        - Popout chat
-        - Theater or fullscreen layout
-        - Extension popup
-        - Not sure
-        - Other
+      description: For example, live chat, chat replay, popout chat, fullscreen, or the extension popup.
     validations:
       required: true
 
@@ -85,15 +59,11 @@ body:
       description: Optional. Only include a URL if it is public and safe to share.
       placeholder: "https://www.youtube.com/watch?v=..."
 
-  - type: dropdown
+  - type: input
     id: browser
     attributes:
       label: Browser
-      options:
-        - Chrome
-        - Edge
-        - Firefox
-        - Other
+      description: Include the browser version if available.
     validations:
       required: true
 
@@ -102,21 +72,14 @@ body:
     attributes:
       label: Extension version
       description: You can find this in the extension popup.
-      placeholder: "0.7.0"
     validations:
       required: true
 
-  - type: dropdown
+  - type: input
     id: install-source
     attributes:
       label: Install source
-      options:
-        - Chrome Web Store
-        - Firefox Add-ons
-        - Edge / Chrome Web Store
-        - Built from source
-        - Loaded unpacked during development
-        - Other
+      description: For example, a browser store, the Mac App Store, or an unpacked development build.
     validations:
       required: true
 
@@ -124,7 +87,7 @@ body:
     id: settings
     attributes:
       label: Relevant settings
-      description: Mention any related settings, such as translation target, display mode, draft translation, inbox sound, watched keywords, startup effect, or opening channels in a popup window.
+      description: Mention any related settings, such as translation target, display mode, draft translation, inbox sound, watched keywords, Lite mode, chat theme, Playground, startup effect, or opening channels in a popup window.
       placeholder: "Translate to: English; display mode: replace; inbox sound: off; keywords: robot, coffee"
 
   - type: textarea
