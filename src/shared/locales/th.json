@@ -306,6 +306,66 @@
     "extensionName": {
       "message": "Chat Enhancer for YouTube"
     },
+    "onboardingWelcome": {
+      "message": "ยินดีต้อนรับ!"
+    },
+    "onboardingPersonalize": {
+      "message": "ปรับแต่งประสบการณ์ของคุณด้วยตัวเลือกต่อไปนี้:"
+    },
+    "onboardingChatTranslation": {
+      "message": "การแปลแชท"
+    },
+    "onboardingTranslationAppearance": {
+      "message": "รูปแบบการแปล"
+    },
+    "onboardingTranslationDisplayHelper": {
+      "message": "เลือกวิธีแสดงคำแปล"
+    },
+    "onboardingPlaygroundHelper": {
+      "message": "เล่นเกมกับผู้ใช้ส่วนขยายคนอื่น ๆ"
+    },
+    "onboardingPlaygroundCallout": {
+      "message": "ตัวเลือกนี้จะพาคุณไปยังล็อบบี้เกม ซึ่งคุณสามารถเริ่มเกมใหม่กับผู้เล่นจริงที่ใช้ส่วนขยายนี้เช่นกัน หรือผู้เล่นคอมพิวเตอร์ (บอต)"
+    },
+    "onboardingLiteModeHelper": {
+      "message": "ใช้ฟีดแชทที่เร็วและเบากว่าเพื่อเพิ่มประสิทธิภาพ"
+    },
+    "onboardingLiteModeCallout": {
+      "message": "เมื่อเปิดใช้แล้วจะช่วยให้แชทสดใช้ทรัพยากรน้อยลง คุณสามารถกลับไปใช้แชทแบบเดิมได้ทุกเมื่อโดยคลิกสวิตช์นี้"
+    },
+    "onboardingInboxTooltip": {
+      "message": "ปุ่มนี้จะเปิดกล่องจดหมาย เมื่อมีคนพูดถึงคุณในแชท ข้อความของพวกเขาจะปรากฏที่นี่เพื่อให้คุณไม่พลาด คุณยังตั้งค่าคีย์เวิร์ดของกล่องจดหมายแบบกำหนดเองเพื่อติดตามได้ด้วย"
+    },
+    "onboardingDraftTranslatorTooltip": {
+      "message": "นี่คือตัวแปลฉบับร่าง คลิกแล้วเลือกภาษาเพื่อแปลสิ่งที่คุณพิมพ์ในช่องแชทก่อนส่ง"
+    },
+    "onboardingEnableLiteMode": {
+      "message": "เปิดใช้โหมด Lite"
+    },
+    "onboardingSettingsAvailable": {
+      "message": "การตั้งค่าเหล่านี้และอื่นๆ พร้อมใช้งานเสมอในป๊อปอัปของส่วนขยาย"
+    },
+    "onboardingCloseWhenFinished": {
+      "message": "เมื่อเสร็จแล้ว คุณสามารถปิดแท็บนี้ได้"
+    },
+    "onboardingChatPreview": {
+      "message": "ตัวอย่างแชท"
+    },
+    "onboardingPreviewHoverHint": {
+      "message": "วางเมาส์เหนือไอคอนเพื่อดูข้อมูลเพิ่มเติม"
+    },
+    "onboardingTopChat": {
+      "message": "แชทยอดนิยม"
+    },
+    "onboardingChatPlaceholder": {
+      "message": "แชท…"
+    },
+    "onboardingTranslating": {
+      "message": "กำลังแปล…"
+    },
+    "onboardingTranslationUnavailable": {
+      "message": "ไม่สามารถดูตัวอย่างได้ในขณะนี้"
+    },
     "extensionActiveTitle": {
       "message": "Chat Enhancer for YouTube ทำงานอยู่ในแท็บนี้"
     },

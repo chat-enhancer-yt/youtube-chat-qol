@@ -307,6 +307,66 @@
       "message": "Chat Enhancer for YouTube",
       "description": "Herkese açık uzantı adı."
     },
+    "onboardingWelcome": {
+      "message": "Aramıza hoş geldiniz!"
+    },
+    "onboardingPersonalize": {
+      "message": "Deneyiminizi aşağıdaki seçeneklerle kişiselleştirin:"
+    },
+    "onboardingChatTranslation": {
+      "message": "Sohbet çevirisi"
+    },
+    "onboardingTranslationAppearance": {
+      "message": "Çeviri görünümü"
+    },
+    "onboardingTranslationDisplayHelper": {
+      "message": "Çevirilerin nasıl gösterileceğini seçin."
+    },
+    "onboardingPlaygroundHelper": {
+      "message": "Diğer uzantı kullanıcılarıyla oyun oynayın."
+    },
+    "onboardingPlaygroundCallout": {
+      "message": "Bu seçenek sizi Oyunlar lobisine götürür. Burada uzantıyı kullanan gerçek bir oyuncuyla veya Bilgisayar (bot) oyuncusuyla yeni bir oyun başlatabilirsiniz."
+    },
+    "onboardingLiteModeHelper": {
+      "message": "Performansı artırmak için daha hızlı ve hafif bir sohbet akışı kullanın."
+    },
+    "onboardingLiteModeCallout": {
+      "message": " etkinleştirildiğinde canlı sohbetin daha az kaynak kullanmasını sağlar. Bu düğmeye tıklayarak istediğiniz zaman yerel sohbete dönebilirsiniz."
+    },
+    "onboardingInboxTooltip": {
+      "message": "Bu, Gelen Kutunuzu açar. Sohbette biri sizden bahsettiğinde mesajı burada görünür, böylece kaçırmazsınız. İzlemek için özel Gelen Kutusu anahtar kelimeleri de ayarlayabilirsiniz."
+    },
+    "onboardingDraftTranslatorTooltip": {
+      "message": "Bu, taslak çevirmenidir. Göndermeden önce sohbet kutusuna yazdıklarınızı çevirmek için tıklayın ve bir dil seçin."
+    },
+    "onboardingEnableLiteMode": {
+      "message": "Lite modu etkinleştir"
+    },
+    "onboardingSettingsAvailable": {
+      "message": "Bu ve diğer ayarlar uzantı açılır penceresinde her zaman kullanılabilir."
+    },
+    "onboardingCloseWhenFinished": {
+      "message": "İşiniz bittiğinde bu sekmeyi kapatabilirsiniz."
+    },
+    "onboardingChatPreview": {
+      "message": "Sohbet önizlemesi"
+    },
+    "onboardingPreviewHoverHint": {
+      "message": "Daha fazla bilgi için simgelerin üzerine gelin."
+    },
+    "onboardingTopChat": {
+      "message": "En popüler sohbet"
+    },
+    "onboardingChatPlaceholder": {
+      "message": "Sohbet…"
+    },
+    "onboardingTranslating": {
+      "message": "Çevriliyor…"
+    },
+    "onboardingTranslationUnavailable": {
+      "message": "Önizleme şu anda kullanılamıyor."
+    },
     "extensionActiveTitle": {
       "message": "Chat Enhancer for YouTube bu sekmede etkin"
     },

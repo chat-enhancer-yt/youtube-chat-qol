@@ -306,6 +306,66 @@
     "extensionName": {
       "message": "Chat Enhancer for YouTube"
     },
+    "onboardingWelcome": {
+      "message": "Welkom aan boord!"
+    },
+    "onboardingPersonalize": {
+      "message": "Personaliseer je ervaring met de volgende opties:"
+    },
+    "onboardingChatTranslation": {
+      "message": "Chatvertaling"
+    },
+    "onboardingTranslationAppearance": {
+      "message": "Weergave van vertaling"
+    },
+    "onboardingTranslationDisplayHelper": {
+      "message": "Kies hoe vertalingen worden weergegeven."
+    },
+    "onboardingPlaygroundHelper": {
+      "message": "Speel games met andere extensiegebruikers."
+    },
+    "onboardingPlaygroundCallout": {
+      "message": "Hiermee ga je naar de Games-lobby, waar je een nieuw spel kunt starten met een echte speler die de extensie ook heeft, of met een Computerspeler (bot)."
+    },
+    "onboardingLiteModeHelper": {
+      "message": "Gebruik een snellere, lichte chatfeed om de prestaties te verbeteren."
+    },
+    "onboardingLiteModeCallout": {
+      "message": " zorgt er na inschakeling voor dat de livechat minder systeembronnen gebruikt. Je kunt altijd teruggaan naar de native chat door op deze schakelaar te klikken."
+    },
+    "onboardingInboxTooltip": {
+      "message": "Hiermee open je je Inbox. Wanneer mensen je in de chat vermelden, verschijnen hun berichten hier zodat je ze niet mist. Je kunt ook aangepaste Inbox-trefwoorden instellen om op te letten."
+    },
+    "onboardingDraftTranslatorTooltip": {
+      "message": "Dit is de conceptvertaler. Klik erop en kies een taal om alles wat je in het chatvak typt te vertalen voordat je het verzendt."
+    },
+    "onboardingEnableLiteMode": {
+      "message": "Lite-modus inschakelen"
+    },
+    "onboardingSettingsAvailable": {
+      "message": "Deze en meer instellingen zijn altijd beschikbaar in de extensiepop-up."
+    },
+    "onboardingCloseWhenFinished": {
+      "message": "Je kunt dit tabblad sluiten als je klaar bent."
+    },
+    "onboardingChatPreview": {
+      "message": "Chatvoorbeeld"
+    },
+    "onboardingPreviewHoverHint": {
+      "message": "Beweeg over de pictogrammen voor meer informatie."
+    },
+    "onboardingTopChat": {
+      "message": "Topchat"
+    },
+    "onboardingChatPlaceholder": {
+      "message": "Chatten…"
+    },
+    "onboardingTranslating": {
+      "message": "Bezig met vertalen…"
+    },
+    "onboardingTranslationUnavailable": {
+      "message": "Voorbeeld momenteel niet beschikbaar."
+    },
     "extensionActiveTitle": {
       "message": "Chat Enhancer for YouTube is actief in dit tabblad"
     },

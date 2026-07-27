@@ -307,6 +307,66 @@
       "message": "Chat Enhancer for YouTube",
       "description": "اسم الإضافة العام."
     },
+    "onboardingWelcome": {
+      "message": "أهلًا وسهلًا!"
+    },
+    "onboardingPersonalize": {
+      "message": "خصّص تجربتك باستخدام الخيارات التالية:"
+    },
+    "onboardingChatTranslation": {
+      "message": "ترجمة الدردشة"
+    },
+    "onboardingTranslationAppearance": {
+      "message": "مظهر الترجمة"
+    },
+    "onboardingTranslationDisplayHelper": {
+      "message": "اختر كيفية عرض الترجمات."
+    },
+    "onboardingPlaygroundHelper": {
+      "message": "العب ألعابًا مع مستخدمي الإضافة الآخرين."
+    },
+    "onboardingPlaygroundCallout": {
+      "message": "سينقلك هذا إلى ردهة الألعاب، حيث يمكنك بدء لعبة جديدة مع لاعب حقيقي يستخدم الإضافة أيضًا، أو مع لاعب كمبيوتر (روبوت)."
+    },
+    "onboardingLiteModeHelper": {
+      "message": "استخدم موجز دردشة أسرع وأخف لتحسين الأداء."
+    },
+    "onboardingLiteModeCallout": {
+      "message": "، عند تفعيله، سيجعل الدردشة المباشرة تستخدم موارد أقل. ويمكنك دائمًا العودة إلى الدردشة الأصلية بالنقر على زر التبديل هذا."
+    },
+    "onboardingInboxTooltip": {
+      "message": "هذا يفتح صندوق الوارد. عندما يذكرك أشخاص في الدردشة، تظهر رسائلهم هنا حتى لا تفوتك. ويمكنك أيضًا إعداد كلمات مفتاحية مخصصة لصندوق الوارد لمراقبتها."
+    },
+    "onboardingDraftTranslatorTooltip": {
+      "message": "هذا هو مترجم المسودة. انقر عليه واختر لغة لترجمة كل ما تكتبه في مربع الدردشة قبل إرساله."
+    },
+    "onboardingEnableLiteMode": {
+      "message": "تفعيل الوضع الخفيف"
+    },
+    "onboardingSettingsAvailable": {
+      "message": "هذه الإعدادات وغيرها متاحة دائمًا في النافذة المنبثقة للإضافة."
+    },
+    "onboardingCloseWhenFinished": {
+      "message": "لا تتردد في إغلاق علامة التبويب هذه عند الانتهاء."
+    },
+    "onboardingChatPreview": {
+      "message": "معاينة الدردشة"
+    },
+    "onboardingPreviewHoverHint": {
+      "message": "مرّر المؤشر فوق الأيقونات لمزيد من المعلومات."
+    },
+    "onboardingTopChat": {
+      "message": "أهم الرسائل"
+    },
+    "onboardingChatPlaceholder": {
+      "message": "الدردشة…"
+    },
+    "onboardingTranslating": {
+      "message": "جارٍ الترجمة…"
+    },
+    "onboardingTranslationUnavailable": {
+      "message": "المعاينة غير متاحة حاليًا."
+    },
     "extensionActiveTitle": {
       "message": "Chat Enhancer for YouTube نشط في علامة التبويب هذه"
     },

@@ -797,9 +797,11 @@
 :root[data-ytcq-chat-skin="aero"] :where(
   #emoji-picker-button button,
   yt-live-chat-icon-toggle-button-renderer button,
+  yt-live-chat-message-input-renderer > button#send-button,
   #send-button button,
   yt-live-chat-message-input-renderer yt-reaction-control-panel-button-view-model button
 ) {
+  border: 0 !important;
   color: var(--ytcq-aero-accent-strong) !important;
   background: transparent !important;
   box-shadow: none !important;
@@ -808,6 +810,7 @@
 :root[data-ytcq-chat-skin="aero"] :where(
   #emoji-picker-button button,
   yt-live-chat-icon-toggle-button-renderer button,
+  yt-live-chat-message-input-renderer > button#send-button,
   #send-button button,
   yt-live-chat-message-input-renderer yt-reaction-control-panel-button-view-model button
 ):where(:hover, :focus) {
@@ -2087,30 +2090,6 @@
   box-shadow:
     inset 0 1px 3px rgba(0, 0, 0, 0.42),
     0 1px 0 rgba(255, 255, 255, 0.1) !important;
-}
-
-:root[data-ytcq-chat-skin="aero"][data-ytcq-chat-skin-theme="dark"] yt-live-chat-message-input-renderer > button#send-button,
-:root[data-ytcq-chat-skin="aero"][data-ytcq-chat-skin-theme="dark"] yt-live-chat-message-input-renderer #send-button button {
-  min-height: 23px;
-  border: 1px solid;
-  border-color: var(--ytcq-aero-control-border);
-  border-radius: 3px;
-  color: var(--ytcq-aero-control-text) !important;
-  background: var(--ytcq-aero-control-bg) !important;
-  box-shadow: var(--ytcq-aero-control-shadow) !important;
-}
-
-:root[data-ytcq-chat-skin="aero"][data-ytcq-chat-skin-theme="dark"] yt-live-chat-message-input-renderer > button#send-button:where(:hover, :focus-visible),
-:root[data-ytcq-chat-skin="aero"][data-ytcq-chat-skin-theme="dark"] yt-live-chat-message-input-renderer #send-button button:where(:hover, :focus-visible) {
-  border-color: var(--ytcq-aero-control-border-hover);
-  background: var(--ytcq-aero-control-bg-hover) !important;
-}
-
-:root[data-ytcq-chat-skin="aero"][data-ytcq-chat-skin-theme="dark"] yt-live-chat-message-input-renderer > button#send-button:active,
-:root[data-ytcq-chat-skin="aero"][data-ytcq-chat-skin-theme="dark"] yt-live-chat-message-input-renderer #send-button button:active {
-  border-color: var(--ytcq-aero-control-border-active);
-  background: var(--ytcq-aero-control-bg-active) !important;
-  box-shadow: var(--ytcq-aero-control-shadow-active) !important;
 }
 
 :root[data-ytcq-chat-skin="aero"][data-ytcq-chat-skin-theme="dark"] yt-live-chat-message-input-renderer #input-container {

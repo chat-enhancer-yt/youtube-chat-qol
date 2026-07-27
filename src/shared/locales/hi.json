@@ -307,6 +307,66 @@
       "message": "Chat Enhancer for YouTube",
       "description": "एक्सटेंशन का सार्वजनिक नाम."
     },
+    "onboardingWelcome": {
+      "message": "आपका स्वागत है!"
+    },
+    "onboardingPersonalize": {
+      "message": "निम्न विकल्पों से अपना अनुभव वैयक्तिकृत करें:"
+    },
+    "onboardingChatTranslation": {
+      "message": "चैट अनुवाद"
+    },
+    "onboardingTranslationAppearance": {
+      "message": "अनुवाद का रूप"
+    },
+    "onboardingTranslationDisplayHelper": {
+      "message": "चुनें कि अनुवाद कैसे दिखाए जाएँ।"
+    },
+    "onboardingPlaygroundHelper": {
+      "message": "अन्य एक्सटेंशन उपयोगकर्ताओं के साथ गेम खेलें।"
+    },
+    "onboardingPlaygroundCallout": {
+      "message": "यह आपको गेम लॉबी में ले जाएगा, जहाँ आप इस एक्सटेंशन का उपयोग करने वाले किसी असली खिलाड़ी या कंप्यूटर (बॉट) खिलाड़ी के साथ नया गेम शुरू कर सकते हैं।"
+    },
+    "onboardingLiteModeHelper": {
+      "message": "बेहतर प्रदर्शन के लिए तेज़, हल्की चैट फ़ीड का उपयोग करें।"
+    },
+    "onboardingLiteModeCallout": {
+      "message": " चालू होने पर लाइव चैट कम संसाधनों का उपयोग करेगी। इस टॉगल पर क्लिक करके आप कभी भी मूल चैट पर वापस जा सकते हैं।"
+    },
+    "onboardingInboxTooltip": {
+      "message": "यह आपका इनबॉक्स खोलता है। जब लोग चैट में आपका उल्लेख करते हैं, तो उनके संदेश यहाँ दिखाई देते हैं ताकि वे आपसे छूट न जाएँ। आप नज़र रखने के लिए कस्टम इनबॉक्स कीवर्ड भी सेट कर सकते हैं।"
+    },
+    "onboardingDraftTranslatorTooltip": {
+      "message": "यह ड्राफ़्ट अनुवादक है। इस पर क्लिक करें और चैट बॉक्स में लिखी गई सामग्री को भेजने से पहले अनुवाद करने के लिए कोई भाषा चुनें।"
+    },
+    "onboardingEnableLiteMode": {
+      "message": "Lite मोड चालू करें"
+    },
+    "onboardingSettingsAvailable": {
+      "message": "ये और अन्य सेटिंग हमेशा एक्सटेंशन पॉपअप में उपलब्ध हैं।"
+    },
+    "onboardingCloseWhenFinished": {
+      "message": "काम पूरा होने पर आप इस टैब को बंद कर सकते हैं।"
+    },
+    "onboardingChatPreview": {
+      "message": "चैट पूर्वावलोकन"
+    },
+    "onboardingPreviewHoverHint": {
+      "message": "अधिक जानकारी के लिए आइकन पर होवर करें।"
+    },
+    "onboardingTopChat": {
+      "message": "टॉप चैट"
+    },
+    "onboardingChatPlaceholder": {
+      "message": "चैट…"
+    },
+    "onboardingTranslating": {
+      "message": "अनुवाद हो रहा है…"
+    },
+    "onboardingTranslationUnavailable": {
+      "message": "पूर्वावलोकन अभी उपलब्ध नहीं है।"
+    },
     "extensionActiveTitle": {
       "message": "Chat Enhancer for YouTube इस टैब में सक्रिय है"
     },

@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="Anonymous chat avatar">
+  <defs>
+    <clipPath id="avatar-circle">
+      <circle cx="60" cy="60" r="60"/>
+    </clipPath>
+    <g id="avatar-person">
+      <circle cx="60" cy="47.5" r="19"/>
+      <ellipse cx="60" cy="104" rx="40" ry="27"/>
+    </g>
+  </defs>
+  <g clip-path="url(#avatar-circle)">
+    <circle cx="60" cy="60" r="60" fill="#303030"/>
+    <use href="#avatar-person" fill="#6e6e6e"/>
+  </g>
+</svg>

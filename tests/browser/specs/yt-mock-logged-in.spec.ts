@@ -48,6 +48,7 @@ import {
   quoteMenuDraftScenario
 } from '../scenarios/message-actions';
 import { messageMenuScenario, settingsMenuScenario } from '../scenarios/menus';
+import { onboardingPreviewScenario } from '../scenarios/onboarding';
 import { popupResetScenario } from '../scenarios/popup-reset';
 import {
   profileCardReceivesNewMessagesScenario,
@@ -96,6 +97,7 @@ test('logged-in mock: quote menu action writes a draft only', quoteMenuDraftScen
 test('logged-in mock: chat settings menu receives extension controls', settingsMenuScenario);
 test('logged-in mock: chat settings menu toggles persist options', settingsMenuBehaviorScenario);
 test('logged-in mock: extension popup settings persist options', popupSettingsBehaviorScenario);
+test('logged-in mock: onboarding settings update its live chat preview', onboardingPreviewScenario);
 test('logged-in mock: popup reset restores defaults and clears local data', popupResetScenario);
 test(
   'logged-in mock: Lite mode toggles on, renders readable messages, and restores native chat',

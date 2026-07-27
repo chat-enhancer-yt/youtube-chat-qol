@@ -306,6 +306,66 @@
     "extensionName": {
       "message": "Chat Enhancer for YouTube"
     },
+    "onboardingWelcome": {
+      "message": "ברוכים הבאים!"
+    },
+    "onboardingPersonalize": {
+      "message": "התאימו אישית את החוויה באמצעות האפשרויות הבאות:"
+    },
+    "onboardingChatTranslation": {
+      "message": "תרגום הצ׳אט"
+    },
+    "onboardingTranslationAppearance": {
+      "message": "מראה התרגום"
+    },
+    "onboardingTranslationDisplayHelper": {
+      "message": "בחרו כיצד תרגומים מוצגים."
+    },
+    "onboardingPlaygroundHelper": {
+      "message": "שחקו עם משתמשי הרחבה אחרים."
+    },
+    "onboardingPlaygroundCallout": {
+      "message": "פעולה זו תעביר אותך ללובי המשחקים, שבו אפשר להתחיל משחק חדש עם שחקן אמיתי שגם משתמש בתוסף, או עם שחקן מחשב (בוט)."
+    },
+    "onboardingLiteModeHelper": {
+      "message": "השתמשו בעדכון צ'אט מהיר וקל יותר כדי לשפר את הביצועים."
+    },
+    "onboardingLiteModeCallout": {
+      "message": ", כשהוא מופעל, גורם לצ׳אט החי להשתמש בפחות משאבים. תמיד אפשר לחזור לצ׳אט המקורי בלחיצה על המתג הזה."
+    },
+    "onboardingInboxTooltip": {
+      "message": "פעולה זו פותחת את תיבת הדואר הנכנס. כשאנשים מזכירים אותך בצ׳אט, ההודעות שלהם מופיעות כאן כדי שלא יתפספסו. אפשר גם להגדיר מילות מפתח מותאמות אישית למעקב בתיבת הדואר הנכנס."
+    },
+    "onboardingDraftTranslatorTooltip": {
+      "message": "זהו מתרגם הטיוטות. יש ללחוץ עליו ולבחור שפה כדי לתרגם את כל מה שמוקלד בתיבת הצ׳אט לפני השליחה."
+    },
+    "onboardingEnableLiteMode": {
+      "message": "הפעלת מצב Lite"
+    },
+    "onboardingSettingsAvailable": {
+      "message": "הגדרות אלה והגדרות נוספות זמינות תמיד בחלון הקופץ של התוסף."
+    },
+    "onboardingCloseWhenFinished": {
+      "message": "אפשר לסגור את הכרטיסייה הזו בסיום."
+    },
+    "onboardingChatPreview": {
+      "message": "תצוגה מקדימה של הצ׳אט"
+    },
+    "onboardingPreviewHoverHint": {
+      "message": "יש להעביר את הסמן מעל הסמלים לקבלת מידע נוסף."
+    },
+    "onboardingTopChat": {
+      "message": "צ׳אט מוביל"
+    },
+    "onboardingChatPlaceholder": {
+      "message": "צ׳אט…"
+    },
+    "onboardingTranslating": {
+      "message": "מתרגם…"
+    },
+    "onboardingTranslationUnavailable": {
+      "message": "התצוגה המקדימה אינה זמינה כרגע."
+    },
     "extensionActiveTitle": {
       "message": "Chat Enhancer for YouTube פעיל בלשונית הזו"
     },

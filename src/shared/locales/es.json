@@ -306,6 +306,66 @@
     "extensionName": {
       "message": "Chat Enhancer for YouTube"
     },
+    "onboardingWelcome": {
+      "message": "¡Te damos la bienvenida!"
+    },
+    "onboardingPersonalize": {
+      "message": "Personaliza tu experiencia con las siguientes opciones:"
+    },
+    "onboardingChatTranslation": {
+      "message": "Traducción del chat"
+    },
+    "onboardingTranslationAppearance": {
+      "message": "Apariencia de la traducción"
+    },
+    "onboardingTranslationDisplayHelper": {
+      "message": "Elige cómo se muestran las traducciones."
+    },
+    "onboardingPlaygroundHelper": {
+      "message": "Juega con otros usuarios de la extensión."
+    },
+    "onboardingPlaygroundCallout": {
+      "message": "Esto te llevará a la sala de Juegos, donde puedes iniciar una partida con un jugador real que también tenga la extensión o con un jugador de la Computadora (bot)."
+    },
+    "onboardingLiteModeHelper": {
+      "message": "Usa un chat más rápido y ligero para mejorar el rendimiento."
+    },
+    "onboardingLiteModeCallout": {
+      "message": ", al activarse, hará que el chat en directo use menos recursos. Siempre puedes volver al chat nativo haciendo clic en este interruptor."
+    },
+    "onboardingInboxTooltip": {
+      "message": "Esto abre tu Bandeja de entrada. Cuando alguien te menciona en el chat, sus mensajes aparecen aquí para que no te los pierdas. También puedes configurar palabras clave personalizadas de la Bandeja de entrada que quieras detectar."
+    },
+    "onboardingDraftTranslatorTooltip": {
+      "message": "Este es el traductor de borradores. Haz clic en él y elige un idioma para traducir lo que escribas en el cuadro de chat antes de enviarlo."
+    },
+    "onboardingEnableLiteMode": {
+      "message": "Activar el modo Lite"
+    },
+    "onboardingSettingsAvailable": {
+      "message": "Esta y otras opciones están siempre disponibles en la ventana emergente de la extensión."
+    },
+    "onboardingCloseWhenFinished": {
+      "message": "Puedes cerrar esta pestaña cuando hayas terminado."
+    },
+    "onboardingChatPreview": {
+      "message": "Vista previa del chat"
+    },
+    "onboardingPreviewHoverHint": {
+      "message": "Pasa el cursor sobre los iconos para obtener más información."
+    },
+    "onboardingTopChat": {
+      "message": "Chat destacado"
+    },
+    "onboardingChatPlaceholder": {
+      "message": "Chat…"
+    },
+    "onboardingTranslating": {
+      "message": "Traduciendo…"
+    },
+    "onboardingTranslationUnavailable": {
+      "message": "La vista previa no está disponible ahora."
+    },
     "extensionActiveTitle": {
       "message": "Chat Enhancer for YouTube está activo en esta pestaña"
     },

@@ -306,6 +306,66 @@
     "extensionName": {
       "message": "Chat Enhancer for YouTube"
     },
+    "onboardingWelcome": {
+      "message": "Chào mừng bạn!"
+    },
+    "onboardingPersonalize": {
+      "message": "Cá nhân hóa trải nghiệm của bạn với các tùy chọn sau:"
+    },
+    "onboardingChatTranslation": {
+      "message": "Dịch cuộc trò chuyện"
+    },
+    "onboardingTranslationAppearance": {
+      "message": "Kiểu hiển thị bản dịch"
+    },
+    "onboardingTranslationDisplayHelper": {
+      "message": "Chọn cách hiển thị bản dịch."
+    },
+    "onboardingPlaygroundHelper": {
+      "message": "Chơi game với người dùng tiện ích khác."
+    },
+    "onboardingPlaygroundCallout": {
+      "message": "Thao tác này sẽ đưa bạn đến sảnh Trò chơi, nơi bạn có thể bắt đầu trò chơi mới với một người chơi thật cũng dùng tiện ích này hoặc với người chơi Máy tính (bot)."
+    },
+    "onboardingLiteModeHelper": {
+      "message": "Sử dụng bảng tin trò chuyện nhanh và nhẹ hơn để cải thiện hiệu suất."
+    },
+    "onboardingLiteModeCallout": {
+      "message": " khi được bật sẽ giúp cuộc trò chuyện trực tiếp sử dụng ít tài nguyên hơn. Bạn luôn có thể quay lại cuộc trò chuyện gốc bằng cách nhấp vào nút chuyển này."
+    },
+    "onboardingInboxTooltip": {
+      "message": "Thao tác này mở Hộp thư đến của bạn. Khi có người nhắc đến bạn trong cuộc trò chuyện, tin nhắn của họ sẽ xuất hiện ở đây để bạn không bỏ lỡ. Bạn cũng có thể thiết lập từ khóa Hộp thư đến tùy chỉnh để theo dõi."
+    },
+    "onboardingDraftTranslatorTooltip": {
+      "message": "Đây là trình dịch bản nháp. Nhấp vào rồi chọn ngôn ngữ để dịch nội dung bạn nhập trong hộp trò chuyện trước khi gửi."
+    },
+    "onboardingEnableLiteMode": {
+      "message": "Bật chế độ Lite"
+    },
+    "onboardingSettingsAvailable": {
+      "message": "Các cài đặt này và nhiều cài đặt khác luôn có sẵn trong cửa sổ bật lên của tiện ích."
+    },
+    "onboardingCloseWhenFinished": {
+      "message": "Bạn có thể đóng thẻ này khi hoàn tất."
+    },
+    "onboardingChatPreview": {
+      "message": "Bản xem trước cuộc trò chuyện"
+    },
+    "onboardingPreviewHoverHint": {
+      "message": "Di chuột qua các biểu tượng để biết thêm thông tin."
+    },
+    "onboardingTopChat": {
+      "message": "Trò chuyện hàng đầu"
+    },
+    "onboardingChatPlaceholder": {
+      "message": "Trò chuyện…"
+    },
+    "onboardingTranslating": {
+      "message": "Đang dịch…"
+    },
+    "onboardingTranslationUnavailable": {
+      "message": "Hiện không thể xem trước."
+    },
     "extensionActiveTitle": {
       "message": "Chat Enhancer for YouTube đang hoạt động trong tab này"
     },

@@ -307,6 +307,66 @@
       "message": "Chat Enhancer for YouTube",
       "description": "公开显示的扩展名称。"
     },
+    "onboardingWelcome": {
+      "message": "欢迎加入！"
+    },
+    "onboardingPersonalize": {
+      "message": "使用以下选项个性化您的体验："
+    },
+    "onboardingChatTranslation": {
+      "message": "聊天翻译"
+    },
+    "onboardingTranslationAppearance": {
+      "message": "翻译显示方式"
+    },
+    "onboardingTranslationDisplayHelper": {
+      "message": "选择翻译的显示方式。"
+    },
+    "onboardingPlaygroundHelper": {
+      "message": "与其他扩展用户一起玩游戏。"
+    },
+    "onboardingPlaygroundCallout": {
+      "message": "这会带你进入游戏大厅，你可以与同样安装了此扩展程序的真人玩家或电脑（机器人）玩家开始新游戏。"
+    },
+    "onboardingLiteModeHelper": {
+      "message": "使用更快、更轻量的聊天信息流以提升性能。"
+    },
+    "onboardingLiteModeCallout": {
+      "message": "启用后会让直播聊天占用更少的资源。点击此开关即可随时切换回原生聊天。"
+    },
+    "onboardingInboxTooltip": {
+      "message": "这会打开你的收件箱。当有人在聊天中提及你时，他们的消息会显示在这里，以免你错过。你还可以设置要监测的自定义收件箱关键词。"
+    },
+    "onboardingDraftTranslatorTooltip": {
+      "message": "这是草稿翻译器。点击它并选择一种语言，即可在发送前翻译你在聊天框中输入的内容。"
+    },
+    "onboardingEnableLiteMode": {
+      "message": "启用 Lite 模式"
+    },
+    "onboardingSettingsAvailable": {
+      "message": "这些设置以及更多设置始终可在扩展程序弹出窗口中找到。"
+    },
+    "onboardingCloseWhenFinished": {
+      "message": "完成后，你可以关闭此标签页。"
+    },
+    "onboardingChatPreview": {
+      "message": "聊天预览"
+    },
+    "onboardingPreviewHoverHint": {
+      "message": "将鼠标悬停在图标上可查看更多信息。"
+    },
+    "onboardingTopChat": {
+      "message": "热门聊天"
+    },
+    "onboardingChatPlaceholder": {
+      "message": "聊天…"
+    },
+    "onboardingTranslating": {
+      "message": "正在翻译…"
+    },
+    "onboardingTranslationUnavailable": {
+      "message": "预览当前不可用。"
+    },
     "extensionActiveTitle": {
       "message": "Chat Enhancer for YouTube 已在此标签页中启用"
     },

@@ -306,6 +306,66 @@
     "extensionName": {
       "message": "Chat Enhancer for YouTube"
     },
+    "onboardingWelcome": {
+      "message": "환영합니다!"
+    },
+    "onboardingPersonalize": {
+      "message": "다음 옵션으로 환경을 맞춤 설정하세요:"
+    },
+    "onboardingChatTranslation": {
+      "message": "채팅 번역"
+    },
+    "onboardingTranslationAppearance": {
+      "message": "번역 표시"
+    },
+    "onboardingTranslationDisplayHelper": {
+      "message": "번역이 표시되는 방식을 선택하세요."
+    },
+    "onboardingPlaygroundHelper": {
+      "message": "다른 확장 프로그램 사용자와 게임을 플레이하세요."
+    },
+    "onboardingPlaygroundCallout": {
+      "message": "게임 로비로 이동하여 이 확장 프로그램을 사용하는 실제 플레이어 또는 컴퓨터(봇) 플레이어와 새 게임을 시작할 수 있습니다."
+    },
+    "onboardingLiteModeHelper": {
+      "message": "성능 향상을 위해 더 빠르고 가벼운 채팅 피드를 사용합니다."
+    },
+    "onboardingLiteModeCallout": {
+      "message": "를 사용하면 실시간 채팅이 더 적은 리소스를 사용합니다. 이 토글을 클릭하면 언제든지 기본 채팅으로 돌아갈 수 있습니다."
+    },
+    "onboardingInboxTooltip": {
+      "message": "받은편지함을 엽니다. 채팅에서 누군가 나를 멘션하면 놓치지 않도록 해당 메시지가 여기에 표시됩니다. 감시할 사용자 지정 받은편지함 키워드도 설정할 수 있습니다."
+    },
+    "onboardingDraftTranslatorTooltip": {
+      "message": "초안 번역기입니다. 클릭한 다음 언어를 선택하면 채팅 상자에 입력한 내용을 보내기 전에 번역할 수 있습니다."
+    },
+    "onboardingEnableLiteMode": {
+      "message": "Lite 모드 사용"
+    },
+    "onboardingSettingsAvailable": {
+      "message": "이 설정과 더 많은 설정은 확장 프로그램 팝업에서 언제든지 사용할 수 있습니다."
+    },
+    "onboardingCloseWhenFinished": {
+      "message": "설정을 마치면 이 탭을 닫아도 됩니다."
+    },
+    "onboardingChatPreview": {
+      "message": "채팅 미리보기"
+    },
+    "onboardingPreviewHoverHint": {
+      "message": "자세한 내용을 보려면 아이콘 위에 마우스를 올리세요."
+    },
+    "onboardingTopChat": {
+      "message": "인기 채팅"
+    },
+    "onboardingChatPlaceholder": {
+      "message": "채팅…"
+    },
+    "onboardingTranslating": {
+      "message": "번역 중…"
+    },
+    "onboardingTranslationUnavailable": {
+      "message": "현재 미리보기를 사용할 수 없습니다."
+    },
     "extensionActiveTitle": {
       "message": "Chat Enhancer for YouTube가 이 탭에서 활성화되어 있습니다"
     },

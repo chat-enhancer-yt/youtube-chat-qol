@@ -307,6 +307,66 @@
       "message": "Chat Enhancer for YouTube",
       "description": "Public extension name."
     },
+    "onboardingWelcome": {
+      "message": "Welcome aboard!"
+    },
+    "onboardingPersonalize": {
+      "message": "Personalize your experience with the following options:"
+    },
+    "onboardingChatTranslation": {
+      "message": "Chat translation"
+    },
+    "onboardingTranslationAppearance": {
+      "message": "Translation appearance"
+    },
+    "onboardingTranslationDisplayHelper": {
+      "message": "Choose how translations are shown."
+    },
+    "onboardingPlaygroundHelper": {
+      "message": "Play games with other extension users."
+    },
+    "onboardingPlaygroundCallout": {
+      "message": "This will take you to the Games lobby, where you can start a new game with a real player that also has the extension, or a Computer (bot) player."
+    },
+    "onboardingLiteModeHelper": {
+      "message": "Use a faster, lightweight chat feed to improve performance."
+    },
+    "onboardingLiteModeCallout": {
+      "message": ", when enabled, will make live chat use less resources. You can always switch back to native by clicking this toggle."
+    },
+    "onboardingInboxTooltip": {
+      "message": "This opens your Inbox. When people mention you in chat, their messages appear here so you don’t miss them. You can also set up custom Inbox keywords to watch for."
+    },
+    "onboardingDraftTranslatorTooltip": {
+      "message": "This is the draft translator. Click it and choose a language to translate whatever you type in the chat box before you send it."
+    },
+    "onboardingEnableLiteMode": {
+      "message": "Enable Lite mode"
+    },
+    "onboardingSettingsAvailable": {
+      "message": "These and more settings are always available in the extension popup."
+    },
+    "onboardingCloseWhenFinished": {
+      "message": "Feel free to close this tab when you’re finished."
+    },
+    "onboardingChatPreview": {
+      "message": "Chat preview"
+    },
+    "onboardingPreviewHoverHint": {
+      "message": "Hover over icons for more information."
+    },
+    "onboardingTopChat": {
+      "message": "Top chat"
+    },
+    "onboardingChatPlaceholder": {
+      "message": "Chat…"
+    },
+    "onboardingTranslating": {
+      "message": "Translating…"
+    },
+    "onboardingTranslationUnavailable": {
+      "message": "Preview unavailable right now."
+    },
     "extensionActiveTitle": {
       "message": "Chat Enhancer for YouTube is active in this tab"
     },

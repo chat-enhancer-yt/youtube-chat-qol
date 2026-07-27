@@ -307,6 +307,66 @@
       "message": "Chat Enhancer for YouTube",
       "description": "Публичное название расширения."
     },
+    "onboardingWelcome": {
+      "message": "Добро пожаловать на борт!"
+    },
+    "onboardingPersonalize": {
+      "message": "Настройте работу расширения с помощью следующих параметров:"
+    },
+    "onboardingChatTranslation": {
+      "message": "Перевод чата"
+    },
+    "onboardingTranslationAppearance": {
+      "message": "Отображение перевода"
+    },
+    "onboardingTranslationDisplayHelper": {
+      "message": "Выберите, как показывать переводы."
+    },
+    "onboardingPlaygroundHelper": {
+      "message": "Играйте с другими пользователями расширения."
+    },
+    "onboardingPlaygroundCallout": {
+      "message": "Вы перейдёте в лобби игр, где сможете начать новую игру с реальным игроком, у которого также установлено расширение, или с компьютерным игроком (ботом)."
+    },
+    "onboardingLiteModeHelper": {
+      "message": "Используйте быструю и лёгкую ленту чата, чтобы повысить производительность."
+    },
+    "onboardingLiteModeCallout": {
+      "message": " после включения позволит чату использовать меньше ресурсов. Вы всегда можете вернуться к обычному чату, нажав этот переключатель."
+    },
+    "onboardingInboxTooltip": {
+      "message": "Открывает папку «Входящие». Когда вас упоминают в чате, сообщения появляются здесь, чтобы вы их не пропустили. Вы также можете настроить собственные ключевые слова для папки «Входящие»."
+    },
+    "onboardingDraftTranslatorTooltip": {
+      "message": "Это переводчик черновика. Нажмите его и выберите язык, чтобы перевести всё, что вы вводите в поле чата, до отправки."
+    },
+    "onboardingEnableLiteMode": {
+      "message": "Включить облегчённый режим"
+    },
+    "onboardingSettingsAvailable": {
+      "message": "Эти и другие настройки всегда доступны во всплывающем окне расширения."
+    },
+    "onboardingCloseWhenFinished": {
+      "message": "Когда закончите, эту вкладку можно закрыть."
+    },
+    "onboardingChatPreview": {
+      "message": "Предпросмотр чата"
+    },
+    "onboardingPreviewHoverHint": {
+      "message": "Наведите указатель на значки, чтобы узнать больше."
+    },
+    "onboardingTopChat": {
+      "message": "Топ чата"
+    },
+    "onboardingChatPlaceholder": {
+      "message": "Чат…"
+    },
+    "onboardingTranslating": {
+      "message": "Перевод…"
+    },
+    "onboardingTranslationUnavailable": {
+      "message": "Предпросмотр сейчас недоступен."
+    },
     "extensionActiveTitle": {
       "message": "Chat Enhancer for YouTube активен на этой вкладке"
     },

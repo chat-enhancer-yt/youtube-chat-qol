@@ -65,6 +65,11 @@ const popupCssSources = [
   ['features', 'src/styles/popup/animations.css'],
   ['browser-fixes', 'src/styles/popup/browser-fixes.css']
 ];
+const onboardingCssSources = [
+  [null, 'src/styles/popup/fonts.css'],
+  [null, 'src/styles/popup/tokens.css'],
+  [null, 'src/styles/onboarding.css']
+];
 const targetOutputDirs = {
   chrome: path.join(root, 'dist', 'extension-chrome'),
   edge: path.join(root, 'dist', 'extension-edge'),
@@ -147,6 +152,12 @@ async function buildTarget(target) {
       entryPoints: [path.join(root, 'src', 'popup', 'index.ts')],
       outfile: path.join(extensionDir, 'popup.js'),
       format: 'iife'
+    }),
+    build({
+      ...getBuildOptions(target),
+      entryPoints: [path.join(root, 'src', 'onboarding', 'index.ts')],
+      outfile: path.join(extensionDir, 'onboarding.js'),
+      format: 'iife'
     })
   ]);
 
@@ -157,7 +168,18 @@ async function buildTarget(target) {
     writeMinifiedHtml(
       path.join(root, 'src', 'popup.html'),
       path.join(extensionDir, 'popup.html'),
-      { inlineCss: buildCssBundle(popupCssSources, { layered: true }) }
+      {
+        inlineCss: buildCssBundle(popupCssSources, { layered: true }),
+        stylesheetHref: 'popup.css'
+      }
+    ),
+    writeMinifiedHtml(
+      path.join(root, 'src', 'onboarding.html'),
+      path.join(extensionDir, 'onboarding.html'),
+      {
+        inlineCss: buildCssBundle(onboardingCssSources),
+        stylesheetHref: 'onboarding.css'
+      }
     ),
     copyFile(path.join(root, 'LICENSE'), path.join(extensionDir, 'LICENSE')),
     copyFile(path.join(root, 'THIRD_PARTY_NOTICES.md'), path.join(extensionDir, 'THIRD_PARTY_NOTICES.md')),
@@ -222,17 +244,23 @@ function indentCss(css) {
     .join('\n');
 }
 
-async function writeMinifiedHtml(infile, outfile, { inlineCss } = {}) {
+async function writeMinifiedHtml(infile, outfile, { inlineCss, stylesheetHref } = {}) {
   const html = await readFile(infile, 'utf8');
   const nextHtml = inlineCss
-    ? inlinePopupCss(html, await inlineCss)
+    ? inlineStylesheetCss(html, await inlineCss, stylesheetHref)
     : html;
   await writeFile(outfile, ensureTrailingNewline(await minifyHtml(nextHtml, htmlMinifyOptions)));
 }
 
-function inlinePopupCss(html, css) {
-  const linkPattern = /<link\b(?=[^>]*\brel="stylesheet")(?=[^>]*\bhref="popup\.css")[^>]*>/i;
-  if (!linkPattern.test(html)) throw new Error('Could not find popup.css stylesheet link.');
+function inlineStylesheetCss(html, css, stylesheetHref) {
+  const escapedHref = String(stylesheetHref || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const linkPattern = new RegExp(
+    `<link\\b(?=[^>]*\\brel="stylesheet")(?=[^>]*\\bhref="${escapedHref}")[^>]*>`,
+    'i'
+  );
+  if (!linkPattern.test(html)) {
+    throw new Error(`Could not find ${stylesheetHref} stylesheet link.`);
+  }
   return html.replace(linkPattern, `<style>${css.trim()}</style>`);
 }
 

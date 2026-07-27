@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="en" data-ytcq-onboarding>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title data-i18n="onboardingWelcome">Welcome aboard!</title>
+    <link rel="stylesheet" href="content.css">
+    <link rel="stylesheet" href="onboarding.css">
+  </head>
+  <body>
+    <main class="onboarding-shell">
+      <section class="settings-column" aria-labelledby="onboardingTitle">
+        <a
+          class="onboarding-brand"
+          href="https://www.chatenhancer.com/"
+          target="_blank"
+          rel="noopener noreferrer"
+          data-i18n-aria-label="extensionName"
+        >
+          <img src="logo.png" alt="">
+        </a>
+
+        <div class="settings-panel">
+          <header class="settings-intro">
+            <h1 id="onboardingTitle" data-i18n="onboardingWelcome">Welcome aboard!</h1>
+            <p data-i18n="onboardingPersonalize">Personalize your experience with the following options:</p>
+          </header>
+
+          <div class="settings-list">
+            <div class="translation-settings-group">
+              <div class="setting-row setting-row-select translation-language-row">
+                <span id="onboardingTranslationIcon" class="setting-icon setting-icon-translation" aria-hidden="true"></span>
+                <span class="setting-copy">
+                  <label class="setting-title" for="onboardingTargetLanguage" data-i18n="onboardingChatTranslation">Chat translation</label>
+                  <span class="setting-helper" data-i18n="translationOffHelper">Pick a language to enable automatic translation.</span>
+                </span>
+                <select id="onboardingTargetLanguage"></select>
+              </div>
+
+              <div id="onboardingTranslationDisplayRow" class="setting-row setting-row-select translation-display-row" hidden>
+                <span class="setting-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" focusable="false">
+                    <path d="M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Zm0 2v12h16V6H4Zm2 4h12v2H6v-2Zm0 4h5v2H6v-2Zm7 0h5v2h-5v-2Z"></path>
+                  </svg>
+                </span>
+                <span class="setting-copy">
+                  <label class="setting-title" for="onboardingTranslationDisplay" data-i18n="onboardingTranslationAppearance">Translation appearance</label>
+                  <span class="setting-helper" data-i18n="onboardingTranslationDisplayHelper">Choose how translations are shown.</span>
+                </span>
+                <select id="onboardingTranslationDisplay">
+                  <option value="replace" data-i18n="replaceMessage">Replace</option>
+                  <option value="below" data-i18n="showBelow">Show below</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="setting-row setting-row-select">
+              <span class="setting-icon setting-icon-theme" aria-hidden="true">
+                <svg viewBox="0 -960 960 960" focusable="false">
+                  <path d="M480-80q-82 0-155-31.5t-127.5-86Q143-252 111.5-325T80-480q0-83 32.5-156t88-127Q256-817 330-848.5T488-880q80 0 151 27.5t124.5 76q53.5 48.5 85 115T880-518q0 115-70 176.5T640-280h-74q-9 0-12.5 5t-3.5 11q0 12 15 34.5t15 51.5q0 50-27.5 74T480-80Zm0-80q9 0 14.5-5t5.5-13q0-14-15-33t-15-57q0-42 29-67t71-25h70q66 0 113-38.5T800-518q0-121-92.5-201.5T488-800q-136 0-232 93t-96 227q0 133 93.5 226.5T480-160Zm-177-297q17-17 17-43t-17-43q-17-17-43-17t-43 17q-17 17-17 43t17 43q17 17 43 17t43-17Zm120-160q17-17 17-43t-17-43q-17-17-43-17t-43 17q-17 17-17 43t17 43q17 17 43 17t43-17Zm200 0q17-17 17-43t-17-43q-17-17-43-17t-43 17q-17 17-17 43t17 43q17 17 43 17t43-17Zm120 160q17-17 17-43t-17-43q-17-17-43-17t-43 17q-17 17-17 43t17 43q17 17 43 17t43-17Z"></path>
+                </svg>
+              </span>
+              <span class="setting-copy">
+                <label class="setting-title" for="onboardingChatSkin" data-i18n="chatSkin">Theme</label>
+                <span class="setting-helper" data-i18n="chatSkinHelper">Apply a custom theme to YouTube chat.</span>
+              </span>
+              <select id="onboardingChatSkin"></select>
+            </div>
+
+            <label class="setting-row setting-row-toggle" for="onboardingPlaygroundEnabled">
+              <span id="onboardingPlaygroundIcon" class="setting-icon" aria-hidden="true"></span>
+              <span class="setting-copy">
+                <span class="setting-title">
+                  <span data-i18n="joinPlayground">Join Playground</span>
+                  <span class="option-beta-badge">Beta</span>
+                </span>
+                <span class="setting-helper">
+                  <span data-i18n="onboardingPlaygroundHelper">Play games with other extension users.</span>
+                  <a href="https://www.chatenhancer.com/privacy#playground" target="_blank" rel="noreferrer" data-i18n="learnMore">Learn more</a>
+                </span>
+              </span>
+              <input id="onboardingPlaygroundEnabled" type="checkbox">
+            </label>
+
+            <label class="setting-row setting-row-toggle" for="onboardingLiteModeEnabled">
+              <span id="onboardingLiteIcon" class="setting-icon" aria-hidden="true"></span>
+              <span class="setting-copy">
+                <span class="setting-title">
+                  <span data-i18n="onboardingEnableLiteMode">Enable Lite mode</span>
+                  <span class="option-beta-badge">Beta</span>
+                </span>
+                <span class="setting-helper" data-i18n="onboardingLiteModeHelper">Use a faster, lightweight chat feed to improve performance.</span>
+              </span>
+              <input id="onboardingLiteModeEnabled" type="checkbox">
+            </label>
+          </div>
+
+          <p class="settings-note">
+            <svg viewBox="0 -960 960 960" aria-hidden="true" focusable="false">
+              <path d="M352-120H200q-33 0-56.5-23.5T120-200v-152q48 0 84-30.5t36-77.5q0-47-36-77.5T120-568v-152q0-33 23.5-56.5T200-800h160q0-42 29-71t71-29q42 0 71 29t29 71h160q33 0 56.5 23.5T800-720v160q42 0 71 29t29 71q0 42-29 71t-71 29v160q0 33-23.5 56.5T720-120H568q0-50-31.5-85T460-240q-45 0-76.5 35T352-120Zm-152-80h85q24-66 77-93t98-27q45 0 98 27t77 93h85v-240h80q8 0 14-6t6-14q0-8-6-14t-14-6h-80v-240H480v-80q0-8-6-14t-14-6q-8 0-14 6t-6 14v80H200v88q54 20 87 67t33 105q0 57-33 104t-87 68v88Zm260-260Z"></path>
+            </svg>
+            <span data-i18n="onboardingSettingsAvailable">These and more settings are always available in the extension popup.</span>
+          </p>
+        </div>
+
+        <p class="settings-close-note" data-i18n="onboardingCloseWhenFinished">
+          Feel free to close this tab when you’re finished.
+        </p>
+      </section>
+
+      <section class="preview-column" aria-labelledby="previewTitle">
+        <div class="preview-heading">
+          <h2 id="previewTitle" class="preview-title">
+            <img src="icons/icon-128.png" alt="">
+            <span data-i18n="onboardingChatPreview">Chat preview</span>
+          </h2>
+          <p class="preview-hover-hint" data-i18n="onboardingPreviewHoverHint">
+            Hover over icons for more information.
+          </p>
+        </div>
+
+        <div id="chatPreview" class="chat-preview" data-chat-skin="system" data-chat-theme="dark" data-lite-mode-enabled="false" data-playground-enabled="false" data-translation-state="idle" role="group" aria-labelledby="previewTitle">
+          <yt-live-chat-renderer class="preview-chat-renderer" aria-hidden="true">
+          <yt-live-chat-header-renderer class="preview-chat-header">
+            <span id="view-selector" class="preview-top-chat">
+              <span id="label-text" data-i18n="onboardingTopChat">Top chat</span>
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path d="m7.4 8.6 4.6 4.6 4.6-4.6L18 10l-6 6-6-6 1.4-1.4Z"></path>
+              </svg>
+            </span>
+            <span class="preview-header-actions" aria-hidden="true">
+              <button id="previewLiteIcon" class="preview-header-icon preview-lite-icon ytcq-lite-mode-button" type="button" tabindex="-1"></button>
+              <button id="previewGamesIcon" class="preview-header-icon ytcq-games-button" type="button" tabindex="-1" aria-hidden="true"></button>
+              <button id="previewInboxIcon" class="preview-header-icon ytcq-inbox-button" type="button" tabindex="-1"></button>
+              <button class="preview-header-icon preview-native-header-icon" type="button" tabindex="-1">
+                <svg viewBox="0 -960 960 960" focusable="false">
+                  <path d="M480-160q-33 0-56.5-23.5T400-240q0-33 23.5-56.5T480-320q33 0 56.5 23.5T560-240q0 33-23.5 56.5T480-160Zm0-240q-33 0-56.5-23.5T400-480q0-33 23.5-56.5T480-560q33 0 56.5 23.5T560-480q0 33-23.5 56.5T480-400Zm0-240q-33 0-56.5-23.5T400-720q0-33 23.5-56.5T480-800q33 0 56.5 23.5T560-720q0 33-23.5 56.5T480-640Z"></path>
+                </svg>
+              </button>
+              <button class="preview-header-icon preview-native-header-icon" type="button" tabindex="-1">
+                <svg viewBox="0 0 24 24" focusable="false">
+                  <path d="M18.3 5.71a1 1 0 0 0-1.41 0L12 10.59 7.11 5.7A1 1 0 0 0 5.7 7.11L10.59 12 5.7 16.89a1 1 0 1 0 1.41 1.41L12 13.41l4.89 4.89a1 1 0 0 0 1.41-1.41L13.41 12l4.89-4.89a1 1 0 0 0 0-1.4Z"></path>
+                </svg>
+              </button>
+            </span>
+          </yt-live-chat-header-renderer>
+
+          <yt-live-chat-item-list-renderer class="preview-chat-feed">
+            <div id="item-scroller" class="preview-item-scroller">
+              <div id="items" class="preview-items">
+                <div class="preview-skeletons" aria-hidden="true">
+                  <span class="preview-skeleton-row preview-skeleton-row-long"></span>
+                  <span class="preview-skeleton-row preview-skeleton-row-medium"></span>
+                  <span class="preview-skeleton-row preview-skeleton-row-short"></span>
+                  <span class="preview-skeleton-row preview-skeleton-row-long"></span>
+                  <span class="preview-skeleton-row preview-skeleton-row-medium"></span>
+                </div>
+
+                <yt-live-chat-text-message-renderer id="previewFeaturedMessage" class="preview-message preview-message-featured">
+                  <yt-img-shadow id="author-photo" class="preview-avatar preview-avatar-pink" aria-hidden="true">
+                    <svg id="img" viewBox="0 0 120 120" width="24" height="24" focusable="false">
+                      <use href="icons/preview-avatar.svg#avatar-person"></use>
+                    </svg>
+                  </yt-img-shadow>
+                  <div id="content" class="preview-message-copy" aria-live="polite">
+                    <yt-live-chat-author-chip>
+                      <span id="author-name" class="preview-author">@猫爪软乎乎</span>
+                    </yt-live-chat-author-chip>
+                    <span id="message-container" class="preview-message-line">
+                      <span id="message"><span id="previewPrimaryText" dir="auto"><span id="previewPrimaryTextLead">看来现在可以正常工作</span><span class="preview-inline-translation-tail"><span id="previewPrimaryTextTail">了</span><button id="previewInlineTranslateIcon" class="preview-translation-icon ytcq-replaced-translation-icon" type="button" tabindex="-1" aria-hidden="true"></button></span></span></span>
+                    </span>
+                    <span id="previewTranslationLine" class="preview-translation-line ytcq-translation" aria-hidden="true">
+                      <span id="previewBelowTranslateIcon" class="preview-translation-icon ytcq-translation-prefix" aria-hidden="true"></span>
+                      <span id="previewSecondaryText" dir="auto"></span>
+                    </span>
+                  </div>
+                </yt-live-chat-text-message-renderer>
+
+                <yt-live-chat-text-message-renderer class="preview-message">
+                  <yt-img-shadow id="author-photo" class="preview-avatar preview-avatar-blue" aria-hidden="true">
+                    <svg id="img" viewBox="0 0 120 120" width="24" height="24" focusable="false">
+                      <use href="icons/preview-avatar.svg#avatar-person"></use>
+                    </svg>
+                  </yt-img-shadow>
+                  <div id="content" class="preview-message-copy">
+                    <yt-live-chat-author-chip>
+                      <span id="author-name" class="preview-author">@jeremy</span>
+                    </yt-live-chat-author-chip>
+                    <span id="message-container" class="preview-message-line">
+                      <span id="message">oh, I’m glad! 🎉</span>
+                    </span>
+                  </div>
+                </yt-live-chat-text-message-renderer>
+
+                <yt-live-chat-text-message-renderer class="preview-message">
+                  <yt-img-shadow id="author-photo" class="preview-avatar preview-avatar-purple" aria-hidden="true">
+                    <svg id="img" viewBox="0 0 120 120" width="24" height="24" focusable="false">
+                      <use href="icons/preview-avatar.svg#avatar-person"></use>
+                    </svg>
+                  </yt-img-shadow>
+                  <div id="content" class="preview-message-copy">
+                    <yt-live-chat-author-chip>
+                      <span id="author-name" class="preview-author">@lynda</span>
+                    </yt-live-chat-author-chip>
+                    <span id="message-container" class="preview-message-line">
+                      <span id="message">fantastic news, welcome!</span>
+                    </span>
+                  </div>
+                </yt-live-chat-text-message-renderer>
+
+                <div class="preview-skeletons preview-skeletons-lower" aria-hidden="true">
+                  <span class="preview-skeleton-row preview-skeleton-row-long"></span>
+                  <span class="preview-skeleton-row preview-skeleton-row-medium"></span>
+                  <span class="preview-skeleton-row preview-skeleton-row-short"></span>
+                  <span class="preview-skeleton-row preview-skeleton-row-long"></span>
+                  <span class="preview-skeleton-row preview-skeleton-row-medium"></span>
+                  <span class="preview-skeleton-row preview-skeleton-row-short"></span>
+                  <span class="preview-skeleton-row preview-skeleton-row-long"></span>
+                  <span class="preview-skeleton-row preview-skeleton-row-medium"></span>
+                  <span class="preview-skeleton-row preview-skeleton-row-short"></span>
+                  <span class="preview-skeleton-row preview-skeleton-row-long"></span>
+                  <span class="preview-skeleton-row preview-skeleton-row-medium"></span>
+                  <span class="preview-skeleton-row preview-skeleton-row-short"></span>
+                </div>
+              </div>
+            </div>
+          </yt-live-chat-item-list-renderer>
+
+          <yt-live-chat-message-input-renderer class="preview-composer">
+            <div id="container" class="preview-composer-container">
+              <div id="input-container" class="preview-composer-field">
+                <yt-live-chat-text-input-field-renderer id="input">
+                  <span id="label" class="preview-placeholder" data-i18n="onboardingChatPlaceholder">Chat…</span>
+                </yt-live-chat-text-input-field-renderer>
+                <span id="buttons" class="preview-composer-actions" aria-hidden="true">
+                  <span class="ytcq-composer-translate-host">
+                    <span class="ytcq-composer-translate-control">
+                      <button id="previewComposerTranslateIcon" class="ytcq-composer-translate-button" type="button" tabindex="-1"></button>
+                    </span>
+                  </span>
+                  <span id="emoji-picker-button">
+                    <button class="preview-emoji" type="button" tabindex="-1">
+                      <svg viewBox="0 0 24 24" focusable="false">
+                        <path d="M12 1C5.925 1 1 5.925 1 12s4.925 11 11 11 11-4.925 11-11S18.075 1 12 1Zm0 2a9 9 0 1 1 0 18.001A9 9 0 0 1 12 3ZM9 8.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3Zm6 0a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3Zm-.525 5.475a3.5 3.5 0 0 1-4.95 0 1 1 0 1 0-1.414 1.414 5.5 5.5 0 0 0 7.778 0 1 1 0 0 0-1.414-1.414Z"></path>
+                      </svg>
+                    </button>
+                  </span>
+                </span>
+              </div>
+            </div>
+            <span id="send-button" class="preview-send" aria-hidden="true">
+              <button type="button" tabindex="-1">
+                <svg viewBox="0 0 24 24" focusable="false">
+                  <path d="m21.5 12.867 1.496-.865-1.495-.866L4.65 1.38c-1.513-.876-3.26.7-2.544 2.295l3.743 8.327-3.743 8.325c-.717 1.594 1.03 3.172 2.543 2.296l16.85-9.756ZM7.59 11 4.185 3.421l13.089 7.58H7.59Zm.003 2h9.688L4.185 20.581l3.408-7.58Z"></path>
+                </svg>
+              </button>
+            </span>
+          </yt-live-chat-message-input-renderer>
+          </yt-live-chat-renderer>
+
+          <svg id="previewCalloutConnectors" class="preview-callout-connectors" aria-hidden="true" focusable="false">
+            <path id="previewLiteCalloutConnector" class="preview-callout-connector preview-lite-callout-connector" pathLength="1"></path>
+            <path id="previewPlaygroundCalloutConnector" class="preview-callout-connector preview-playground-callout-connector" pathLength="1"></path>
+          </svg>
+
+          <div class="preview-feature-callouts">
+            <div id="previewLiteCallout" class="preview-feature-callout preview-lite-callout" aria-hidden="true">
+              <p><a class="preview-callout-link" href="https://www.chatenhancer.com/blog/introducing-lite-mode/" target="_blank" rel="noopener noreferrer" data-i18n="liteMode">Lite mode</a><span data-i18n="onboardingLiteModeCallout">, when enabled, will make live chat use less resources. You can always switch back to native by clicking this toggle.</span></p>
+            </div>
+            <div id="previewPlaygroundCallout" class="preview-feature-callout preview-playground-callout" aria-hidden="true">
+              <p>
+                <span data-i18n="onboardingPlaygroundCallout">This will take you to the Games lobby, where you can start a new game with a real player that also has the extension, or a Computer (bot) player.</span>
+                <a class="preview-callout-link" href="https://www.chatenhancer.com/playground/" target="_blank" rel="noopener noreferrer" data-i18n="learnMore">Learn more</a>
+              </p>
+            </div>
+          </div>
+
+          <div class="preview-tooltip-layer" aria-hidden="true">
+            <div id="previewInboxTooltip" class="preview-tooltip preview-inbox-tooltip" data-i18n="onboardingInboxTooltip">
+              This opens your Inbox. When people mention you in chat, their messages appear here so you don’t miss them. You can also set up custom Inbox keywords to watch for.
+            </div>
+            <div id="previewDraftTranslatorTooltip" class="preview-tooltip preview-draft-translator-tooltip" data-i18n="onboardingDraftTranslatorTooltip">
+              This is the draft translator. Click it and choose a language to translate whatever you type in the chat box before you send it.
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+    <script src="onboarding.js"></script>
+  </body>
+</html>

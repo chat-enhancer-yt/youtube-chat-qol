@@ -306,6 +306,66 @@
     "extensionName": {
       "message": "Chat Enhancer for YouTube"
     },
+    "onboardingWelcome": {
+      "message": "خوش آمدید!"
+    },
+    "onboardingPersonalize": {
+      "message": "تجربه خود را با گزینه‌های زیر شخصی‌سازی کنید:"
+    },
+    "onboardingChatTranslation": {
+      "message": "ترجمه گپ"
+    },
+    "onboardingTranslationAppearance": {
+      "message": "نمایش ترجمه"
+    },
+    "onboardingTranslationDisplayHelper": {
+      "message": "نحوه نمایش ترجمه‌ها را انتخاب کنید."
+    },
+    "onboardingPlaygroundHelper": {
+      "message": "با دیگر کاربران افزونه بازی کنید."
+    },
+    "onboardingPlaygroundCallout": {
+      "message": "این گزینه شما را به لابی بازی‌ها می‌برد؛ در آنجا می‌توانید بازی جدیدی را با یک بازیکن واقعی که او نیز افزونه را دارد یا با بازیکن رایانه‌ای (ربات) شروع کنید."
+    },
+    "onboardingLiteModeHelper": {
+      "message": "برای بهبود عملکرد، از خوراک گفتگوی سریع‌تر و سبک‌تر استفاده کنید."
+    },
+    "onboardingLiteModeCallout": {
+      "message": "، پس از فعال شدن، باعث می‌شود گفت‌وگوی زنده منابع کمتری مصرف کند. همیشه می‌توانید با کلیک روی این کلید به گفت‌وگوی اصلی برگردید."
+    },
+    "onboardingInboxTooltip": {
+      "message": "این گزینه صندوق ورودی شما را باز می‌کند. وقتی افراد در گفت‌وگو از شما نام می‌برند، پیام‌هایشان اینجا نمایش داده می‌شود تا آن‌ها را از دست ندهید. همچنین می‌توانید کلیدواژه‌های سفارشی برای صندوق ورودی تنظیم کنید تا زیر نظر گرفته شوند."
+    },
+    "onboardingDraftTranslatorTooltip": {
+      "message": "این مترجم پیش‌نویس است. روی آن کلیک کنید و زبانی را انتخاب کنید تا هرچه در کادر گفت‌وگو می‌نویسید پیش از ارسال ترجمه شود."
+    },
+    "onboardingEnableLiteMode": {
+      "message": "فعال‌کردن حالت Lite"
+    },
+    "onboardingSettingsAvailable": {
+      "message": "این تنظیمات و تنظیمات بیشتر همیشه در پنجره بازشوی افزونه در دسترس‌اند."
+    },
+    "onboardingCloseWhenFinished": {
+      "message": "پس از پایان کار می‌توانید این برگه را ببندید."
+    },
+    "onboardingChatPreview": {
+      "message": "پیش‌نمایش گپ"
+    },
+    "onboardingPreviewHoverHint": {
+      "message": "برای اطلاعات بیشتر، نشانگر را روی نمادها نگه دارید."
+    },
+    "onboardingTopChat": {
+      "message": "گپ برتر"
+    },
+    "onboardingChatPlaceholder": {
+      "message": "گپ…"
+    },
+    "onboardingTranslating": {
+      "message": "در حال ترجمه…"
+    },
+    "onboardingTranslationUnavailable": {
+      "message": "پیش‌نمایش در حال حاضر در دسترس نیست."
+    },
     "extensionActiveTitle": {
       "message": "Chat Enhancer for YouTube در این تب فعال است"
     },

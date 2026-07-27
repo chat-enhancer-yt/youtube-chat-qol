@@ -307,6 +307,66 @@
       "message": "Chat Enhancer for YouTube",
       "description": "Nama publik ekstensi."
     },
+    "onboardingWelcome": {
+      "message": "Selamat datang!"
+    },
+    "onboardingPersonalize": {
+      "message": "Personalisasikan pengalaman Anda dengan opsi berikut:"
+    },
+    "onboardingChatTranslation": {
+      "message": "Terjemahan chat"
+    },
+    "onboardingTranslationAppearance": {
+      "message": "Tampilan terjemahan"
+    },
+    "onboardingTranslationDisplayHelper": {
+      "message": "Pilih cara terjemahan ditampilkan."
+    },
+    "onboardingPlaygroundHelper": {
+      "message": "Main game dengan pengguna ekstensi lain."
+    },
+    "onboardingPlaygroundCallout": {
+      "message": "Ini akan membawa Anda ke lobi Game, tempat Anda dapat memulai game baru dengan pemain sungguhan yang juga menggunakan ekstensi ini, atau pemain Komputer (bot)."
+    },
+    "onboardingLiteModeHelper": {
+      "message": "Gunakan feed chat yang lebih cepat dan ringan untuk meningkatkan performa."
+    },
+    "onboardingLiteModeCallout": {
+      "message": ", saat diaktifkan, akan membuat chat live menggunakan lebih sedikit sumber daya. Anda selalu dapat kembali ke chat bawaan dengan mengeklik tombol ini."
+    },
+    "onboardingInboxTooltip": {
+      "message": "Ini membuka Kotak Masuk Anda. Saat seseorang menyebut Anda di chat, pesannya akan muncul di sini agar tidak terlewat. Anda juga dapat mengatur kata kunci Kotak Masuk khusus untuk dipantau."
+    },
+    "onboardingDraftTranslatorTooltip": {
+      "message": "Ini adalah penerjemah draf. Klik lalu pilih bahasa untuk menerjemahkan apa pun yang Anda ketik di kotak chat sebelum dikirim."
+    },
+    "onboardingEnableLiteMode": {
+      "message": "Aktifkan mode Lite"
+    },
+    "onboardingSettingsAvailable": {
+      "message": "Pengaturan ini dan lainnya selalu tersedia di popup ekstensi."
+    },
+    "onboardingCloseWhenFinished": {
+      "message": "Silakan tutup tab ini setelah selesai."
+    },
+    "onboardingChatPreview": {
+      "message": "Pratinjau chat"
+    },
+    "onboardingPreviewHoverHint": {
+      "message": "Arahkan kursor ke ikon untuk informasi selengkapnya."
+    },
+    "onboardingTopChat": {
+      "message": "Chat teratas"
+    },
+    "onboardingChatPlaceholder": {
+      "message": "Chat…"
+    },
+    "onboardingTranslating": {
+      "message": "Menerjemahkan…"
+    },
+    "onboardingTranslationUnavailable": {
+      "message": "Pratinjau sedang tidak tersedia."
+    },
     "extensionActiveTitle": {
       "message": "Chat Enhancer for YouTube aktif di tab ini"
     },

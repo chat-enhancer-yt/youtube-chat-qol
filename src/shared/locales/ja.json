@@ -307,6 +307,66 @@
       "message": "Chat Enhancer for YouTube",
       "description": "公開される拡張機能名。"
     },
+    "onboardingWelcome": {
+      "message": "ようこそ！"
+    },
+    "onboardingPersonalize": {
+      "message": "以下のオプションでエクスペリエンスをカスタマイズできます。"
+    },
+    "onboardingChatTranslation": {
+      "message": "チャット翻訳"
+    },
+    "onboardingTranslationAppearance": {
+      "message": "翻訳の表示"
+    },
+    "onboardingTranslationDisplayHelper": {
+      "message": "翻訳の表示方法を選びます。"
+    },
+    "onboardingPlaygroundHelper": {
+      "message": "他の拡張機能ユーザーとゲームをプレイします。"
+    },
+    "onboardingPlaygroundCallout": {
+      "message": "ゲームロビーが開き、同じ拡張機能を利用している実際のプレイヤーまたはコンピューター（ボット）プレイヤーと新しいゲームを開始できます。"
+    },
+    "onboardingLiteModeHelper": {
+      "message": "パフォーマンスを向上させるため、より高速で軽量なチャットフィードを使用します。"
+    },
+    "onboardingLiteModeCallout": {
+      "message": "を有効にすると、ライブチャットが使用するリソースを抑えられます。この切り替えをクリックすれば、いつでも標準のチャットに戻せます。"
+    },
+    "onboardingInboxTooltip": {
+      "message": "受信トレイを開きます。チャットであなたがメンションされると、見逃さないようにそのメッセージがここに表示されます。監視する受信トレイのカスタムキーワードも設定できます。"
+    },
+    "onboardingDraftTranslatorTooltip": {
+      "message": "これは下書き翻訳です。クリックして言語を選ぶと、チャットボックスに入力した内容を送信前に翻訳できます。"
+    },
+    "onboardingEnableLiteMode": {
+      "message": "Lite モードを有効にする"
+    },
+    "onboardingSettingsAvailable": {
+      "message": "これらを含むその他の設定は、拡張機能のポップアップからいつでも変更できます。"
+    },
+    "onboardingCloseWhenFinished": {
+      "message": "設定が完了したら、このタブを閉じてかまいません。"
+    },
+    "onboardingChatPreview": {
+      "message": "チャットのプレビュー"
+    },
+    "onboardingPreviewHoverHint": {
+      "message": "詳しい情報を見るには、アイコンにカーソルを合わせます。"
+    },
+    "onboardingTopChat": {
+      "message": "上位のチャット"
+    },
+    "onboardingChatPlaceholder": {
+      "message": "チャット…"
+    },
+    "onboardingTranslating": {
+      "message": "翻訳中…"
+    },
+    "onboardingTranslationUnavailable": {
+      "message": "現在プレビューを利用できません。"
+    },
     "extensionActiveTitle": {
       "message": "Chat Enhancer for YouTube はこのタブで有効です"
     },

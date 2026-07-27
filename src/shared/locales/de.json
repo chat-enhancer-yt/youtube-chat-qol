@@ -306,6 +306,66 @@
     "extensionName": {
       "message": "Chat Enhancer for YouTube"
     },
+    "onboardingWelcome": {
+      "message": "Willkommen an Bord!"
+    },
+    "onboardingPersonalize": {
+      "message": "Passe dein Erlebnis mit den folgenden Optionen an:"
+    },
+    "onboardingChatTranslation": {
+      "message": "Chatübersetzung"
+    },
+    "onboardingTranslationAppearance": {
+      "message": "Darstellung der Übersetzung"
+    },
+    "onboardingTranslationDisplayHelper": {
+      "message": "Wähle, wie Übersetzungen angezeigt werden."
+    },
+    "onboardingPlaygroundHelper": {
+      "message": "Spiele mit anderen Erweiterungsnutzern."
+    },
+    "onboardingPlaygroundCallout": {
+      "message": "Dies führt dich zur Spiele-Lobby, wo du ein neues Spiel mit einem echten Spieler, der die Erweiterung ebenfalls installiert hat, oder einem Computergegner (Bot) starten kannst."
+    },
+    "onboardingLiteModeHelper": {
+      "message": "Nutze einen schnelleren, schlanken Chat-Feed, um die Leistung zu verbessern."
+    },
+    "onboardingLiteModeCallout": {
+      "message": ", wenn aktiviert, sorgt dafür, dass der Livechat weniger Ressourcen verbraucht. Über diesen Schalter kannst du jederzeit zum nativen Chat zurückkehren."
+    },
+    "onboardingInboxTooltip": {
+      "message": "Damit öffnest du deinen Posteingang. Wenn dich jemand im Chat erwähnt, erscheinen die entsprechenden Nachrichten hier, damit du sie nicht verpasst. Du kannst auch eigene Posteingang-Schlüsselwörter festlegen, auf die geachtet werden soll."
+    },
+    "onboardingDraftTranslatorTooltip": {
+      "message": "Dies ist der Entwurfsübersetzer. Klicke darauf und wähle eine Sprache aus, um alles, was du in das Chatfeld eingibst, vor dem Senden zu übersetzen."
+    },
+    "onboardingEnableLiteMode": {
+      "message": "Lite-Modus aktivieren"
+    },
+    "onboardingSettingsAvailable": {
+      "message": "Diese und weitere Einstellungen sind jederzeit im Erweiterungs-Popup verfügbar."
+    },
+    "onboardingCloseWhenFinished": {
+      "message": "Du kannst diesen Tab schließen, wenn du fertig bist."
+    },
+    "onboardingChatPreview": {
+      "message": "Chatvorschau"
+    },
+    "onboardingPreviewHoverHint": {
+      "message": "Fahre für weitere Informationen mit der Maus über die Symbole."
+    },
+    "onboardingTopChat": {
+      "message": "Top-Chat"
+    },
+    "onboardingChatPlaceholder": {
+      "message": "Chat…"
+    },
+    "onboardingTranslating": {
+      "message": "Wird übersetzt…"
+    },
+    "onboardingTranslationUnavailable": {
+      "message": "Vorschau derzeit nicht verfügbar."
+    },
     "extensionActiveTitle": {
       "message": "Chat Enhancer for YouTube ist in diesem Tab aktiv"
     },
