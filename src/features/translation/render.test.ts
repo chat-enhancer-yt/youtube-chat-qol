@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { DEFAULT_OPTIONS } from '../../shared/options';
 import { setOptions } from '../../shared/state';
 import {
@@ -15,8 +15,10 @@ import type { TranslationResult } from './types';
 
 describe('translation rendering', () => {
   afterEach(() => {
+    clearTranslationRenderings();
     document.body.replaceChildren();
     setOptions({ ...DEFAULT_OPTIONS });
+    vi.unstubAllGlobals();
   });
 
   it('renders below-message translations without replacing original chat text', () => {
@@ -133,6 +135,69 @@ describe('translation rendering', () => {
     expect(translations).toHaveLength(1);
     expect(translations[0].textContent).toContain('どうも');
     expect(translations[0].textContent).not.toContain('ありがとう');
+  });
+
+  it('keeps native chat at the live edge when YouTube updates its virtual spacer', () => {
+    let onResize: ResizeObserverCallback = () => undefined;
+    let observedTarget: Element | null = null;
+    vi.stubGlobal(
+      'ResizeObserver',
+      class ResizeObserverMock {
+        constructor(callback: ResizeObserverCallback) {
+          onResize = callback;
+        }
+
+        disconnect(): void {}
+
+        observe(target: Element): void {
+          observedTarget = target;
+        }
+
+        unobserve(): void {}
+      }
+    );
+    setOptions({ ...DEFAULT_OPTIONS, targetLanguage: 'ja', translationDisplay: 'below' });
+    const { list, message, scroller, spacer } = createScrollableChatMessage('gracias');
+    document.body.appendChild(list);
+    scroller.scrollTop = 200;
+
+    renderTranslation(message, result({ text: 'ありがとう' }), 'gracias');
+
+    expect(observedTarget).toBe(spacer);
+    setScrollMetrics(scroller, { clientHeight: 100, scrollHeight: 420 });
+    onResize([], {} as ResizeObserver);
+
+    expect(scroller.scrollTop).toBe(420);
+  });
+
+  it('stops native live-edge pinning when the reader starts scrolling', () => {
+    let onResize: ResizeObserverCallback = () => undefined;
+    vi.stubGlobal(
+      'ResizeObserver',
+      class ResizeObserverMock {
+        constructor(callback: ResizeObserverCallback) {
+          onResize = callback;
+        }
+
+        disconnect(): void {}
+
+        observe(): void {}
+
+        unobserve(): void {}
+      }
+    );
+    setOptions({ ...DEFAULT_OPTIONS, targetLanguage: 'ja', translationDisplay: 'below' });
+    const { list, message, scroller } = createScrollableChatMessage('gracias');
+    document.body.appendChild(list);
+    scroller.scrollTop = 200;
+    renderTranslation(message, result({ text: 'ありがとう' }), 'gracias');
+
+    scroller.dispatchEvent(new WheelEvent('wheel', { deltaY: -20 }));
+    scroller.scrollTop = 120;
+    setScrollMetrics(scroller, { clientHeight: 100, scrollHeight: 420 });
+    onResize([], {} as ResizeObserver);
+
+    expect(scroller.scrollTop).toBe(120);
   });
 
   it('falls back to inline rendering when replacement mode cannot find message text', () => {
@@ -257,20 +322,24 @@ function createScrollableChatMessage(text: string): {
   list: HTMLElement;
   message: HTMLElement;
   scroller: HTMLElement;
+  spacer: HTMLElement;
 } {
   const list = document.createElement('yt-live-chat-item-list-renderer');
   const scroller = document.createElement('div');
+  const spacer = document.createElement('div');
   const items = document.createElement('div');
   const message = createMessage(text);
 
   scroller.id = 'item-scroller';
+  spacer.id = 'item-offset';
   items.id = 'items';
   items.appendChild(message);
-  scroller.appendChild(items);
+  spacer.appendChild(items);
+  scroller.appendChild(spacer);
   list.appendChild(scroller);
   setScrollMetrics(scroller, { clientHeight: 100, scrollHeight: 300 });
 
-  return { list, message, scroller };
+  return { list, message, scroller, spacer };
 }
 
 function setScrollMetrics(element: HTMLElement, {

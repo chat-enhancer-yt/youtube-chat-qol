@@ -10,6 +10,7 @@ import { createTranslateIcon } from '../../shared/icons';
 import { jsx, el } from '../../shared/jsx-dom';
 import { getOptions } from '../../shared/state';
 import { normalizeComparableText } from '../../shared/text';
+import { CHAT_LIVE_EDGE_RELEASE_EVENT } from '../../youtube/chat-scroll';
 import {
   getMessageTextElement,
   getStoredOriginalMessage,
@@ -35,6 +36,13 @@ interface ChatScrollerSnapshot {
   wasAtBottom: boolean;
 }
 
+interface NativeTranslationLiveEdgePin {
+  abortController: AbortController;
+  observer: ResizeObserver;
+  scroller: HTMLElement;
+  spacer: HTMLElement;
+}
+
 export type ReplacedTranslationView = 'original' | 'translated';
 
 interface ReplacedTranslationState {
@@ -53,6 +61,7 @@ interface ToggleableReplacementTranslationOptions {
 }
 
 const replacedTranslationStates = new WeakMap<HTMLElement, ReplacedTranslationState>();
+let nativeTranslationLiveEdgePin: NativeTranslationLiveEdgePin | null = null;
 
 export function renderTranslation(
   message: HTMLElement,
@@ -76,6 +85,7 @@ export function renderTranslation(
 
 export function clearTranslationRenderings(): void {
   const scrollerSnapshot = captureChatScrollerSnapshot();
+  stopNativeTranslationLiveEdgePin();
   document.querySelectorAll('.ytcq-translation-replaced').forEach((message) => {
     if (message instanceof HTMLElement) replacedTranslationStates.delete(message);
     restoreReplacedTranslation(message);
@@ -102,14 +112,17 @@ function renderInlineTranslation(
   const content = message.querySelector('#content') || message;
   const existing = message.querySelector<HTMLElement>(':scope .ytcq-translation');
   const translation = createInlineTranslationElement(result, protectedTokens);
+  const nativeScroller = prepareNativeTranslationLiveEdgePin(message);
 
   if (existing) {
     existing.replaceWith(translation);
+    pinNativeTranslationToLiveEdge(nativeScroller);
     emitTranslationTextRendered(translation);
     return;
   }
 
   content.appendChild(translation);
+  pinNativeTranslationToLiveEdge(nativeScroller);
   emitTranslationTextRendered(translation);
 }
 
@@ -326,6 +339,80 @@ function normalizeLanguageCode(language: string): string {
   return String(language || '')
     .toLowerCase()
     .split('-')[0];
+}
+
+function prepareNativeTranslationLiveEdgePin(message: HTMLElement): HTMLElement | null {
+  const listRenderer = message.closest('yt-live-chat-item-list-renderer');
+  const scroller = listRenderer?.querySelector<HTMLElement>(CHAT_SCROLLER_SELECTOR);
+  const spacer = scroller?.querySelector<HTMLElement>('#item-offset');
+  if (!scroller || !spacer) return null;
+
+  if (
+    nativeTranslationLiveEdgePin?.scroller === scroller &&
+    nativeTranslationLiveEdgePin.spacer === spacer
+  ) {
+    return scroller;
+  }
+
+  stopNativeTranslationLiveEdgePin();
+  if (!isAtChatBottom(scroller)) return null;
+  if (typeof ResizeObserver !== 'function') return scroller;
+
+  const abortController = new AbortController();
+  const pin: NativeTranslationLiveEdgePin = {
+    abortController,
+    observer: new ResizeObserver(() => {
+      if (nativeTranslationLiveEdgePin !== pin) return;
+      if (!scroller.isConnected || !spacer.isConnected) {
+        stopNativeTranslationLiveEdgePin();
+        return;
+      }
+
+      // YouTube reconciles this virtual spacer after extension-owned row content grows.
+      // Follow that exact resize before paint instead of guessing when its layout has settled.
+      pinNativeTranslationToLiveEdge(scroller);
+    }),
+    scroller,
+    spacer
+  };
+  pin.observer.observe(spacer);
+
+  const release = () => stopNativeTranslationLiveEdgePin(pin);
+  scroller.addEventListener('wheel', release, {
+    passive: true,
+    signal: abortController.signal
+  });
+  scroller.addEventListener('pointerdown', release, {
+    passive: true,
+    signal: abortController.signal
+  });
+  scroller.addEventListener('keydown', release, { signal: abortController.signal });
+  scroller.addEventListener(CHAT_LIVE_EDGE_RELEASE_EVENT, release, {
+    signal: abortController.signal
+  });
+
+  nativeTranslationLiveEdgePin = pin;
+  return scroller;
+}
+
+function stopNativeTranslationLiveEdgePin(
+  expected: NativeTranslationLiveEdgePin | null = nativeTranslationLiveEdgePin
+): void {
+  if (!expected || nativeTranslationLiveEdgePin !== expected) return;
+  expected.observer.disconnect();
+  expected.abortController.abort();
+  nativeTranslationLiveEdgePin = null;
+}
+
+function pinNativeTranslationToLiveEdge(scroller: HTMLElement | null): void {
+  if (!scroller?.isConnected) return;
+  scroller.scrollTop = scroller.scrollHeight;
+}
+
+function isAtChatBottom(scroller: HTMLElement): boolean {
+  return (
+    scroller.scrollTop + scroller.clientHeight >= scroller.scrollHeight - BOTTOM_SCROLL_TOLERANCE_PX
+  );
 }
 
 function captureChatScrollerSnapshot(): ChatScrollerSnapshot | null {
