@@ -269,7 +269,6 @@ function installIcons(): void {
   replaceIcon('previewGamesIcon', createGamesIcon(), 'game-invites-icon');
   replaceIcon('previewInboxIcon', createInboxIcon(true));
   replaceIcon('previewInlineTranslateIcon', createTranslateIcon());
-  replaceIcon('previewBelowTranslateIcon', createTranslateIcon());
   replaceIcon('previewComposerTranslateIcon', createTranslateIcon());
 }
 

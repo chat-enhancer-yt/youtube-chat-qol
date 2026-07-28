@@ -162,6 +162,17 @@ describe('onboarding settings', () => {
     expect(translationDisplayRow.hidden).toBe(true);
   });
 
+  it('uses the localized translated prefix in the below-message preview', async () => {
+    vi.mocked(chrome.i18n.getMessage).mockImplementation((key: string) =>
+      key === 'translated' ? 'Traduit :' : key
+    );
+
+    await import('./index');
+
+    expect(document.querySelector('#previewTranslationPrefix')?.textContent).toBe('Traduit :');
+    expect(document.querySelector('#previewBelowTranslateIcon')).toBeNull();
+  });
+
   it('does not animate onboarding setting icons when reduced motion is preferred', async () => {
     installMatchMedia(true);
     await import('./index');

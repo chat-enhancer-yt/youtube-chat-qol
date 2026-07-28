@@ -358,6 +358,7 @@ export const onboardingPreviewScenario: BrowserScenario = async ({ context }) =>
 
         await onboarding.locator('#onboardingTranslationDisplay').selectOption('below');
         await expect(onboarding.locator('#previewPrimaryText')).toHaveText('看来现在可以正常工作了');
+        await expect(onboarding.locator('#previewTranslationPrefix')).toHaveText('Translated:');
         await expect(onboarding.locator('#previewSecondaryText')).toHaveText('今はうまく機能しているようです');
         await expect(onboarding.locator('#previewTranslationLine')).toBeVisible();
 

@@ -791,8 +791,7 @@ optgroup {
 }
 
 #previewGamesIcon.preview-element-visible,
-#previewInlineTranslateIcon.preview-element-visible,
-.preview-translation-line.preview-element-visible #previewBelowTranslateIcon {
+#previewInlineTranslateIcon.preview-element-visible {
   transform-origin: center;
   animation: preview-icon-enter 300ms ease-out both;
 }
@@ -994,9 +993,7 @@ optgroup {
 }
 
 .preview-translation-line {
-  display: flex;
-  align-items: flex-start;
-  gap: 6px;
+  display: block;
   max-height: 0;
   margin: 0;
   overflow: hidden;
@@ -1021,11 +1018,6 @@ optgroup {
 
 .preview-translation-line.preview-element-exiting {
   animation: preview-translation-line-exit 180ms ease both;
-}
-
-.preview-translation-line .preview-translation-icon {
-  margin: 1px 0 0;
-  flex: 0 0 auto;
 }
 
 .chat-preview[data-translation-state="loading"] .preview-translation-line {
