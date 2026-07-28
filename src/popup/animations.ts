@@ -1,39 +1,41 @@
-import { prefersReducedMotion } from './motion';
-
-const BELL_RING_CLASS = 'ytcq-bell-ringing';
-const TRANSLATION_PULSE_CLASS = 'ytcq-translation-pulse';
-const DISPLAY_REFLOW_CLASS = 'ytcq-display-reflow';
-const SPARKLE_BURST_CLASS = 'ytcq-sparkle-burst';
-const PALETTE_POP_CLASS = 'ytcq-palette-pop';
+import {
+  animateSettingIcon,
+  SETTING_ICON_ANIMATIONS,
+  type SettingIconAnimation
+} from '../shared/setting-icon-animations';
 
 export function animatePopupSoundIcon(): void {
-  animatePopupIcon('.sound-icon', BELL_RING_CLASS, 700);
+  animatePopupIcon('.sound-icon', SETTING_ICON_ANIMATIONS.bell);
 }
 
 export function animatePopupTranslationIcon(): void {
-  animatePopupIcon('.translation-target-icon', TRANSLATION_PULSE_CLASS, 900);
+  animatePopupIcon('.translation-target-icon', SETTING_ICON_ANIMATIONS.translation);
 }
 
 export function animatePopupDisplayIcon(): void {
-  animatePopupIcon('.translation-display-icon', DISPLAY_REFLOW_CLASS, 900);
+  animatePopupIcon('.translation-display-icon', SETTING_ICON_ANIMATIONS.translationDisplay);
 }
 
 export function animatePopupStartupEffectIcon(): void {
-  animatePopupIcon('.startup-effect-icon', SPARKLE_BURST_CLASS, 1000);
+  animatePopupIcon('.startup-effect-icon', SETTING_ICON_ANIMATIONS.startupEffect);
 }
 
 export function animatePopupChatSkinIcon(): void {
-  animatePopupIcon('.chat-skin-icon', PALETTE_POP_CLASS, 900);
+  animatePopupIcon('.chat-skin-icon', SETTING_ICON_ANIMATIONS.chatSkin);
 }
 
-function animatePopupIcon(selector: string, className: string, durationMs: number): void {
-  const icon = document.querySelector<SVGSVGElement>(selector);
-  if (!icon || prefersReducedMotion()) return;
+export function animatePopupLiteModeIcon(): void {
+  animatePopupIcon('.lite-mode-icon', SETTING_ICON_ANIMATIONS.liteMode);
+}
 
-  icon.classList.remove(className);
-  void icon.getBoundingClientRect();
-  icon.classList.add(className);
-  window.setTimeout(() => {
-    icon.classList.remove(className);
-  }, durationMs);
+export function animatePopupPlaygroundIcon(): void {
+  animatePopupIcon('.playground-joystick-icon', SETTING_ICON_ANIMATIONS.playgroundJoystick);
+}
+
+export function animatePopupGameInvitesIcon(): void {
+  animatePopupIcon('.game-invites-icon', SETTING_ICON_ANIMATIONS.gameInvites);
+}
+
+function animatePopupIcon(selector: string, animation: SettingIconAnimation): void {
+  animateSettingIcon(document.querySelector(selector), animation);
 }

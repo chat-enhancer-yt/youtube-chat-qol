@@ -11,20 +11,18 @@ import { t } from '../../shared/i18n';
 import {
   MATERIAL_ICON_VIEW_BOX,
   SOUND_BELL_ICON_PATH,
-  SOUND_RINGING_BELL_ICON_PATH,
   TRANSLATE_ICON_PATH,
+  createSoundBellIcon,
   createSplitTranslateIcon
 } from '../../shared/icons';
 import { playAlertSoundPreview } from '../../shared/sounds/alert-sounds';
+import { animateSettingIcon, SETTING_ICON_ANIMATIONS } from '../../shared/setting-icon-animations';
 import { registerFeature } from '../../content/dispatcher';
 import { clampMenuToViewport, createMenuToggleItem } from './common';
 
 type SaveOptions = (values: Partial<Options>) => void;
 
 let saveOptions: SaveOptions = () => {};
-
-const BELL_RING_CLASS = 'ytcq-bell-ringing';
-const TRANSLATION_PULSE_CLASS = 'ytcq-translation-pulse';
 
 registerFeature({
   page: {
@@ -67,7 +65,8 @@ export function enhanceSettingsMenu(menu: HTMLElement): void {
     setting: 'sound',
     label: t('alertSounds'),
     checked: options.sound,
-    iconPath: getSoundIconPath(options.sound),
+    iconPath: SOUND_BELL_ICON_PATH,
+    iconViewBox: MATERIAL_ICON_VIEW_BOX,
     onClick: () => {
       const enabled = !getOptions().sound;
       if (enabled && soundItem) {
@@ -77,6 +76,7 @@ export function enhanceSettingsMenu(menu: HTMLElement): void {
       saveOptions({ sound: enabled });
     }
   });
+  renderSoundMenuIcon(soundItem, options.sound);
   list.append(translateItem, soundItem);
   refreshSettingsMenus();
   clampMenuToViewport(menu);
@@ -95,7 +95,7 @@ export function refreshSettingsMenus(): void {
     } else if (setting === 'sound') {
       label.textContent = t('alertSounds');
       item.setAttribute('aria-checked', String(options.sound));
-      item.querySelector<SVGPathElement>('.ytcq-menu-icon path')?.setAttribute('d', getSoundIconPath(options.sound));
+      renderSoundMenuIcon(item, options.sound);
     }
   });
 }
@@ -104,23 +104,27 @@ export function cleanupStaleSettingsMenuSurfaces(): void {
   document.querySelectorAll('.ytcq-settings-item').forEach((item) => item.remove());
 }
 
-function getSoundIconPath(enabled: boolean): string {
-  return enabled ? SOUND_RINGING_BELL_ICON_PATH : SOUND_BELL_ICON_PATH;
-}
-
 function animateSoundMenuIcon(item: HTMLElement): void {
   const icon = item.querySelector<HTMLElement>('.ytcq-menu-icon');
-  const path = icon?.querySelector<SVGPathElement>('path');
-  if (!icon || !path) return;
+  if (!icon) return;
 
-  path.setAttribute('d', SOUND_RINGING_BELL_ICON_PATH);
+  renderSoundMenuIcon(item, true);
   item.setAttribute('aria-checked', 'true');
-  icon.classList.remove(BELL_RING_CLASS);
-  void icon.getBoundingClientRect();
-  icon.classList.add(BELL_RING_CLASS);
-  window.setTimeout(() => {
-    icon.classList.remove(BELL_RING_CLASS);
-  }, 700);
+  animateSettingIcon(icon, SETTING_ICON_ANIMATIONS.bell);
+}
+
+function renderSoundMenuIcon(item: HTMLElement, ringing: boolean): void {
+  const icon = item.querySelector<HTMLElement>('.ytcq-menu-icon');
+  const bell = icon?.querySelector<SVGSVGElement>('svg');
+  if (!icon) return;
+
+  const isPrepared =
+    Boolean(bell?.querySelector('.ytcq-bell-body')) &&
+    Boolean(bell?.querySelector('.ytcq-bell-clapper'));
+  const hasRing = Boolean(bell?.querySelector('.ytcq-bell-ring'));
+  if (isPrepared && hasRing === ringing) return;
+
+  icon.replaceChildren(createSoundBellIcon(ringing));
 }
 
 function prepareTranslateMenuIcon(item: HTMLElement): void {
@@ -136,14 +140,7 @@ function prepareTranslateMenuIcon(item: HTMLElement): void {
 
 function animateTranslateMenuIcon(item: HTMLElement): void {
   const icon = item.querySelector<HTMLElement>('.ytcq-translate-menu-icon');
-  if (!icon) return;
-
-  icon.classList.remove(TRANSLATION_PULSE_CLASS);
-  void icon.getBoundingClientRect();
-  icon.classList.add(TRANSLATION_PULSE_CLASS);
-  window.setTimeout(() => {
-    icon.classList.remove(TRANSLATION_PULSE_CLASS);
-  }, 900);
+  animateSettingIcon(icon, SETTING_ICON_ANIMATIONS.translation);
 }
 
 function prepareSettingsMenu(menu: HTMLElement): void {

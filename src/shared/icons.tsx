@@ -15,6 +15,9 @@ export const BOOKMARK_ICON_PATH =
   'M200-120v-640q0-33 23.5-56.5T280-840h240v80H280v518l200-86 200 86v-278h80v400L480-240 200-120Zm80-640h240-240Zm400 160v-80h-80v-80h80v-80h80v80h80v80h-80v80h-80Z';
 export const BOLT_ICON_PATH =
   'm422-232 207-248H469l29-227-185 267h139l-30 208Zm-62-128H236q-24 0-35.5-21.5T203-423l299-430q10-14 26-19.5t33 .5q17 6 25 21t6 32l-32 259h155q26 0 36.5 23t-6.5 43L416-100q-11 13-27 17t-31-3q-15-7-23.5-21.5T328-139l32-221Zm111-110Z';
+const BOLT_DRAW_MASK_MAIN_PATH = 'M515-790 258-432 406-400 404-156 687-487 515-520';
+const BOLT_DRAW_MASK_END_PATH = 'M515-520 515-790';
+const BOLT_DRAW_MASK_END_BLOCKER_PATH = 'M502-900H620V-560H560L469-480 498-707Z';
 export const CHEVRON_BACKWARD_ICON_PATH =
   'm432-480 156 156q11 11 11 28t-11 28q-11 11-28 11t-28-11L348-452q-6-6-8.5-13t-2.5-15q0-8 2.5-15t8.5-13l184-184q11-11 28-11t28 11q11 11 11 28t-11 28L432-480Z';
 export const CLOSE_ICON_PATH =
@@ -41,11 +44,20 @@ export const MINIMIZE_ICON_PATH =
   'M11 11H5V9h2.59l-3.3-3.29 1.42-1.42L9 7.59V5h2v6Zm8 0h-6V5h2v2.59l3.29-3.3 1.42 1.42L16.41 9H19v2ZM11 19H9v-2.59l-3.29 3.3-1.42-1.42L7.59 15H5v-2h6v6Zm4 0h-2v-6h6v2h-2.59l3.3 3.29-1.42 1.42L15 16.41V19Z';
 export const PLAYGROUND_ICON_PATH =
   'm272-440 208 120 208-120-168-97v137h-80v-137l-168 97Zm168-189v-17q-44-13-72-49.5T340-780q0-58 41-99t99-41q58 0 99 41t41 99q0 48-28 84.5T520-646v17l280 161q19 11 29.5 29.5T840-398v76q0 22-10.5 40.5T800-252L520-91q-19 11-40 11t-40-11L160-252q-19-11-29.5-29.5T120-322v-76q0-22 10.5-40.5T160-468l280-161Zm0 378L200-389v67l280 162 280-162v-67L520-251q-19 11-40 11t-40-11Zm82.5-486.5Q540-755 540-780t-17.5-42.5Q505-840 480-840t-42.5 17.5Q420-805 420-780t17.5 42.5Q455-720 480-720t42.5-17.5ZM480-160Z';
+export const PLAYGROUND_BASE_ICON_PATH =
+  'M520-629 800-468q19 11 29.5 29.5T840-398v76q0 22-10.5 40.5T800-252L520-91q-19 11-40 11t-40-11L160-252q-19-11-29.5-29.5T120-322v-76q0-22 10.5-40.5T160-468l280-161h80ZM272-440l208 120 208-120-208-120-208 120Zm168 189L200-389v67l280 162 280-162v-67L520-251q-19 11-40 11t-40-11Z';
+export const PLAYGROUND_STICK_ICON_PATH =
+  'M440-400v-246q-44-13-72-49.5T340-780q0-58 41-99t99-41q58 0 99 41t41 99q0 48-28 84.5T520-646v246h-80Zm82.5-337.5Q540-755 540-780t-17.5-42.5Q505-840 480-840t-42.5 17.5Q420-805 420-780t17.5 42.5Q455-720 480-720t42.5-17.5Z';
 export const QUOTE_ICON_PATH =
   'M7.2 6C5.45 7.45 4.5 9.34 4.5 11.55V18h6.4v-6.25H7.25c.08-1.33.62-2.42 1.63-3.28L7.2 6Zm9 0c-1.75 1.45-2.7 3.34-2.7 5.55V18h6.4v-6.25h-3.65c.08-1.33.62-2.42 1.63-3.28L16.2 6Z';
-export const SOUND_BELL_ICON_PATH =
-  'M12 3a4 4 0 00-4 4v3.2c0 1.15-.37 2.27-1.05 3.2L5.2 15.8A1.4 1.4 0 006.33 18h11.34a1.4 1.4 0 001.13-2.2l-1.75-2.4A5.43 5.43 0 0116 10.2V7a4 4 0 00-4-4Zm0 19a3 3 0 002.83-2h-5.66A3 3 0 0012 22Z';
-export const SOUND_RINGING_BELL_ICON_PATH = `${SOUND_BELL_ICON_PATH}M19.7 4.3a1 1 0 00-1.4 1.4A8.92 8.92 0 0121 12a1 1 0 102 0 10.9 10.9 0 00-3.3-7.7ZM5.7 5.7a1 1 0 00-1.4-1.4A10.9 10.9 0 001 12a1 1 0 102 0 8.92 8.92 0 012.7-6.3Z`;
+export const SOUND_BELL_BODY_ICON_PATH =
+  'M160-200v-80h80v-280q0-83 50-147.5T420-792v-28q0-25 17.5-42.5T480-880q25 0 42.5 17.5T540-820v28q80 20 130 84.5T720-560v280h80v80H160ZM320-280h320v-280q0-66-47-113t-113-47q-66 0-113 47t-47 113v280Z';
+export const SOUND_BELL_CLAPPER_ICON_PATH =
+  'M480-80q-33 0-56.5-23.5T400-160h160q0 33-23.5 56.5T480-80Z';
+export const SOUND_BELL_RING_ICON_PATH =
+  'M80-560q0-100 44.5-183.5T244-882l47 64q-60 44-95.5 111T160-560H80Zm720 0q0-80-35.5-147T669-818l47-64q75 55 119.5 138.5T880-560h-80Z';
+export const SOUND_BELL_ICON_PATH = `${SOUND_BELL_BODY_ICON_PATH}${SOUND_BELL_CLAPPER_ICON_PATH}`;
+export const SOUND_RINGING_BELL_ICON_PATH = `${SOUND_BELL_RING_ICON_PATH}${SOUND_BELL_ICON_PATH}`;
 export const TV_ICON_PATH =
   'm429-379 181-116q14-8.79 14-24.89Q624-536 610-545L429-661q-15-10-30.5-1T383-635v230q0 18 15.5 27t30.5-1ZM140-200q-24 0-42-18t-18-42v-520q0-24 18-42t42-18h680q24 0 42 18t18 42v520q0 24-18 42t-42 18H630v50q0 12.75-8.62 21.37Q612.75-120 600-120H360q-12.75 0-21.37-8.63Q330-137.25 330-150v-50H140Zm0-60h680v-520H140v520Zm0 0v-520 520Z';
 export const TRANSLATE_SOURCE_ICON_PATH =
@@ -84,6 +96,16 @@ export function createSplitTranslateIcon({
     >
       {createSvgPath(TRANSLATE_SOURCE_ICON_PATH, sourceClassName)}
       {createSvgPath(TRANSLATE_TARGET_ICON_PATH, targetClassName)}
+    </svg>
+  );
+}
+
+export function createSoundBellIcon(ringing = false): SVGSVGElement {
+  return el<SVGSVGElement>(
+    <svg viewBox={MATERIAL_ICON_VIEW_BOX} focusable="false" aria-hidden="true">
+      {ringing ? createSvgPath(SOUND_BELL_RING_ICON_PATH, 'ytcq-bell-ring') : null}
+      {createSvgPath(SOUND_BELL_BODY_ICON_PATH, 'ytcq-bell-body')}
+      {createSvgPath(SOUND_BELL_CLAPPER_ICON_PATH, 'ytcq-bell-clapper')}
     </svg>
   );
 }
@@ -150,8 +172,59 @@ export function createChannelIcon(): SVGSVGElement {
   return createSvgIcon(MATERIAL_ICON_VIEW_BOX, TV_ICON_PATH);
 }
 
-export function createBoltIcon(): SVGSVGElement {
-  return createSvgIcon(MATERIAL_ICON_VIEW_BOX, BOLT_ICON_PATH);
+export function createBoltIcon({
+  drawMaskId = ''
+}: {
+  drawMaskId?: string;
+} = {}): SVGSVGElement {
+  if (!drawMaskId) return createSvgIcon(MATERIAL_ICON_VIEW_BOX, BOLT_ICON_PATH);
+
+  return el<SVGSVGElement>(
+    <svg viewBox={MATERIAL_ICON_VIEW_BOX} focusable="false" aria-hidden="true">
+      <defs>
+        <mask
+          id={drawMaskId}
+          x="0"
+          y="-960"
+          width="960"
+          height="960"
+          maskUnits="userSpaceOnUse"
+          mask-type="luminance"
+        >
+          <path
+            class="lite-mode-bolt-draw-mask lite-mode-bolt-draw-mask-main"
+            d={BOLT_DRAW_MASK_MAIN_PATH}
+            fill="none"
+            pathLength="1"
+            stroke="#fff"
+            stroke-dasharray="1 2"
+            stroke-dashoffset="0"
+            stroke-linecap="butt"
+            stroke-linejoin="miter"
+            stroke-width="170"
+          />
+          <path
+            class="lite-mode-bolt-draw-mask-blocker"
+            d={BOLT_DRAW_MASK_END_BLOCKER_PATH}
+            fill="#000"
+          />
+          <path
+            class="lite-mode-bolt-draw-mask lite-mode-bolt-draw-mask-end"
+            d={BOLT_DRAW_MASK_END_PATH}
+            fill="none"
+            pathLength="1"
+            stroke="#fff"
+            stroke-dasharray="1 2"
+            stroke-dashoffset="0"
+            stroke-linecap="round"
+            stroke-width="230"
+          />
+        </mask>
+      </defs>
+      {createSvgPath(BOLT_ICON_PATH, 'lite-mode-bolt-fill')}
+      <path class="lite-mode-bolt-draw" d={BOLT_ICON_PATH} mask={`url(#${drawMaskId})`} />
+    </svg>
+  );
 }
 
 export function createChevronBackwardIcon(): SVGSVGElement {
@@ -183,7 +256,12 @@ export function createMinimizeIcon(): SVGSVGElement {
 }
 
 export function createPlaygroundIcon(): SVGSVGElement {
-  return createSvgIcon(MATERIAL_ICON_VIEW_BOX, PLAYGROUND_ICON_PATH);
+  return el<SVGSVGElement>(
+    <svg viewBox={MATERIAL_ICON_VIEW_BOX} focusable="false" aria-hidden="true">
+      {createSvgPath(PLAYGROUND_STICK_ICON_PATH, 'playground-joystick-stick')}
+      {createSvgPath(PLAYGROUND_BASE_ICON_PATH, 'playground-joystick-base')}
+    </svg>
+  );
 }
 
 export function createTranslateIcon(): SVGSVGElement {

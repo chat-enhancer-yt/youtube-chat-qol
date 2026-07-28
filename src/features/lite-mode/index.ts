@@ -84,7 +84,8 @@ function handleLiteModeOptionsChanged(
   nextOptions: ReturnType<typeof getOptions>
 ): void {
   if (!isSupportedLiteModePage()) return;
-  refreshLiteModeButton(nextOptions);
+  const activated = nextOptions.liteModeEnabled && !previousOptions.liteModeEnabled;
+  refreshLiteModeButton(nextOptions, activated);
   if (previousOptions.liteModeEnabled === nextOptions.liteModeEnabled) return;
   refreshLiteMode(nextOptions.liteModeEnabled, {
     userInitiatedRetry: nextOptions.liteModeEnabled && !previousOptions.liteModeEnabled

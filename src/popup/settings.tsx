@@ -1,5 +1,5 @@
 import { LANGUAGE_OPTIONS } from '../shared/languages';
-import { CHAT_SKIN_OPTIONS } from '../shared/chat-skins';
+import { CHAT_SKIN_OPTIONS, DEFAULT_CHAT_SKIN } from '../shared/chat-skins';
 import { createSplitTranslateIcon } from '../shared/icons';
 import {
   getPlaygroundAvatarPresentation,
@@ -25,12 +25,15 @@ import { getSettingsControls } from './controls';
 import {
   animatePopupChatSkinIcon,
   animatePopupDisplayIcon,
+  animatePopupGameInvitesIcon,
+  animatePopupLiteModeIcon,
+  animatePopupPlaygroundIcon,
   animatePopupSoundIcon,
   animatePopupStartupEffectIcon,
   animatePopupTranslationIcon
 } from './animations';
 import { getExtensionMessage, getLocalizedLanguageLabel } from './i18n';
-import { prefersReducedMotion } from './motion';
+import { prefersReducedMotion } from '../shared/motion';
 
 const PLAYGROUND_GROUP_COLLAPSED_CLASS = 'playground-group-collapsed';
 const PLAYGROUND_GROUP_ANIMATION_MS = 180;
@@ -88,12 +91,14 @@ export function initSettingsControls(popupLocale: string): void {
 
   chatSkin.addEventListener('change', () => {
     const nextSkin = chatSkin.value as Options['chatSkin'];
-    animatePopupChatSkinIcon();
+    if (nextSkin !== DEFAULT_CHAT_SKIN) animatePopupChatSkinIcon();
     save({ chatSkin: nextSkin });
   });
 
   liteModeEnabled.addEventListener('change', () => {
-    save({ liteModeEnabled: liteModeEnabled.checked });
+    const enabled = liteModeEnabled.checked;
+    if (enabled) animatePopupLiteModeIcon();
+    save({ liteModeEnabled: enabled });
   });
 
   sound.addEventListener('change', () => {
@@ -113,13 +118,16 @@ export function initSettingsControls(popupLocale: string): void {
 
   playgroundEnabled.addEventListener('change', () => {
     const enabled = playgroundEnabled.checked;
+    if (enabled) animatePopupPlaygroundIcon();
     updatePlaygroundProfile(enabled);
     updatePlaygroundGamesVisibility(enabled, true);
     save({ playgroundEnabled: enabled });
   });
 
   playgroundGamesAvailable.addEventListener('change', () => {
-    save({ playgroundGamesAvailable: playgroundGamesAvailable.checked });
+    const enabled = playgroundGamesAvailable.checked;
+    if (enabled) animatePopupGameInvitesIcon();
+    save({ playgroundGamesAvailable: enabled });
   });
 
   playgroundDisplayName.addEventListener('input', () => {

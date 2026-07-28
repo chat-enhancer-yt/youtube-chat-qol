@@ -40,7 +40,7 @@ describe('Lite mode header button', () => {
     ]);
   });
 
-  it('saves toggles and reflects the enabled state accessibly', () => {
+  it('saves toggles and redraws the bolt when the enabled state activates', async () => {
     const saveOptions = vi.fn();
     initLiteModeButton(saveOptions);
     document.body.append(createHeader());
@@ -49,19 +49,41 @@ describe('Lite mode header button', () => {
     const button = document.querySelector<HTMLButtonElement>('.ytcq-lite-mode-button')!;
     expect(button.getAttribute('aria-pressed')).toBe('false');
     expect(button.getAttribute('aria-label')).toBe('Turn on Lite mode');
-    expect(button.querySelector('path')).not.toBeNull();
+    const icon = button.querySelector<SVGSVGElement>('.lite-mode-icon')!;
+    expect(icon.querySelector('.lite-mode-bolt-fill')).not.toBeNull();
+    expect(icon.querySelector('.lite-mode-bolt-draw')).not.toBeNull();
+    expect(icon.querySelector('.lite-mode-bolt-draw-mask-main')).not.toBeNull();
+    expect(icon.querySelector('.lite-mode-bolt-draw-mask-end')).not.toBeNull();
 
     button.click();
     expect(saveOptions).toHaveBeenCalledWith({ liteModeEnabled: true });
 
     setOptions({ ...DEFAULT_OPTIONS, liteModeEnabled: true });
-    refreshLiteModeButton();
+    refreshLiteModeButton(undefined, true);
     expect(button.getAttribute('aria-pressed')).toBe('true');
     expect(button.getAttribute('aria-label')).toBe('Turn off Lite mode');
     expect(button.classList.contains('ytcq-lite-mode-button-active')).toBe(true);
+    expect(icon.classList.contains('ytcq-bolt-redraw')).toBe(true);
+
+    refreshLiteModeButton();
+    await vi.advanceTimersByTimeAsync(750);
+    expect(icon.classList.contains('ytcq-bolt-redraw')).toBe(false);
 
     button.click();
     expect(saveOptions).toHaveBeenLastCalledWith({ liteModeEnabled: false });
+  });
+
+  it('does not redraw an already enabled bolt during initial header wiring', () => {
+    setOptions({ ...DEFAULT_OPTIONS, liteModeEnabled: true });
+    document.body.append(createHeader());
+
+    wireLiteModeButton();
+
+    const button = document.querySelector<HTMLButtonElement>('.ytcq-lite-mode-button')!;
+    expect(button.classList.contains('ytcq-lite-mode-button-active')).toBe(true);
+    expect(button.querySelector('.lite-mode-icon')?.classList.contains('ytcq-bolt-redraw')).toBe(
+      false
+    );
   });
 
   it('coalesces scheduled wiring and replaces stale owned buttons', async () => {
@@ -87,13 +109,17 @@ describe('Lite mode header button', () => {
     document.body.append(header);
     wireLiteModeButton();
 
-    expect(shouldWireLiteModeButton({
-      addedElements: [],
-      mutations: [{
-        target: header,
-        type: 'childList'
-      } as unknown as MutationRecord]
-    })).toBe(true);
+    expect(
+      shouldWireLiteModeButton({
+        addedElements: [],
+        mutations: [
+          {
+            target: header,
+            type: 'childList'
+          } as unknown as MutationRecord
+        ]
+      })
+    ).toBe(true);
 
     cleanupLiteModeButton();
     expect(document.querySelector('.ytcq-lite-mode-button')).toBeNull();

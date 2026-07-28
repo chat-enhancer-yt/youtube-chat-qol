@@ -43,6 +43,7 @@ const contentCssSources = [
   ['features', 'src/styles/content/composer-translation.css'],
   ['features', 'src/styles/content/frequent-emojis.css'],
   ['features', 'src/styles/content/chat-header.css'],
+  ['features', 'src/styles/animations.css'],
   ['features', 'src/styles/content/lite-mode.css'],
   ['features', 'src/styles/content/profile-popup.css'],
   ['features', 'src/styles/content/focus-mode.css'],
@@ -62,12 +63,13 @@ const popupCssSources = [
   ['features', 'src/styles/popup/playground.css'],
   ['features', 'src/styles/popup/bookmarks.css'],
   ['features', 'src/styles/popup/options.css'],
-  ['features', 'src/styles/popup/animations.css'],
+  ['features', 'src/styles/animations.css'],
   ['browser-fixes', 'src/styles/popup/browser-fixes.css']
 ];
 const onboardingCssSources = [
   [null, 'src/styles/popup/fonts.css'],
   [null, 'src/styles/popup/tokens.css'],
+  [null, 'src/styles/animations.css'],
   [null, 'src/styles/onboarding.css']
 ];
 const targetOutputDirs = {

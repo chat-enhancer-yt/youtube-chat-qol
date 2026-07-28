@@ -531,8 +531,7 @@ describe('popup', () => {
     });
     document.querySelector<HTMLButtonElement>('.bookmark-source-button')?.click();
     expect(chrome.tabs.create).toHaveBeenCalledWith({
-      url:
-        'https://www.youtube.com/watch?v=stream-a&t=328s#ytcq-message=message-1'
+      url: 'https://www.youtube.com/watch?v=stream-a&t=328s#ytcq-message=message-1'
     });
 
     const actionButtons = Array.from(
@@ -718,9 +717,7 @@ describe('popup', () => {
       document.querySelector<HTMLButtonElement>('#bookmarksTab')?.getAttribute('aria-selected')
     ).toBe('true');
     expect(
-      document
-        .querySelector('.popup-tabs')
-        ?.classList.contains('popup-tab-highlight-animated')
+      document.querySelector('.popup-tabs')?.classList.contains('popup-tab-highlight-animated')
     ).toBe(false);
     expect(document.querySelector<HTMLElement>('#settingsPanel')?.hidden).toBe(true);
     expect(document.querySelector<HTMLElement>('#bookmarksPanel')?.hidden).toBe(false);
@@ -788,8 +785,9 @@ describe('popup', () => {
     }) as never);
     const settingsPanel = document.querySelector<HTMLElement>('#settingsPanel')!;
     const bookmarksList = document.querySelector<HTMLElement>('#bookmarksList')!;
-    const bookmarksScrollRegion =
-      document.querySelector<HTMLElement>('[data-popup-scroll-fade-region]')!;
+    const bookmarksScrollRegion = document.querySelector<HTMLElement>(
+      '[data-popup-scroll-fade-region]'
+    )!;
     Object.defineProperties(settingsPanel, {
       clientHeight: { configurable: true, value: 100 },
       scrollHeight: { configurable: true, value: 300 },
@@ -1143,6 +1141,12 @@ describe('popup', () => {
       <svg class="translation-display-icon"></svg>
       <svg class="sound-icon"></svg>
       <svg class="startup-effect-icon"></svg>
+      <svg class="lite-mode-icon"></svg>
+      <svg class="playground-joystick-icon">
+        <path class="playground-joystick-stick"></path>
+        <path class="playground-joystick-base"></path>
+      </svg>
+      <svg class="game-invites-icon"></svg>
     `;
     await chrome.storage.sync.set({
       chatSkin: 'aero',
@@ -1302,14 +1306,31 @@ describe('popup', () => {
     translationDisplay.dispatchEvent(new Event('change', { bubbles: true }));
     chatSkin.value = 'system';
     chatSkin.dispatchEvent(new Event('change', { bubbles: true }));
+    expect(document.querySelector('.chat-skin-icon')?.classList.contains('ytcq-palette-pop')).toBe(
+      false
+    );
+    chatSkin.value = 'aero';
+    chatSkin.dispatchEvent(new Event('change', { bubbles: true }));
     sound.checked = true;
     sound.dispatchEvent(new Event('change', { bubbles: true }));
+    startupEffect.checked = false;
+    startupEffect.dispatchEvent(new Event('change', { bubbles: true }));
+    expect(
+      document.querySelector('.startup-effect-icon')?.classList.contains('ytcq-sparkle-burst')
+    ).toBe(false);
     startupEffect.checked = true;
     startupEffect.dispatchEvent(new Event('change', { bubbles: true }));
     liteModeEnabled.checked = false;
     liteModeEnabled.dispatchEvent(new Event('change', { bubbles: true }));
+    liteModeEnabled.checked = true;
+    liteModeEnabled.dispatchEvent(new Event('change', { bubbles: true }));
     playgroundEnabled.checked = false;
     playgroundEnabled.dispatchEvent(new Event('change', { bubbles: true }));
+    expect(
+      document
+        .querySelector('.playground-joystick-icon')
+        ?.classList.contains('ytcq-playground-joystick-wiggle')
+    ).toBe(false);
 
     expect(
       document
@@ -1328,8 +1349,17 @@ describe('popup', () => {
     expect(
       document.querySelector('.startup-effect-icon')?.classList.contains('ytcq-sparkle-burst')
     ).toBe(true);
+    expect(document.querySelector('.lite-mode-icon')?.classList.contains('ytcq-bolt-redraw')).toBe(
+      true
+    );
+    expect(
+      document
+        .querySelector('.playground-joystick-icon')
+        ?.classList.contains('ytcq-playground-joystick-wiggle')
+    ).toBe(false);
     expect(chrome.storage.sync.set).toHaveBeenCalledWith({ chatSkin: 'system' });
     expect(chrome.storage.sync.set).toHaveBeenCalledWith({ liteModeEnabled: false });
+    expect(chrome.storage.sync.set).toHaveBeenCalledWith({ liteModeEnabled: true });
     expect(playgroundGamesSection.hidden).toBe(false);
     expect(playgroundGamesSection.classList.contains('playground-group-collapsed')).toBe(true);
     expect(playgroundProfile.hidden).toBe(true);
@@ -1351,6 +1381,9 @@ describe('popup', () => {
     });
     playgroundGamesAvailable.checked = false;
     playgroundGamesAvailable.dispatchEvent(new Event('change', { bubbles: true }));
+    expect(
+      document.querySelector('.game-invites-icon')?.classList.contains('ytcq-game-controller-hop')
+    ).toBe(false);
     expect(chrome.storage.sync.set).toHaveBeenCalledWith({
       playgroundGamesAvailable: false
     });
@@ -1363,6 +1396,30 @@ describe('popup', () => {
     expect(
       document.querySelector('.startup-effect-icon')?.classList.contains('ytcq-sparkle-burst')
     ).toBe(false);
+    expect(document.querySelector('.lite-mode-icon')?.classList.contains('ytcq-bolt-redraw')).toBe(
+      false
+    );
+    expect(
+      document
+        .querySelector('.playground-joystick-icon')
+        ?.classList.contains('ytcq-playground-joystick-wiggle')
+    ).toBe(false);
+    expect(
+      document.querySelector('.game-invites-icon')?.classList.contains('ytcq-game-controller-hop')
+    ).toBe(false);
+
+    playgroundEnabled.checked = true;
+    playgroundEnabled.dispatchEvent(new Event('change', { bubbles: true }));
+    playgroundGamesAvailable.checked = true;
+    playgroundGamesAvailable.dispatchEvent(new Event('change', { bubbles: true }));
+    expect(
+      document
+        .querySelector('.playground-joystick-icon')
+        ?.classList.contains('ytcq-playground-joystick-wiggle')
+    ).toBe(true);
+    expect(
+      document.querySelector('.game-invites-icon')?.classList.contains('ytcq-game-controller-hop')
+    ).toBe(true);
   });
 
   it('shows the Playground identity while remote wins are loading', async () => {
@@ -1587,6 +1644,9 @@ describe('popup', () => {
     document.body.innerHTML += `
       <svg class="chat-skin-icon"></svg>
       <svg class="translation-target-icon"></svg>
+      <svg class="lite-mode-icon"></svg>
+      <svg class="playground-joystick-icon"></svg>
+      <svg class="game-invites-icon"></svg>
     `;
     await chrome.storage.sync.set({
       startupEffect: true
@@ -1606,6 +1666,17 @@ describe('popup', () => {
     targetLanguage.dispatchEvent(new Event('change', { bubbles: true }));
     chatSkin.value = 'aero';
     chatSkin.dispatchEvent(new Event('change', { bubbles: true }));
+    const liteModeEnabled = document.querySelector<HTMLInputElement>('#liteModeEnabled')!;
+    liteModeEnabled.checked = true;
+    liteModeEnabled.dispatchEvent(new Event('change', { bubbles: true }));
+    const playgroundEnabled = document.querySelector<HTMLInputElement>('#playgroundEnabled')!;
+    playgroundEnabled.checked = false;
+    playgroundEnabled.dispatchEvent(new Event('change', { bubbles: true }));
+    const playgroundGamesAvailable = document.querySelector<HTMLInputElement>(
+      '#playgroundGamesAvailable'
+    )!;
+    playgroundGamesAvailable.checked = false;
+    playgroundGamesAvailable.dispatchEvent(new Event('change', { bubbles: true }));
 
     expect(document.querySelector<HTMLInputElement>('#startupEffect')?.disabled).toBe(true);
     expect(document.querySelector<HTMLInputElement>('#startupEffect')?.checked).toBe(false);
@@ -1617,6 +1688,17 @@ describe('popup', () => {
     expect(document.querySelector('.chat-skin-icon')?.classList.contains('ytcq-palette-pop')).toBe(
       false
     );
+    expect(document.querySelector('.lite-mode-icon')?.classList.contains('ytcq-bolt-redraw')).toBe(
+      false
+    );
+    expect(
+      document
+        .querySelector('.playground-joystick-icon')
+        ?.classList.contains('ytcq-playground-joystick-wiggle')
+    ).toBe(false);
+    expect(
+      document.querySelector('.game-invites-icon')?.classList.contains('ytcq-game-controller-hop')
+    ).toBe(false);
   });
 
   it('falls back to static language labels and skips missing animation icons', async () => {

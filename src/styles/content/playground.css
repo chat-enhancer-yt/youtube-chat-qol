@@ -383,12 +383,6 @@
   display: none;
 }
 
-@keyframes ytcq-loading-spinner-spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
   .ytcq-games-title-wrap,
   .ytcq-games-card-subtitle {

@@ -9,6 +9,7 @@ import { createBoltIcon } from '../../shared/icons';
 import { t } from '../../shared/i18n';
 import { jsx, el } from '../../shared/jsx-dom';
 import type { Options } from '../../shared/options';
+import { animateSettingIcon, SETTING_ICON_ANIMATIONS } from '../../shared/setting-icon-animations';
 import { getOptions } from '../../shared/state';
 import { CHAT_HEADER_SELECTOR } from '../../youtube/selectors';
 
@@ -52,7 +53,8 @@ export function wireLiteModeButton(): void {
 }
 
 export function refreshLiteModeButton(
-  options: Pick<Options, 'liteModeEnabled'> = getOptions()
+  options: Pick<Options, 'liteModeEnabled'> = getOptions(),
+  animateActivation = false
 ): void {
   document.querySelectorAll<HTMLButtonElement>(LITE_MODE_BUTTON_SELECTOR).forEach((button) => {
     const enabled = options.liteModeEnabled;
@@ -61,6 +63,9 @@ export function refreshLiteModeButton(
     button.setAttribute('aria-pressed', String(enabled));
     button.setAttribute('aria-label', label);
     button.title = label;
+    if (enabled && animateActivation) {
+      animateSettingIcon(button.querySelector('.lite-mode-icon'), SETTING_ICON_ANIMATIONS.liteMode);
+    }
   });
 }
 
@@ -110,9 +115,15 @@ function createLiteModeButton(): HTMLButtonElement {
       aria-pressed="false"
       onClickCapture={handleClick}
     >
-      {createBoltIcon()}
+      {createLiteModeButtonIcon()}
     </button>
   );
+}
+
+function createLiteModeButtonIcon(): SVGSVGElement {
+  const icon = createBoltIcon({ drawMaskId: 'ytcq-chat-header-lite-mode-draw-mask' });
+  icon.classList.add('lite-mode-icon');
+  return icon;
 }
 
 function getLiteModeHeaderAnchor(header: HTMLElement): HTMLElement | null {

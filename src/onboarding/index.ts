@@ -4,7 +4,7 @@
  * The controls write the same sync-storage options as the popup while the
  * adjacent mock chat reflects each choice immediately.
  */
-import { CHAT_SKIN_OPTIONS, type ChatSkin } from '../shared/chat-skins';
+import { CHAT_SKIN_OPTIONS, DEFAULT_CHAT_SKIN, type ChatSkin } from '../shared/chat-skins';
 import {
   createBoltIcon,
   createGamesIcon,
@@ -21,6 +21,7 @@ import {
   type Options,
   type TranslationDisplay
 } from '../shared/options';
+import { animateSettingIcon, SETTING_ICON_ANIMATIONS } from '../shared/setting-icon-animations';
 import {
   getExtensionMessage,
   getLocalizedLanguageLabel,
@@ -75,7 +76,13 @@ export function initOnboarding(): void {
 
   controls.targetLanguage.addEventListener('change', () => {
     const targetLanguage = controls.targetLanguage.value;
-    if (targetLanguage) lastKnownTranslationTarget = targetLanguage;
+    if (targetLanguage) {
+      lastKnownTranslationTarget = targetLanguage;
+      animateSettingIcon(
+        document.querySelector('.translation-target-icon'),
+        SETTING_ICON_ANIMATIONS.translation
+      );
+    }
     chrome.storage.sync.set(getTargetLanguageUpdate(targetLanguage, lastKnownTranslationTarget));
     updateTranslationDisplayVisibility(
       controls.translationDisplayRow,
@@ -87,12 +94,22 @@ export function initOnboarding(): void {
 
   controls.translationDisplay.addEventListener('change', () => {
     const translationDisplay = controls.translationDisplay.value as TranslationDisplay;
+    animateSettingIcon(
+      document.querySelector('.translation-display-icon'),
+      SETTING_ICON_ANIMATIONS.translationDisplay
+    );
     chrome.storage.sync.set({ translationDisplay });
     preview.setTranslationDisplay(translationDisplay);
   });
 
   controls.chatSkin.addEventListener('change', () => {
     const chatSkin = controls.chatSkin.value as ChatSkin;
+    if (chatSkin !== DEFAULT_CHAT_SKIN) {
+      animateSettingIcon(
+        document.querySelector('.chat-skin-icon'),
+        SETTING_ICON_ANIMATIONS.chatSkin
+      );
+    }
     chrome.storage.sync.set({ chatSkin });
     preview.setChatSkin(chatSkin);
   });
@@ -101,10 +118,30 @@ export function initOnboarding(): void {
     const playgroundEnabled = controls.playgroundEnabled.checked;
     chrome.storage.sync.set({ playgroundEnabled });
     preview.setPlaygroundEnabled(playgroundEnabled);
+    if (playgroundEnabled) {
+      animateSettingIcon(
+        document.querySelector('#onboardingPlaygroundIcon .playground-joystick-icon'),
+        SETTING_ICON_ANIMATIONS.playgroundJoystick
+      );
+      animateSettingIcon(
+        document.querySelector('#previewGamesIcon .game-invites-icon'),
+        SETTING_ICON_ANIMATIONS.gameInvites
+      );
+    }
   });
 
   controls.liteModeEnabled.addEventListener('change', () => {
     const liteModeEnabled = controls.liteModeEnabled.checked;
+    if (liteModeEnabled) {
+      animateSettingIcon(
+        document.querySelector('#onboardingLiteIcon .lite-mode-icon'),
+        SETTING_ICON_ANIMATIONS.liteMode
+      );
+      animateSettingIcon(
+        document.querySelector('#previewLiteIcon .lite-mode-icon'),
+        SETTING_ICON_ANIMATIONS.liteMode
+      );
+    }
     chrome.storage.sync.set({ liteModeEnabled });
     preview.setLiteModeEnabled(liteModeEnabled);
   });
@@ -114,9 +151,13 @@ function getOnboardingControls(): OnboardingControls | null {
   const chatPreview = document.querySelector<HTMLElement>('#chatPreview');
   const chatSkin = document.querySelector<HTMLSelectElement>('#onboardingChatSkin');
   const liteModeEnabled = document.querySelector<HTMLInputElement>('#onboardingLiteModeEnabled');
-  const playgroundEnabled = document.querySelector<HTMLInputElement>('#onboardingPlaygroundEnabled');
+  const playgroundEnabled = document.querySelector<HTMLInputElement>(
+    '#onboardingPlaygroundEnabled'
+  );
   const targetLanguage = document.querySelector<HTMLSelectElement>('#onboardingTargetLanguage');
-  const translationDisplay = document.querySelector<HTMLSelectElement>('#onboardingTranslationDisplay');
+  const translationDisplay = document.querySelector<HTMLSelectElement>(
+    '#onboardingTranslationDisplay'
+  );
   const translationDisplayRow = document.querySelector<HTMLElement>(
     '#onboardingTranslationDisplayRow'
   );
@@ -147,9 +188,7 @@ function getOnboardingControls(): OnboardingControls | null {
 function populateLanguageOptions(select: HTMLSelectElement, uiLocale: string): void {
   select.replaceChildren(createOption('', getExtensionMessage('off', undefined, 'Off')));
   for (const [value, label] of LANGUAGE_OPTIONS) {
-    select.appendChild(
-      createOption(value, getLocalizedLanguageLabel(value, uiLocale) || label)
-    );
+    select.appendChild(createOption(value, getLocalizedLanguageLabel(value, uiLocale) || label));
   }
 }
 
@@ -177,23 +216,22 @@ function updateTranslationDisplayVisibility(
   animated = false
 ): void {
   const token = ++translationDisplayVisibilityToken;
-  const shouldAnimate =
-    animated && !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const shouldAnimate = animated && !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   row.toggleAttribute('aria-hidden', !visible);
 
   if (visible) {
-    row.hidden = false;
     if (!shouldAnimate) {
+      row.hidden = false;
       row.classList.remove(TRANSLATION_DISPLAY_COLLAPSED_CLASS);
       return;
     }
 
     row.classList.add(TRANSLATION_DISPLAY_COLLAPSED_CLASS);
-    window.setTimeout(() => {
-      if (token === translationDisplayVisibilityToken) {
-        row.classList.remove(TRANSLATION_DISPLAY_COLLAPSED_CLASS);
-      }
-    }, 0);
+    row.hidden = false;
+    void row.offsetHeight;
+    if (token === translationDisplayVisibilityToken) {
+      row.classList.remove(TRANSLATION_DISPLAY_COLLAPSED_CLASS);
+    }
     return;
   }
 
@@ -209,17 +247,33 @@ function updateTranslationDisplayVisibility(
 }
 
 function installIcons(): void {
-  replaceIcon('onboardingTranslationIcon', createSplitTranslateIcon());
-  replaceIcon('onboardingPlaygroundIcon', createPlaygroundIcon());
-  replaceIcon('onboardingLiteIcon', createBoltIcon());
-  replaceIcon('previewLiteIcon', createBoltIcon());
-  replaceIcon('previewGamesIcon', createGamesIcon());
+  replaceIcon(
+    'onboardingTranslationIcon',
+    createSplitTranslateIcon({
+      iconClassName: 'translation-target-icon',
+      sourceClassName: 'translation-source-mark',
+      targetClassName: 'translation-target-mark'
+    })
+  );
+  replaceIcon('onboardingPlaygroundIcon', createPlaygroundIcon(), 'playground-joystick-icon');
+  replaceIcon(
+    'onboardingLiteIcon',
+    createBoltIcon({ drawMaskId: 'ytcq-onboarding-lite-mode-draw-mask' }),
+    'lite-mode-icon'
+  );
+  replaceIcon(
+    'previewLiteIcon',
+    createBoltIcon({ drawMaskId: 'ytcq-preview-lite-mode-draw-mask' }),
+    'lite-mode-icon'
+  );
+  replaceIcon('previewGamesIcon', createGamesIcon(), 'game-invites-icon');
   replaceIcon('previewInboxIcon', createInboxIcon(true));
   replaceIcon('previewInlineTranslateIcon', createTranslateIcon());
   replaceIcon('previewBelowTranslateIcon', createTranslateIcon());
   replaceIcon('previewComposerTranslateIcon', createTranslateIcon());
 }
 
-function replaceIcon(id: string, icon: SVGSVGElement): void {
+function replaceIcon(id: string, icon: SVGSVGElement, iconClassName = ''): void {
+  if (iconClassName) icon.classList.add(iconClassName);
   document.getElementById(id)?.replaceChildren(icon);
 }

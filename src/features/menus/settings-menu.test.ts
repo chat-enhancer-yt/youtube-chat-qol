@@ -1,4 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  MATERIAL_ICON_VIEW_BOX,
+  SOUND_BELL_BODY_ICON_PATH,
+  SOUND_BELL_CLAPPER_ICON_PATH,
+  SOUND_BELL_RING_ICON_PATH
+} from '../../shared/icons';
 import { DEFAULT_OPTIONS } from '../../shared/options';
 import { setOptions } from '../../shared/state';
 
@@ -44,6 +50,19 @@ describe('chat settings menu integration', () => {
     expect(items[1].getAttribute('data-ytcq-setting')).toBe('sound');
     expect(items[1].querySelector('.ytcq-menu-label')?.textContent).toBe('Alert sounds');
     expect(items[1].getAttribute('aria-checked')).toBe('true');
+    expect(items[1].querySelector('svg')?.getAttribute('viewBox')).toBe(MATERIAL_ICON_VIEW_BOX);
+    expect(items[1].querySelector('.ytcq-bell-body')?.getAttribute('d')).toBe(
+      SOUND_BELL_BODY_ICON_PATH
+    );
+    expect(items[1].querySelector('.ytcq-bell-clapper')?.getAttribute('d')).toBe(
+      SOUND_BELL_CLAPPER_ICON_PATH
+    );
+    expect(items[1].querySelector('.ytcq-bell-ring')?.getAttribute('d')).toBe(
+      SOUND_BELL_RING_ICON_PATH
+    );
+    expect(items[1].querySelector('.ytcq-menu-icon')?.classList.contains('ytcq-bell-ringing')).toBe(
+      false
+    );
   });
 
   it('saves translation and sound changes from toggle clicks', () => {
