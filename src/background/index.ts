@@ -8,5 +8,6 @@ import './action-status';
 import './active-chat-keepalive';
 import './onboarding';
 import './playground';
+import './profile-avatar';
 import './translate';
 import './window-focus';

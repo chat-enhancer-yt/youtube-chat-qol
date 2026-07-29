@@ -1364,6 +1364,64 @@
   color: var(--ytcq-aero-text);
 }
 
+:root[data-ytcq-chat-skin="aero"] .ytcq-profile-card-avatar-tint {
+  opacity: 0.13;
+}
+
+:root[data-ytcq-chat-skin="aero"][data-ytcq-chat-skin-theme="dark"] .ytcq-profile-card-avatar-tint {
+  opacity: 0.11;
+}
+
+:root[data-ytcq-chat-skin="aero"]
+  .ytcq-profile-card:not(.ytcq-inbox-card):not(.ytcq-games-card)::before {
+  position: absolute;
+  inset: -1px;
+  z-index: 0;
+  border-radius: inherit;
+  corner-shape: inherit;
+  content: "";
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 180ms ease-out;
+}
+
+:root[data-ytcq-chat-skin="aero"]
+  .ytcq-profile-card:not(.ytcq-inbox-card):not(.ytcq-games-card).ytcq-profile-card-has-avatar-accent {
+  --ytcq-profile-avatar-accent: var(--ytcq-profile-avatar-accent-light);
+  --ytcq-profile-aero-avatar-reflection: color-mix(
+    in srgb,
+    var(--ytcq-profile-avatar-accent) 52%,
+    var(--ytcq-aero-accent) 48%
+  );
+}
+
+:root[data-ytcq-chat-skin="aero"][data-ytcq-chat-skin-theme="dark"]
+  .ytcq-profile-card:not(.ytcq-inbox-card):not(.ytcq-games-card).ytcq-profile-card-has-avatar-accent {
+  --ytcq-profile-avatar-accent: var(--ytcq-profile-avatar-accent-dark);
+}
+
+:root[data-ytcq-chat-skin="aero"]
+  .ytcq-profile-card:not(.ytcq-inbox-card):not(.ytcq-games-card).ytcq-profile-card-has-avatar-accent::before {
+  background:
+    radial-gradient(
+      circle at 12% -4%,
+      color-mix(in srgb, var(--ytcq-profile-aero-avatar-reflection) 18%, transparent) 0%,
+      color-mix(in srgb, var(--ytcq-profile-aero-avatar-reflection) 8%, transparent) 34%,
+      transparent 62%
+    ),
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--ytcq-profile-aero-avatar-reflection) 8%, transparent),
+      color-mix(in srgb, var(--ytcq-profile-aero-avatar-reflection) 2.5%, transparent)
+    );
+  box-shadow:
+    inset 0 1px 0
+      color-mix(in srgb, var(--ytcq-profile-aero-avatar-reflection) 22%, transparent),
+    inset 1px 0 0
+      color-mix(in srgb, var(--ytcq-profile-aero-avatar-reflection) 14%, transparent);
+  opacity: 1;
+}
+
 /* Keep author handles consistent with Aero chat rows across related panels. */
 :root[data-ytcq-chat-skin="aero"] :where(
   .ytcq-profile-card-author,
@@ -1413,6 +1471,44 @@
   box-shadow: none;
 }
 
+:root[data-ytcq-chat-skin="aero"]:not([data-ytcq-chat-skin-theme="dark"]) .ytcq-profile-card-message {
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.48),
+    rgba(203, 239, 252, 0.32)
+  );
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+:root[data-ytcq-chat-skin="aero"]:not([data-ytcq-chat-skin-theme="dark"]) .ytcq-profile-card-message:where(:hover, :focus) {
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.68),
+    rgba(185, 230, 248, 0.48)
+  );
+  outline: none;
+}
+
+:root[data-ytcq-chat-skin="aero"]:not([data-ytcq-chat-skin-theme="dark"])
+  .ytcq-profile-card:not(.ytcq-inbox-card):not(.ytcq-games-card)
+  .ytcq-profile-card-message {
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.62),
+    rgba(203, 239, 252, 0.46)
+  );
+}
+
+:root[data-ytcq-chat-skin="aero"]:not([data-ytcq-chat-skin-theme="dark"])
+  .ytcq-profile-card:not(.ytcq-inbox-card):not(.ytcq-games-card)
+  .ytcq-profile-card-message:where(:hover, :focus) {
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.76),
+    rgba(185, 230, 248, 0.6)
+  );
+}
+
 :root[data-ytcq-chat-skin="aero"] .ytcq-profile-card-message.ytcq-profile-card-message-origin {
   border-color: color-mix(
     in srgb,
@@ -1423,6 +1519,31 @@
     inset 0 0 0 1px color-mix(in srgb, var(--ytcq-aero-accent) 34%, transparent),
     inset 0 0 8px color-mix(in srgb, var(--ytcq-aero-accent) 36%, transparent),
     inset 0 0 18px color-mix(in srgb, var(--ytcq-aero-accent) 18%, transparent);
+}
+
+:root[data-ytcq-chat-skin="aero"]
+  .ytcq-profile-card:not(.ytcq-inbox-card):not(.ytcq-games-card)
+  .ytcq-profile-card-message.ytcq-profile-card-message-origin {
+  transition:
+    border-color 180ms ease-out,
+    box-shadow 180ms ease-out;
+}
+
+:root[data-ytcq-chat-skin="aero"]
+  .ytcq-profile-card:not(.ytcq-inbox-card):not(.ytcq-games-card).ytcq-profile-card-has-avatar-accent
+  .ytcq-profile-card-message.ytcq-profile-card-message-origin {
+  border-color: color-mix(
+    in srgb,
+    var(--ytcq-profile-aero-avatar-reflection) 72%,
+    var(--ytcq-aero-list-row-border)
+  );
+  box-shadow:
+    inset 0 0 0 1px
+      color-mix(in srgb, var(--ytcq-profile-aero-avatar-reflection) 34%, transparent),
+    inset 0 0 8px
+      color-mix(in srgb, var(--ytcq-profile-aero-avatar-reflection) 36%, transparent),
+    inset 0 0 18px
+      color-mix(in srgb, var(--ytcq-profile-aero-avatar-reflection) 18%, transparent);
 }
 
 :root[data-ytcq-chat-skin="aero"] .ytcq-profile-mention {
@@ -2428,10 +2549,11 @@
   box-shadow: 0 0 0 1px rgba(4, 18, 28, 0.42);
 }
 
-:root[data-ytcq-chat-skin="aero"][data-ytcq-chat-skin-theme="dark"] yt-live-chat-header-renderer :where(
-  .ytcq-inbox-badge,
-  .ytcq-games-badge-invites
-) {
+:root[data-ytcq-chat-skin="aero"][data-ytcq-chat-skin-theme="dark"] yt-live-chat-header-renderer .ytcq-inbox-badge {
+  background: #c00;
+}
+
+:root[data-ytcq-chat-skin="aero"][data-ytcq-chat-skin-theme="dark"] yt-live-chat-header-renderer .ytcq-games-badge-invites {
   background: var(--ytcq-aero-badge-attention);
 }
 
@@ -2610,6 +2732,16 @@
       color-mix(in srgb, var(--ytcq-avatar-ring-color, #8ad96a) 84%, black 16%) 100%
     );
   --ytcq-aero-avatar-ring-glow: color-mix(in srgb, var(--ytcq-avatar-ring-color, #8ad96a) 48%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root[data-ytcq-chat-skin="aero"]
+    .ytcq-profile-card:not(.ytcq-inbox-card):not(.ytcq-games-card)::before,
+  :root[data-ytcq-chat-skin="aero"]
+    .ytcq-profile-card:not(.ytcq-inbox-card):not(.ytcq-games-card)
+    .ytcq-profile-card-message.ytcq-profile-card-message-origin {
+    transition: none;
+  }
 }
 
 /* Respect platform transparency and contrast accessibility preferences. */

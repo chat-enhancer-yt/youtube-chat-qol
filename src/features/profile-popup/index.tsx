@@ -34,6 +34,7 @@ import {
 } from '../translation/events';
 import { getChannelUrl, openChannelWindow } from '../channel-popup';
 import { createAvatarElement, createProfileAvatarButton } from './elements';
+import { applyProfileAvatarAccent } from './avatar-accent';
 import { createProfileMessagePager } from './history-pager';
 import {
   clearProfileMentions,
@@ -56,8 +57,6 @@ const profileCardKeys = new WeakMap<HTMLElement, string>();
 const profileCardOriginMessageIds = new WeakMap<HTMLElement, string>();
 const stickyProfileCards = new WeakSet<HTMLElement>();
 const PROFILE_HISTORY_EDGE_TOLERANCE_PX = 12;
-const PROFILE_AUTHOR_MAX_FONT_SIZE_PX = 14;
-const PROFILE_AUTHOR_MIN_FONT_SIZE_PX = 12;
 let nextProfileCardZIndex = 10_000;
 let profileWiringListeners = new AbortController();
 let profileMentionListenersWired = false;
@@ -309,6 +308,13 @@ function showProfileCard(source: ProfileSource, anchor: HTMLElement): void {
   let list!: HTMLDivElement;
   card = el<HTMLElement>(
     <section class="ytcq-profile-card" role="dialog" aria-label={t('recentMessagesFromThisUser')}>
+      <img
+        class="ytcq-profile-card-avatar-tint"
+        src={source.avatarSrc}
+        alt=""
+        aria-hidden="true"
+        referrerPolicy="no-referrer"
+      />
       <div
         ref={(element: HTMLDivElement) => (header = element)}
         class={
@@ -318,10 +324,7 @@ function showProfileCard(source: ProfileSource, anchor: HTMLElement): void {
         }
       >
         {avatarSurface}
-        <div class="ytcq-profile-card-title-wrap">
-          {title}
-          <div class="ytcq-profile-card-subtitle">{t('recentMessages')}</div>
-        </div>
+        <div class="ytcq-profile-card-title-wrap">{title}</div>
         {createAvatarRingToggleButton({
           ...source.identity,
           avatarUrl: source.avatarSrc
@@ -354,8 +357,8 @@ function showProfileCard(source: ProfileSource, anchor: HTMLElement): void {
     followLatest: !source.originMessageId
   });
   renderVisibleMessages();
+  applyProfileAvatarAccent(card, source.avatarSrc);
   document.body.append(card);
-  fitProfileCardAuthorText(title);
   profileCards.add(card);
   if (profileKey) {
     profileCardsByKey.set(profileKey, card);
@@ -413,7 +416,6 @@ function showProfileCard(source: ProfileSource, anchor: HTMLElement): void {
     });
   };
   const resizeObserver = new ResizeObserver(() => {
-    fitProfileCardAuthorText(title);
     schedulePosition('viewport');
   });
   resizeObserver.observe(card);
@@ -499,22 +501,6 @@ function showProfileCard(source: ProfileSource, anchor: HTMLElement): void {
     document.addEventListener('keydown', handleKeydown, options);
     window.addEventListener('resize', handleResize, options);
   }, 0);
-}
-
-function fitProfileCardAuthorText(author: HTMLButtonElement): void {
-  author.style.removeProperty('font-size');
-  author.classList.remove('ytcq-profile-card-author-wrap');
-  if (author.clientWidth <= 0 || author.scrollWidth <= author.clientWidth) return;
-
-  const idealFontSize = PROFILE_AUTHOR_MAX_FONT_SIZE_PX * (author.clientWidth / author.scrollWidth);
-  const fittedFontSize = Math.max(
-    PROFILE_AUTHOR_MIN_FONT_SIZE_PX,
-    Math.floor(idealFontSize * 10) / 10
-  );
-  author.style.fontSize = `${fittedFontSize}px`;
-  if (idealFontSize < PROFILE_AUTHOR_MIN_FONT_SIZE_PX) {
-    author.classList.add('ytcq-profile-card-author-wrap');
-  }
 }
 
 function createProfileChannelButton(profileUrl: string): HTMLButtonElement {

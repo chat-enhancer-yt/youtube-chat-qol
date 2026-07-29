@@ -87,6 +87,10 @@ const avatarRingMocks = vi.hoisted(() => ({
   })
 }));
 
+const avatarAccentMocks = vi.hoisted(() => ({
+  applyProfileAvatarAccent: vi.fn()
+}));
+
 const queueMocks = vi.hoisted(() => {
   const close = vi.fn();
   const prioritize = vi.fn();
@@ -104,6 +108,7 @@ vi.mock('./positioning', () => positioningMocks);
 vi.mock('../channel-popup', () => channelMocks);
 vi.mock('../reply', () => replyMocks);
 vi.mock('../avatar-rings', () => avatarRingMocks);
+vi.mock('./avatar-accent', () => avatarAccentMocks);
 vi.mock('../translation/queue', () => queueMocks);
 
 import {
@@ -159,7 +164,19 @@ describe('profile popup coordinator', () => {
     expect(message.dataset.ytcqProfileWired).toBe('true');
     expect(avatar.title).toBe('Show recent messages');
     expect(messageMocks.renderProfileMessages).toHaveBeenCalled();
-    expect(card.querySelector<HTMLElement>('.ytcq-profile-card-author')?.dir).toBe('auto');
+    const author = card.querySelector<HTMLElement>('.ytcq-profile-card-author');
+    expect(author?.dir).toBe('auto');
+    expect(author?.textContent).toBe('@ViewerOne');
+    expect(card.querySelector('.ytcq-profile-card-subtitle')).toBeNull();
+    const avatarTint = card.querySelector<HTMLImageElement>('.ytcq-profile-card-avatar-tint');
+    expect(avatarTint?.src).toBe('https://example.com/avatar.jpg');
+    expect(avatarTint?.alt).toBe('');
+    expect(avatarTint?.getAttribute('aria-hidden')).toBe('true');
+    expect(avatarTint?.referrerPolicy).toBe('no-referrer');
+    expect(avatarAccentMocks.applyProfileAvatarAccent).toHaveBeenCalledWith(
+      card,
+      'https://example.com/avatar.jpg'
+    );
     expect(positioningMocks.positionProfileCard).toHaveBeenCalledWith(
       card,
       expect.objectContaining({ left: 0, right: 0, top: 0 })
@@ -779,39 +796,8 @@ describe('profile popup coordinator', () => {
     expect(positioningMocks.keepProfileCardInViewport).toHaveBeenCalledTimes(2);
   });
 
-  it('shrinks a medium recent-messages handle to one line and restores its size when space returns', () => {
+  it('keeps an overflowing recent-messages handle at its stylesheet font size', () => {
     profileTestState.messageSource = source({ authorName: '@AHandleThatNeedsMoreHeaderSpace' });
-    const message = createMessage();
-    document.body.append(message);
-    wireProfileClick(message);
-    message.querySelector<HTMLElement>('#author-photo')!.click();
-
-    const author = document.querySelector<HTMLButtonElement>('.ytcq-profile-card-author')!;
-    let availableWidth = 140;
-    Object.defineProperties(author, {
-      clientWidth: {
-        configurable: true,
-        get: () => availableWidth
-      },
-      scrollWidth: {
-        configurable: true,
-        get: () => 160
-      }
-    });
-
-    resizeObserverCallbacks.at(-1)?.([], {} as ResizeObserver);
-    expect(author.style.fontSize).toBe('12.2px');
-    expect(author.classList.contains('ytcq-profile-card-author-wrap')).toBe(false);
-
-    availableWidth = 220;
-    resizeObserverCallbacks.at(-1)?.([], {} as ResizeObserver);
-    expect(author.style.fontSize).toBe('');
-  });
-
-  it('wraps an extra-long recent-messages handle instead of shrinking below 12px', () => {
-    profileTestState.messageSource = source({
-      authorName: '@AnExceptionallyLongHandleThatCannotFit'
-    });
     const message = createMessage();
     document.body.append(message);
     wireProfileClick(message);
@@ -825,13 +811,12 @@ describe('profile popup coordinator', () => {
       },
       scrollWidth: {
         configurable: true,
-        get: () => 210
+        get: () => 160
       }
     });
 
     resizeObserverCallbacks.at(-1)?.([], {} as ResizeObserver);
-    expect(author.style.fontSize).toBe('12px');
-    expect(author.classList.contains('ytcq-profile-card-author-wrap')).toBe(true);
+    expect(author.style.fontSize).toBe('');
   });
 
   it('ignores history updates after the active card closes', () => {

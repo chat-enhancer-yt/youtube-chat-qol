@@ -21,7 +21,121 @@
 }
 
 .ytcq-profile-card:not(.ytcq-inbox-card):not(.ytcq-games-card) {
+  isolation: isolate;
   max-height: min(360px, calc(100vh - 16px));
+  overflow: hidden;
+}
+
+.ytcq-profile-card-avatar-tint {
+  position: absolute;
+  inset: -4px;
+  z-index: 0;
+  display: block;
+  width: calc(100% + 8px);
+  height: calc(100% + 8px);
+  object-fit: cover;
+  object-position: center;
+  opacity: 0.13;
+  filter: blur(2px) saturate(0.5) contrast(0.9);
+  pointer-events: none;
+  user-select: none;
+}
+
+:root[dark] .ytcq-profile-card-avatar-tint {
+  opacity: 0.11;
+}
+
+:root:not([data-ytcq-chat-skin="aero"])
+  .ytcq-profile-card:not(.ytcq-inbox-card):not(.ytcq-games-card) {
+  transition: border-color 180ms ease-out;
+}
+
+:root:not([data-ytcq-chat-skin="aero"])
+  .ytcq-profile-card:not(.ytcq-inbox-card):not(.ytcq-games-card)::before {
+  position: absolute;
+  inset: -1px;
+  z-index: 0;
+  border-radius: inherit;
+  corner-shape: inherit;
+  content: "";
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 180ms ease-out;
+}
+
+:root:not([data-ytcq-chat-skin="aero"])
+  .ytcq-profile-card:not(.ytcq-inbox-card):not(.ytcq-games-card).ytcq-profile-card-has-avatar-accent {
+  --ytcq-profile-avatar-accent: var(--ytcq-profile-avatar-accent-light);
+  --ytcq-profile-avatar-accent-foreground: var(
+    --yt-spec-text-primary,
+    var(--yt-live-chat-primary-text-color, #0f0f0f)
+  );
+
+  border-color: color-mix(
+    in srgb,
+    var(--ytcq-profile-avatar-accent) 24%,
+    var(--ytcq-control-border, rgba(128, 128, 128, 0.42))
+  );
+}
+
+:root:not([data-ytcq-chat-skin="aero"])
+  .ytcq-profile-card:not(.ytcq-inbox-card):not(.ytcq-games-card).ytcq-profile-card-has-avatar-accent::before {
+  background:
+    radial-gradient(
+      circle at 14% 0%,
+      color-mix(in srgb, var(--ytcq-profile-avatar-accent) 12%, transparent) 0%,
+      transparent 54%
+    ),
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--ytcq-profile-avatar-accent) 6%, transparent),
+      color-mix(in srgb, var(--ytcq-profile-avatar-accent) 2%, transparent)
+    );
+  opacity: 1;
+}
+
+:root[dark]:not([data-ytcq-chat-skin="aero"])
+  .ytcq-profile-card:not(.ytcq-inbox-card):not(.ytcq-games-card).ytcq-profile-card-has-avatar-accent,
+:root[data-ytcq-chat-skin-theme="dark"]:not([data-ytcq-chat-skin="aero"])
+  .ytcq-profile-card:not(.ytcq-inbox-card):not(.ytcq-games-card).ytcq-profile-card-has-avatar-accent {
+  --ytcq-profile-avatar-accent: var(--ytcq-profile-avatar-accent-dark);
+}
+
+:root:not([data-ytcq-chat-skin="aero"])
+  .ytcq-profile-card:not(.ytcq-inbox-card):not(.ytcq-games-card).ytcq-profile-card-has-avatar-accent
+  :where(
+    .ytcq-profile-card-author,
+    .ytcq-profile-card-header-button:not(.ytcq-avatar-ring-toggle-active),
+    .ytcq-message-row-action:not(.ytcq-bookmark-toggle-active)
+  ) {
+  color: color-mix(
+    in srgb,
+    var(--ytcq-profile-avatar-accent) 70%,
+    var(--ytcq-profile-avatar-accent-foreground) 30%
+  );
+}
+
+:root:not([data-ytcq-chat-skin="aero"])
+  .ytcq-profile-card:not(.ytcq-inbox-card):not(.ytcq-games-card).ytcq-profile-card-has-avatar-accent
+  :where(
+    .ytcq-profile-card-author,
+    .ytcq-profile-card-header-button:not(.ytcq-avatar-ring-toggle-active),
+    .ytcq-message-row-action:not(.ytcq-bookmark-toggle-active)
+  ):where(:hover, :focus) {
+  color: color-mix(
+    in srgb,
+    var(--ytcq-profile-avatar-accent) 84%,
+    var(--ytcq-profile-avatar-accent-foreground) 16%
+  );
+}
+
+:root:not([data-ytcq-chat-skin="aero"])
+  .ytcq-profile-card:not(.ytcq-inbox-card):not(.ytcq-games-card)
+  :where(
+    .ytcq-profile-card-author,
+    .ytcq-profile-card-header-button:not(.ytcq-avatar-ring-toggle-active)
+  ) {
+  transition: color 180ms ease-out;
 }
 
 .ytcq-profile-card-header {
@@ -33,6 +147,7 @@
 
 .ytcq-profile-card:not(.ytcq-inbox-card):not(.ytcq-games-card) .ytcq-profile-card-header {
   position: relative;
+  z-index: 1;
   margin: calc(-1 * var(--ytcq-profile-card-padding)) calc(-1 * var(--ytcq-profile-card-padding)) 0;
   padding: calc(var(--ytcq-profile-card-padding) + 4px) var(--ytcq-profile-card-padding) 0;
   cursor: grab;
@@ -153,18 +268,13 @@
   max-width: 100%;
   padding: 0;
   border: 0;
-  overflow: hidden;
+  overflow-wrap: anywhere;
   background: transparent;
   cursor: pointer;
+  font-size: 13px;
+  line-height: 16px;
   text-align: left;
-  text-overflow: ellipsis;
   vertical-align: top;
-  white-space: nowrap;
-}
-
-.ytcq-profile-card-author.ytcq-profile-card-author-wrap {
-  overflow-wrap: anywhere;
-  text-overflow: clip;
   white-space: normal;
 }
 
@@ -282,6 +392,8 @@
 
 .ytcq-profile-card:not(.ytcq-inbox-card):not(.ytcq-games-card) .ytcq-profile-card-messages {
   /* Five compact single-line messages plus row gaps. */
+  position: relative;
+  z-index: 1;
   max-height: 182px;
 }
 
@@ -377,6 +489,61 @@ button.ytcq-inbox-avatar:focus .ytcq-inbox-avatar-open-icon {
     linear-gradient(rgba(128, 128, 128, 0.16), rgba(128, 128, 128, 0.16)),
     var(--yt-spec-badge-chip-background, transparent);
   outline: none;
+}
+
+:root:not([data-ytcq-chat-skin="aero"])
+  .ytcq-profile-card:not(.ytcq-inbox-card):not(.ytcq-games-card)
+  .ytcq-profile-card-message {
+  isolation: isolate;
+}
+
+:root:not([data-ytcq-chat-skin="aero"])
+  .ytcq-profile-card:not(.ytcq-inbox-card):not(.ytcq-games-card)
+  .ytcq-profile-card-message::before {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  corner-shape: inherit;
+  content: "";
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 180ms ease-out;
+}
+
+:root:not([data-ytcq-chat-skin="aero"])
+  .ytcq-profile-card:not(.ytcq-inbox-card):not(.ytcq-games-card).ytcq-profile-card-has-avatar-accent
+  .ytcq-profile-card-message::before {
+  background: color-mix(in srgb, var(--ytcq-profile-avatar-accent) 7%, transparent);
+  opacity: 1;
+}
+
+:root:not([data-ytcq-chat-skin="aero"])
+  .ytcq-profile-card:not(.ytcq-inbox-card):not(.ytcq-games-card).ytcq-profile-card-has-avatar-accent
+  .ytcq-profile-card-message:where(:hover, :focus)::before {
+  background: color-mix(in srgb, var(--ytcq-profile-avatar-accent) 11%, transparent);
+}
+
+:root:not([data-ytcq-chat-skin="aero"])
+  .ytcq-profile-card:not(.ytcq-inbox-card):not(.ytcq-games-card).ytcq-profile-card-has-avatar-accent
+  .ytcq-profile-card-message-origin {
+  box-shadow:
+    inset 0 0 8px color-mix(
+      in srgb,
+      var(--ytcq-profile-avatar-accent) 42%,
+      transparent
+    ),
+    inset 0 0 18px color-mix(
+      in srgb,
+      var(--ytcq-profile-avatar-accent) 20%,
+      transparent
+    );
+}
+
+:root:not([data-ytcq-chat-skin="aero"])
+  .ytcq-profile-card:not(.ytcq-inbox-card):not(.ytcq-games-card)
+  .ytcq-profile-card-message-origin {
+  transition: box-shadow 180ms ease-out;
 }
 
 .ytcq-profile-card-message-actions {
@@ -530,4 +697,25 @@ button.ytcq-inbox-avatar:focus .ytcq-inbox-avatar-open-icon {
   color: var(--yt-live-chat-secondary-text-color, var(--yt-spec-text-secondary, #aaa));
   cursor: default;
   opacity: 0.5;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root:not([data-ytcq-chat-skin="aero"])
+    .ytcq-profile-card:not(.ytcq-inbox-card):not(.ytcq-games-card),
+  :root:not([data-ytcq-chat-skin="aero"])
+    .ytcq-profile-card:not(.ytcq-inbox-card):not(.ytcq-games-card)::before,
+  :root:not([data-ytcq-chat-skin="aero"])
+    .ytcq-profile-card:not(.ytcq-inbox-card):not(.ytcq-games-card)
+    .ytcq-profile-card-message::before,
+  :root:not([data-ytcq-chat-skin="aero"])
+    .ytcq-profile-card:not(.ytcq-inbox-card):not(.ytcq-games-card)
+    .ytcq-profile-card-message-origin,
+  :root:not([data-ytcq-chat-skin="aero"])
+    .ytcq-profile-card:not(.ytcq-inbox-card):not(.ytcq-games-card)
+    :where(
+      .ytcq-profile-card-author,
+      .ytcq-profile-card-header-button:not(.ytcq-avatar-ring-toggle-active)
+    ) {
+    transition: none;
+  }
 }

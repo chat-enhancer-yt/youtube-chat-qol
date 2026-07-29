@@ -17,6 +17,7 @@ import {
 import { settingsMenuScenario } from '../scenarios/menus';
 import {
   profileCardAeroOriginHighlightScenario,
+  profileCardAvatarAccentScenario,
   profileCardHistoryPagingScenario,
   profileCardReceivesNewMessagesScenario,
   profileCardRecentMessagesScenario,
@@ -38,6 +39,10 @@ test('logged-out mock: profile card pages through retained author history', prof
 test(
   'logged-out mock: Aero highlights the current message in the profile card',
   profileCardAeroOriginHighlightScenario
+);
+test(
+  'logged-out mock: profile avatar color accents normal themes and softly reflects in Aero',
+  profileCardAvatarAccentScenario
 );
 test(
   'logged-out mock: clicking a mentioned handle opens that user’s recent messages',
