@@ -12,7 +12,9 @@ const supportDir = path.dirname(fileURLToPath(import.meta.url));
 
 export const repoRoot = path.resolve(supportDir, '..', '..', '..');
 export const extensionDir = path.join(repoRoot, 'dist', 'extension-chrome');
-export const defaultLiveUrl = 'https://www.youtube.com/@LofiGirl/live';
+// Pin the active high-traffic stream because the channel-level /live route can
+// switch to a quieter concurrent stream without enough text chat for smoke tests.
+export const defaultLiveUrl = 'https://www.youtube.com/watch?v=X4VbdwhkE10';
 export const defaultReplayUrl = 'https://www.youtube.com/watch?v=SHt3FyE-VIQ';
 
 export function getLiveProfileDir(): string {
