@@ -1185,7 +1185,7 @@ optgroup {
 }
 
 :root[data-ytcq-chat-skin="aero"][data-ytcq-chat-skin-theme="dark"] .chat-preview {
-  --preview-border: #3a6270;
+  --preview-border: #2e6180;
   box-shadow:
     0 18px 38px rgba(0, 10, 18, 0.42),
     inset 0 0 0 1px rgba(220, 247, 252, 0.14);

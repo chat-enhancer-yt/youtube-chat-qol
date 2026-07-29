@@ -575,11 +575,11 @@ export const onboardingPreviewScenario: BrowserScenario = async ({ context }) =>
         );
         await expect(onboarding.locator('#chatPreview')).toHaveCSS(
           'border-top-color',
-          'rgb(58, 98, 112)'
+          'rgb(46, 97, 128)'
         );
         await expect(onboarding.locator('.preview-chat-header')).toHaveCSS(
           'border-bottom-color',
-          'rgb(58, 98, 112)'
+          'rgb(46, 97, 128)'
         );
         await expect(onboarding.locator('.preview-chat-header')).not.toHaveCSS(
           'box-shadow',
@@ -589,8 +589,16 @@ export const onboardingPreviewScenario: BrowserScenario = async ({ context }) =>
         await expect(onboarding.locator('.preview-chat-feed')).toHaveCSS('z-index', '1');
         await expect(onboarding.locator('.preview-composer')).toHaveCSS(
           'border-top-color',
-          'rgb(58, 98, 112)'
+          'rgb(46, 97, 128)'
         );
+        await onboarding.locator('.preview-composer-field').hover();
+        await expect
+          .poll(() =>
+            onboarding
+              .locator('.preview-composer-field')
+              .evaluate((field) => getComputedStyle(field, '::before').borderTopColor)
+          )
+          .toBe('rgb(85, 169, 207)');
         await expect
           .poll(() =>
             onboarding
