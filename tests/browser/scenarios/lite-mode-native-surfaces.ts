@@ -45,6 +45,9 @@ interface HeaderIconSnapshot {
   buttonColor: string;
   headerBackgroundColor: string;
   headerBackgroundImage: string;
+  headerBoxShadow: string;
+  headerPosition: string;
+  headerZIndex: string;
   svgColor: string;
   svgFill: string;
   svgFilter: string;
@@ -300,6 +303,9 @@ export const liteModeAeroBehaviorScenario: BrowserScenario = async ({ chat, cont
           expect(icon.buttonColor).not.toBe('rgb(0, 0, 0)');
           expect(icon.svgFill).not.toBe('rgb(0, 0, 0)');
           expect(icon.headerBackgroundImage).not.toBe('none');
+          expect(icon.headerBoxShadow).not.toBe('none');
+          expect(icon.headerPosition).toBe('relative');
+          expect(icon.headerZIndex).toBe('1');
         }
         for (const icon of activeIcons) {
           expect(icon.buttonColor).not.toBe('rgb(255, 255, 255)');
@@ -769,6 +775,9 @@ async function sampleHeaderIconThemes(
             buttonColor: buttonStyle.color,
             headerBackgroundColor: headerStyle.backgroundColor,
             headerBackgroundImage: headerStyle.backgroundImage,
+            headerBoxShadow: headerStyle.boxShadow,
+            headerPosition: headerStyle.position,
+            headerZIndex: headerStyle.zIndex,
             svgColor: svgStyle.color,
             svgFill: svgStyle.fill,
             svgFilter: svgStyle.filter,

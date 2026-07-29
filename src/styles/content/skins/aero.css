@@ -243,6 +243,9 @@
 }
 
 :root[data-ytcq-chat-skin="aero"] yt-live-chat-header-renderer {
+  /* Keep the outward shadow above YouTube's positioned #contents layer. */
+  position: relative;
+  z-index: 1;
   min-height: 42px;
   border-bottom: 1px solid #087dbc !important;
   background:
