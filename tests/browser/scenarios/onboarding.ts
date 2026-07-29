@@ -581,6 +581,12 @@ export const onboardingPreviewScenario: BrowserScenario = async ({ context }) =>
           'border-bottom-color',
           'rgb(58, 98, 112)'
         );
+        await expect(onboarding.locator('.preview-chat-header')).not.toHaveCSS(
+          'box-shadow',
+          'none'
+        );
+        await expect(onboarding.locator('.preview-chat-header')).toHaveCSS('z-index', '4');
+        await expect(onboarding.locator('.preview-chat-feed')).toHaveCSS('z-index', '1');
         await expect(onboarding.locator('.preview-composer')).toHaveCSS(
           'border-top-color',
           'rgb(58, 98, 112)'
