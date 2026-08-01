@@ -9,7 +9,7 @@ on:
 
 jobs:
   build:
-    name: docs / build
+    name: Build documentation
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -36,6 +36,7 @@ jobs:
           path: dist/docs
 
   deploy:
+    name: Deploy documentation
     needs: build
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest

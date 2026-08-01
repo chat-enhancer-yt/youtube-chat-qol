@@ -11,6 +11,7 @@ on:
 
 jobs:
   check:
+    name: Check extension
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -26,6 +27,7 @@ jobs:
         run: npm run check:extension
 
   test:
+    name: Test extension
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -49,6 +51,7 @@ jobs:
           retention-days: 1
 
   build:
+    name: Build extension
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -64,6 +67,7 @@ jobs:
         run: npm run build
 
   browser:
+    name: Test extension in browser
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -107,7 +111,7 @@ jobs:
           retention-days: 7
 
   verify:
-    name: extension / verify
+    name: Verify extension
     needs:
       - check
       - test

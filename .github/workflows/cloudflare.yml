@@ -9,6 +9,7 @@ on:
 
 jobs:
   check:
+    name: Check Cloudflare
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -26,6 +27,7 @@ jobs:
         run: npm run cloudflare:check
 
   test:
+    name: Test Cloudflare
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -41,7 +43,7 @@ jobs:
         run: npm run cloudflare:test
 
   verify:
-    name: cloudflare / verify
+    name: Verify Cloudflare
     needs:
       - check
       - test
@@ -60,6 +62,7 @@ jobs:
         run: exit 1
 
   deploy-language-redirect:
+    name: Deploy language redirect
     needs: verify
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
@@ -83,6 +86,7 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
 
   deploy-playground:
+    name: Deploy Playground
     needs: verify
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
