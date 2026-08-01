@@ -51,7 +51,7 @@ const { languageUrls = {}, locale: currentLocale, messages: m } = Astro.props as
       <label class="language-switcher">
         <select data-language-switcher aria-label={m.nav.language}>
           {locales.map((locale) => (
-            <option data-locale={locale} selected={locale === currentLocale} value={languageUrls[locale] || getLocaleUrl(locale)}>
+            <option selected={locale === currentLocale} value={locale}>
               {localeMeta[locale].label}
             </option>
           ))}
@@ -100,7 +100,7 @@ const { languageUrls = {}, locale: currentLocale, messages: m } = Astro.props as
         <label class="language-switcher">
           <select data-language-switcher aria-label={m.nav.language}>
             {locales.map((locale) => (
-              <option data-locale={locale} selected={locale === currentLocale} value={languageUrls[locale] || getLocaleUrl(locale)}>
+              <option selected={locale === currentLocale} value={locale}>
                 {localeMeta[locale].label}
               </option>
             ))}
@@ -114,5 +114,15 @@ const { languageUrls = {}, locale: currentLocale, messages: m } = Astro.props as
         </a>
       </div>
     </details>
+  </div>
+  <div data-language-destinations hidden>
+    {locales.map((locale) => (
+      <a
+        data-language-destination={locale}
+        href={languageUrls[locale] || getLocaleUrl(locale)}
+      >
+        {localeMeta[locale].label}
+      </a>
+    ))}
   </div>
 </header>

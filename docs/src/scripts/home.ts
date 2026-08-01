@@ -1,3 +1,5 @@
+import { setupLanguageSwitchers } from "./language-switcher";
+
 interface DocsConfig {
   supportEmail?: unknown;
   walkthrough?: unknown;
@@ -58,7 +60,6 @@ export function initializeDocsHome() {
   const chromeStoreLink = document.querySelector<HTMLAnchorElement>('[data-browser-store-link="chrome"]');
   const firefoxStoreLink = document.querySelector<HTMLAnchorElement>('[data-browser-store-link="firefox"]');
   const safariStoreLink = document.querySelector<HTMLAnchorElement>('[data-browser-store-link="safari"]');
-  const languageSwitchers = document.querySelectorAll<HTMLSelectElement>("[data-language-switcher]");
   const mobileHeaderMenu = document.querySelector<HTMLDetailsElement>("[data-mobile-header-menu]");
   const walkthroughCtas = document.querySelectorAll<HTMLElement>("[data-walkthrough-cta]");
   const walkthroughOpenButtons = document.querySelectorAll<HTMLElement>("[data-walkthrough-open]");
@@ -251,20 +252,6 @@ export function initializeDocsHome() {
     }
   }
 
-  function setupLanguageSwitchers() {
-    languageSwitchers.forEach((languageSwitcher) => {
-      if (!(languageSwitcher instanceof HTMLSelectElement)) return;
-
-      languageSwitcher.value = getCurrentLocalePath(languageSwitcher);
-      languageSwitcher.addEventListener("change", () => {
-        const nextPath = getLocalePath(languageSwitcher);
-        const locale = languageSwitcher.selectedOptions[0]?.dataset.locale || (nextPath === "/" ? "en" : nextPath.split("/").filter(Boolean)[0]);
-        document.cookie = `ce_lang=${encodeURIComponent(locale)}; Max-Age=31536000; Path=/; SameSite=Lax; Secure`;
-        window.location.assign(nextPath);
-      });
-    });
-  }
-
   function setupMobileHeaderMenu() {
     if (!(mobileHeaderMenu instanceof HTMLDetailsElement)) return;
 
@@ -285,21 +272,6 @@ export function initializeDocsHome() {
       if (!mobileHeaderMenu.open || !(event.target instanceof Node) || mobileHeaderMenu.contains(event.target)) return;
       mobileHeaderMenu.open = false;
     });
-  }
-
-  function getLocalePath(select: HTMLSelectElement) {
-    const value = select.value;
-    const optionExists = Array.from(select.options).some((option) => option.value === value);
-    if (!optionExists) return "/";
-    return value.startsWith("/") && !value.startsWith("//") ? value : "/";
-  }
-
-  function getCurrentLocalePath(select: HTMLSelectElement) {
-    const path = window.location.pathname.endsWith("/") ? window.location.pathname : `${window.location.pathname}/`;
-    const options = Array.from(select.options).map((option) => option.value);
-    return options.find((value) => path === value) ||
-      options.find((value) => value !== "/" && path.startsWith(value)) ||
-      "/";
   }
 
   walkthroughClose?.addEventListener("click", () => {

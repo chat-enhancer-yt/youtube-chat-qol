@@ -12,6 +12,7 @@ const CHAT_FRAME_SELECTOR = 'iframe#chatframe';
 const COMPOSER_TIMEOUT_MS = 30_000;
 const INITIAL_CHAT_FRAME_TIMEOUT_MS = 15_000;
 const LIVE_PAGE_TIMEOUT_MS = 60_000;
+const YOUTUBE_PAGE_HOSTNAMES = new Set(['youtube.com', 'www.youtube.com']);
 const CONSENT_REJECT_BUTTON_NAMES = [
   /Reject all/i,
   /Rechazar todo/i,
@@ -132,7 +133,7 @@ function isSameYouTubeReloadNavigation(
 function normalizeReloadUrl(value: string): string {
   try {
     const url = new URL(value);
-    if (!url.hostname.endsWith('youtube.com')) return '';
+    if (!YOUTUBE_PAGE_HOSTNAMES.has(url.hostname.toLowerCase())) return '';
     url.searchParams.delete('reload');
     url.hash = '';
     url.searchParams.sort();
