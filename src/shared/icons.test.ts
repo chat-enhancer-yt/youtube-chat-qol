@@ -142,11 +142,21 @@ describe('shared SVG icon factories', () => {
 
     expect(addIcon.getAttribute('viewBox')).toBe(ICON_VIEW_BOX);
     expect(addIcon.querySelector('.ytcq-avatar-ring-icon-outline')).not.toBeNull();
+    expect(addIcon.querySelector('.ytcq-avatar-ring-icon-badge')?.getAttribute('fill')).toBe(
+      'none'
+    );
+    const activeBadge = activeIcon.querySelector('.ytcq-avatar-ring-icon-badge');
+    const activeMask = activeIcon.querySelector('mask');
+    expect(activeBadge?.getAttribute('fill')).toBe('currentColor');
+    expect(activeMask?.id).toMatch(/^ytcq-avatar-ring-icon-badge-mask-/);
+    expect(activeMask?.getAttribute('mask-type')).toBe('luminance');
+    expect(activeBadge?.getAttribute('mask')).toBe(`url(#${activeMask?.id})`);
     expect(addIcon.querySelector('.ytcq-avatar-ring-icon-badge-symbol')?.getAttribute('d')).toBe(
       AVATAR_RING_ADD_BADGE_PATH
     );
-    expect(activeIcon.querySelector('.ytcq-avatar-ring-icon-badge-symbol')?.getAttribute('d')).toBe(
-      AVATAR_RING_ACTIVE_BADGE_PATH
-    );
+    const activeBadgeSymbol = activeMask?.querySelector('.ytcq-avatar-ring-icon-badge-symbol');
+    expect(activeBadgeSymbol?.getAttribute('d')).toBe(AVATAR_RING_ACTIVE_BADGE_PATH);
+    expect(activeBadgeSymbol?.getAttribute('stroke')).toBe('#000');
+    expect(createAvatarRingIcon(true).querySelector('mask')?.id).not.toBe(activeMask?.id);
   });
 });

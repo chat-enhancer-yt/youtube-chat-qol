@@ -110,9 +110,39 @@ export function createSoundBellIcon(ringing = false): SVGSVGElement {
   );
 }
 
+let avatarRingIconBadgeMaskSequence = 0;
+
 export function createAvatarRingIcon(active = false): SVGSVGElement {
+  const badgeMaskId = active
+    ? `ytcq-avatar-ring-icon-badge-mask-${++avatarRingIconBadgeMaskSequence}`
+    : '';
+
   return el<SVGSVGElement>(
     <svg viewBox={ICON_VIEW_BOX} focusable="false" aria-hidden="true" class="ytcq-avatar-ring-icon">
+      {active ? (
+        <defs>
+          <mask
+            id={badgeMaskId}
+            x="0"
+            y="0"
+            width="24"
+            height="24"
+            maskUnits="userSpaceOnUse"
+            mask-type="luminance"
+          >
+            <rect x="0" y="0" width="24" height="24" fill="#fff" />
+            <path
+              class="ytcq-avatar-ring-icon-badge-symbol"
+              d={AVATAR_RING_ACTIVE_BADGE_PATH}
+              fill="none"
+              stroke="#000"
+              stroke-width="1.65"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </mask>
+        </defs>
+      ) : null}
       <circle
         class="ytcq-avatar-ring-icon-outline"
         cx="10.5"
@@ -135,19 +165,22 @@ export function createAvatarRingIcon(active = false): SVGSVGElement {
         cx="18"
         cy="18"
         r="3.65"
-        fill="var(--yt-spec-raised-background, var(--yt-live-chat-background-color, #282828))"
+        fill={active ? 'currentColor' : 'none'}
+        mask={active ? `url(#${badgeMaskId})` : undefined}
         stroke="currentColor"
         stroke-width="1.5"
       />
-      <path
-        class="ytcq-avatar-ring-icon-badge-symbol"
-        d={active ? AVATAR_RING_ACTIVE_BADGE_PATH : AVATAR_RING_ADD_BADGE_PATH}
-        fill="none"
-        stroke="currentColor"
-        stroke-width="1.65"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-      />
+      {active ? null : (
+        <path
+          class="ytcq-avatar-ring-icon-badge-symbol"
+          d={AVATAR_RING_ADD_BADGE_PATH}
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.65"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+      )}
     </svg>
   );
 }

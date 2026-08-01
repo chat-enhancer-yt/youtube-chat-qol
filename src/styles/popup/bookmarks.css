@@ -474,8 +474,11 @@
 }
 
 .avatar-ring-action-button {
-  color: var(--ytcq-popup-avatar-ring-color, var(--ytcq-popup-action));
-  --yt-spec-raised-background: var(--ytcq-popup-row-bg);
+  color: color-mix(
+    in srgb,
+    var(--ytcq-popup-avatar-ring-color, var(--ytcq-popup-action)) 58%,
+    var(--ytcq-popup-text)
+  );
 }
 
 .avatar-ring-action-button svg {

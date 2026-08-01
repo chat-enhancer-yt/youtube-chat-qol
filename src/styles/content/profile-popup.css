@@ -337,7 +337,11 @@
 }
 
 .ytcq-profile-card-header-button.ytcq-avatar-ring-toggle-active {
-  color: var(--ytcq-avatar-ring-color, var(--yt-spec-call-to-action, #3ea6ff));
+  color: color-mix(
+    in srgb,
+    var(--ytcq-avatar-ring-color, var(--yt-spec-call-to-action, #3ea6ff)) 58%,
+    var(--yt-spec-text-primary, var(--yt-live-chat-primary-text-color, #0f0f0f))
+  );
 }
 
 .ytcq-avatar-ring-target {

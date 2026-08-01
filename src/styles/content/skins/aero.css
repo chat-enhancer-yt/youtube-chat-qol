@@ -1710,7 +1710,11 @@
 
 :root[data-ytcq-chat-skin="aero"]
   .ytcq-profile-card-header-button.ytcq-avatar-ring-toggle-active {
-  color: var(--ytcq-avatar-ring-color, #67bd3b);
+  color: color-mix(
+    in srgb,
+    var(--ytcq-avatar-ring-color, #67bd3b) 58%,
+    var(--ytcq-aero-text)
+  );
 }
 
 /* Keep the feed-overlay header actions clear against both Aero glass variants. */
