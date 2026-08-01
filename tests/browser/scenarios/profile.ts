@@ -73,6 +73,9 @@ export const profileCardHistoryPagingScenario: BrowserScenario = async ({ chat }
     });
     await expect(records).toHaveCount(21);
     await expect(records.first()).toContainText('Profile history 0');
+    await list.evaluate(
+      () => new Promise<void>((resolve) => window.requestAnimationFrame(() => resolve()))
+    );
 
     await list.evaluate((element) => {
       element.scrollTop = element.scrollHeight;
@@ -361,17 +364,46 @@ export const profileMentionOpensRecentMessagesScenario: BrowserScenario = async 
       hasText: nestedMentionText
     });
     await expect(nestedMention).toBeVisible();
-    const nestedMentionRect = await nestedMention.evaluate((element) => {
-      const rect = element.getBoundingClientRect();
-      return { left: rect.left, right: rect.right, top: rect.top };
+    await chat.evaluate(() => {
+      const testWindow = window as typeof window & {
+        ytcqBrowserProfileMentionRect?: { left: number; right: number; top: number };
+      };
+      delete testWindow.ytcqBrowserProfileMentionRect;
+      window.addEventListener(
+        'click',
+        (event) => {
+          const target = event.target instanceof Element ? event.target : null;
+          const mention = target?.closest<HTMLElement>(
+            '.ytcq-profile-card .ytcq-profile-mention'
+          );
+          if (!mention) return;
+
+          const rect = mention.getBoundingClientRect();
+          testWindow.ytcqBrowserProfileMentionRect = {
+            left: rect.left,
+            right: rect.right,
+            top: rect.top
+          };
+        },
+        { capture: true, once: true }
+      );
     });
     await nestedMention.click();
+    const nestedMentionRect = await chat.evaluate(() => {
+      const testWindow = window as typeof window & {
+        ytcqBrowserProfileMentionRect?: { left: number; right: number; top: number };
+      };
+      const rect = testWindow.ytcqBrowserProfileMentionRect || null;
+      delete testWindow.ytcqBrowserProfileMentionRect;
+      return rect;
+    });
+    expect(nestedMentionRect).not.toBeNull();
 
     await expect(profileCard.locator('.ytcq-profile-card-title')).toHaveText(nestedAuthor);
     await expect(
       profileCard.locator('.ytcq-profile-card-message').filter({ hasText: nestedHistoryText })
     ).toBeVisible();
-    await expectProfileCardPositionedFromAnchor(profileCard, nestedMentionRect);
+    await expectProfileCardPositionedFromAnchor(profileCard, nestedMentionRect!);
     await closeProfileCard(chat);
   });
 };
