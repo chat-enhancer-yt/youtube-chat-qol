@@ -21,9 +21,9 @@ describe('Replay Trivia OpenAI adapter', () => {
 
     expect(openAIRequest).toEqual(expect.objectContaining({
       max_output_tokens: 5000,
-      model: 'gpt-5.4-mini',
+      model: 'gpt-5.6-luna',
       reasoning: {
-        effort: 'low'
+        effort: 'medium'
       },
       store: false,
       text: expect.objectContaining({
@@ -33,13 +33,26 @@ describe('Replay Trivia OpenAI adapter', () => {
     expect(getSystemPrompt(openAIRequest)).toContain('friendIntro must not include the trivia question');
     expect(getSystemPrompt(openAIRequest)).toContain('Answer choices must be clean standalone answers.');
     expect(getSystemPrompt(openAIRequest)).toContain('About half of friendIntro lines can be lightly humorous');
-    expect(getSystemPrompt(openAIRequest)).toContain('Do not put the correct answer first every time.');
+    expect(getSystemPrompt(openAIRequest)).toContain('Return exactly questionCount questions.');
+    expect(getSystemPrompt(openAIRequest)).toContain('Put the correct answer in choices[0]');
     expect(getSystemPrompt(openAIRequest)).toContain('The game is called HELP-A-FRIEND! Trivia.');
     expect(getSystemPrompt(openAIRequest)).toContain('one friend clearly did not pay attention');
-    expect(getSystemPrompt(openAIRequest)).toContain('roast or judgment');
-    expect(getSystemPrompt(openAIRequest)).toContain('must be valid for any wrong choice');
+    expect(getSystemPrompt(openAIRequest)).toContain('friend speaking directly to the player');
+    expect(getSystemPrompt(openAIRequest)).toContain('10-out-of-10 spicy roast');
+    expect(getSystemPrompt(openAIRequest)).toContain('sharp sarcasm, mock disbelief, dramatic betrayal');
+    expect(getSystemPrompt(openAIRequest)).toContain('without a real jab');
+    expect(getSystemPrompt(openAIRequest)).toContain('Never make the friend blame or roast themself');
+    expect(getSystemPrompt(openAIRequest)).toContain('must not turn it into self-blame or a neutral correction');
     expect(getSystemPrompt(openAIRequest)).toContain('Write prompt like a real person asking in chat');
     expect(getSystemPrompt(openAIRequest)).toContain('Use plain "you"');
+    expect(getQuestionSchema(openAIRequest)).toEqual(expect.objectContaining({
+      maxItems: 1,
+      minItems: 1
+    }));
+    expect(getQuestionItemProperties(openAIRequest)?.correctChoiceIndex).toEqual({
+      enum: [0],
+      type: 'integer'
+    });
     expect(response.questions[0].friendIntro).toBe('chat, actor check');
     expect(response.questions[0].prompt).toBe('who won best performance for playing Arthur Morgan?');
     expect(response.questions[0].rightReply).toBe('thank you, Arthur would tip his hat to that one.');
@@ -66,7 +79,10 @@ describe('Replay Trivia OpenAI adapter', () => {
       }))
     })));
 
-    const response = await generateReplayTriviaQuestions(createEnv(), createRequest());
+    const response = await generateReplayTriviaQuestions(createEnv(), {
+      ...createRequest(),
+      questionCount: 8
+    });
     const correctIndexes = response.questions.map((question) => question.correctChoiceIndex);
     const countsByIndex = [0, 1, 2, 3].map((index) => correctIndexes.filter((answerIndex) => answerIndex === index).length);
 
@@ -119,10 +135,10 @@ describe('Replay Trivia OpenAI adapter', () => {
     vi.stubGlobal('fetch', vi.fn(async (_input: RequestInfo | URL, init?: RequestInit) => {
       openAIRequest = JSON.parse(String(init?.body)) as Record<string, unknown>;
       return createNestedOpenAIResponse({
-        questions: [createGeneratedQuestion({
+        questions: Array.from({ length: 10 }, () => createGeneratedQuestion({
           choices: ['  Roger Clark  ', 'Christopher Judge', 'Nolan North', 'Troy Baker'],
           difficulty: 'medium'
-        })]
+        }))
       });
     }));
 
@@ -141,6 +157,10 @@ describe('Replay Trivia OpenAI adapter', () => {
       locale: 'en',
       questionCount: 10,
       transcript: '[0:10] Roger Clark won best performance for Red Dead Redemption 2.'
+    }));
+    expect(getQuestionSchema(openAIRequest)).toEqual(expect.objectContaining({
+      maxItems: 10,
+      minItems: 10
     }));
     expect(response.languageCode).toBe('en');
     expect(response.model).toBe('gpt-test');
@@ -257,6 +277,17 @@ describe('Replay Trivia OpenAI adapter', () => {
       .rejects.toThrow('Replay Trivia question generation returned invalid JSON.');
   });
 
+  it('rejects generated packs with the wrong number of questions', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => createOpenAIOutputResponse({
+      questions: [createGeneratedQuestion()]
+    })));
+
+    await expect(generateReplayTriviaQuestions(createEnv(), {
+      ...createRequest(),
+      questionCount: 2
+    })).rejects.toThrow('Replay Trivia question generation returned the wrong number of questions.');
+  });
+
   it.each([
     ['missing questions array', {}, 'Replay Trivia question generation returned malformed output.'],
     ['empty question list', { questions: [] }, 'Replay Trivia question generation returned no questions.'],
@@ -283,6 +314,7 @@ function createRequest() {
     gameId: 'game-replay-trivia',
     generationToken: 'rtg_1234567890abcdef',
     languageCode: 'en',
+    questionCount: 1,
     segments: [
       {
         durationSeconds: 3,
@@ -385,4 +417,32 @@ function getUserPayload(request: Record<string, unknown> | undefined): Record<st
   return typeof secondMessage?.content === 'string'
     ? JSON.parse(secondMessage.content) as Record<string, unknown>
     : null;
+}
+
+function getQuestionSchema(request: Record<string, unknown> | undefined): Record<string, unknown> | null {
+  const text = request?.text;
+  if (!isRecord(text)) return null;
+  const format = text.format;
+  if (!isRecord(format)) return null;
+  const schema = format.schema;
+  if (!isRecord(schema)) return null;
+  const properties = schema.properties;
+  if (!isRecord(properties)) return null;
+  const questions = properties.questions;
+  return isRecord(questions) ? questions : null;
+}
+
+function getQuestionItemProperties(
+  request: Record<string, unknown> | undefined
+): Record<string, unknown> | null {
+  const questionSchema = getQuestionSchema(request);
+  if (!questionSchema) return null;
+  const items = questionSchema.items;
+  if (!isRecord(items)) return null;
+  const properties = items.properties;
+  return isRecord(properties) ? properties : null;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
 }

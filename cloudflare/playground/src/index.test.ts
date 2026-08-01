@@ -278,10 +278,18 @@ describe('playground worker routes', () => {
       const body = JSON.parse(String(init?.body));
       expect(body.model).toBe('gpt-test');
       expect(body.max_output_tokens).toBe(5000);
-      expect(body.reasoning).toEqual({ effort: 'low' });
+      expect(body.reasoning).toEqual({ effort: 'medium' });
       expect(body.store).toBe(false);
       expect(body.text.format.type).toBe('json_schema');
       expect(body.text.format.name).toBe('replay_trivia_questions');
+      expect(body.text.format.schema.properties.questions).toEqual(expect.objectContaining({
+        maxItems: 1,
+        minItems: 1
+      }));
+      expect(body.text.format.schema.properties.questions.items.properties.correctChoiceIndex).toEqual({
+        enum: [0],
+        type: 'integer'
+      });
       expect(body.text.verbosity).toBe('medium');
       expect(new Headers(init?.headers).get('Authorization')).toBe('Bearer test-key');
 

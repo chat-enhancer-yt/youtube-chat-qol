@@ -16,7 +16,8 @@ import type {
 import type { Env } from '../../types';
 import { ReplayTriviaError } from './errors';
 
-const DEFAULT_OPENAI_MODEL = 'gpt-5.4-mini';
+const DEFAULT_OPENAI_MODEL = 'gpt-5.6-luna';
+const DEFAULT_QUESTION_COUNT = 10;
 const OPENAI_RESPONSES_URL = 'https://api.openai.com/v1/responses';
 const OPENAI_PUBLIC_UNAVAILABLE_MESSAGE = 'Replay Trivia is temporarily unavailable. Try again later.';
 const MAX_PROVIDER_ERROR_MESSAGE_LENGTH = 300;
@@ -118,6 +119,7 @@ export async function generateReplayTriviaQuestions(
 }
 
 function createOpenAIRequest(model: string, request: ReplayTriviaQuestionsRequest): Record<string, unknown> {
+  const questionCount = getQuestionCount(request);
   const targetLanguages = getTargetLanguages(request);
   return {
     input: [
@@ -133,7 +135,8 @@ function createOpenAIRequest(model: string, request: ReplayTriviaQuestionsReques
           'Answer choices must be clean standalone answers.',
           'Do not include explanatory suffixes or clue restatements in choices, such as "Roger Clark as Arthur Morgan"; use "Roger Clark".',
           'Distractor choices should be the same kind of entity as the answer, plausible, concise, and not obviously formatted differently.',
-          'Distribute correctChoiceIndex across the answer choices. Do not put the correct answer first every time.',
+          'Return exactly questionCount questions.',
+          'Put the correct answer in choices[0] and set correctChoiceIndex to 0 for every question. The application will reorder choices afterward.',
           'Write prompt like a real person asking in chat: casual sentence casing, not headline/title casing.',
           'prompt should usually start lowercase unless it starts with a proper name.',
           'Use lowercase for generic award/category phrases like "game of the year" or "best performance"; keep names and titles correctly capitalized.',
@@ -149,13 +152,19 @@ function createOpenAIRequest(model: string, request: ReplayTriviaQuestionsReques
           'friendIntro must not include the trivia question, repeat prompt, ask who/what/which/when/where/how, or contain a question mark.',
           'Keep friendIntro short.',
           'rightReply should sound relieved and thank the user for saving the friend.',
-          'wrongReply should be a roast or judgment, must say the correct answer, and must be valid for any wrong choice.',
-          'wrongReply can sound annoyed, betrayed, or mock-disappointed.',
-          'wrongReply should be more teasing than neutral.',
+          'wrongReply is the friend speaking directly to the player after the player answers incorrectly.',
+          'wrongReply must say the correct answer and must be valid for any wrong choice.',
+          'Make wrongReply an 10-out-of-10 spicy roast from a close friend in a competitive group chat.',
+          'Use sharp sarcasm, mock disbelief, dramatic betrayal, or question-specific wordplay to make the player feel unmistakably called out for that particular miss.',
+          'Do not settle for neutral feedback such as "nope", "you missed it", "not quite", or "wrong" without a real jab.',
+          'Never use slurs, threats, sexual content, degrading labels.',
+          'Never make the friend blame or roast themself in wrongReply. Avoid self-blame such as "I missed", "my memory", "my notes", "my attention", or "we both".',
+          'Do not thank, reassure, apologize to, or praise the player in wrongReply.',
           'Do not mention a specific wrong choice in wrongReply.',
           'Write the main question fields in languageCode.',
           'For each requested target language other than languageCode, add one localizations entry.',
           'Localized entries must translate prompt, choices, friendIntro, rightReply, and wrongReply into that language.',
+          'Localized wrongReply must preserve the same player-directed roast and must not turn it into self-blame or a neutral correction.',
           'Localized choices must preserve exact answer order and meaning: choices[0] translates the main choices[0], choices[1] translates choices[1], and so on.',
           'Do not include correctChoiceIndex in localized entries.'
         ].join(' '),
@@ -166,7 +175,7 @@ function createOpenAIRequest(model: string, request: ReplayTriviaQuestionsReques
           endSeconds: request.endSeconds,
           languageCode: request.languageCode || 'en',
           locale: request.locale || request.languageCode || 'en',
-          questionCount: request.questionCount || 10,
+          questionCount,
           startSeconds: request.startSeconds,
           targetLanguages,
           transcript: formatTranscript(request)
@@ -177,13 +186,13 @@ function createOpenAIRequest(model: string, request: ReplayTriviaQuestionsReques
     max_output_tokens: getMaxOutputTokens(targetLanguages.length),
     model,
     reasoning: {
-      effort: 'low'
+      effort: 'medium'
     },
     store: false,
     text: {
       format: {
         name: 'replay_trivia_questions',
-        schema: REPLAY_TRIVIA_SCHEMA,
+        schema: getReplayTriviaSchema(questionCount),
         strict: true,
         type: 'json_schema'
       },
@@ -235,6 +244,13 @@ function parseGeneratedQuestions(value: unknown, request: ReplayTriviaQuestionsR
     parseGeneratedQuestion(question, index, request.languageCode || 'en'));
   if (!questions.length) {
     throw new ReplayTriviaError('openai_no_questions', 'Replay Trivia question generation returned no questions.', 502);
+  }
+  if (questions.length !== getQuestionCount(request)) {
+    throw new ReplayTriviaError(
+      'openai_wrong_question_count',
+      'Replay Trivia question generation returned the wrong number of questions.',
+      502
+    );
   }
   return questions;
 }
@@ -455,6 +471,23 @@ function getMaxOutputTokens(targetLanguageCount: number): number {
   return Math.min(10_000, 5_000 + (Math.max(1, targetLanguageCount) - 1) * 2_200);
 }
 
+function getQuestionCount(request: ReplayTriviaQuestionsRequest): number {
+  return request.questionCount ?? DEFAULT_QUESTION_COUNT;
+}
+
+function getReplayTriviaSchema(questionCount: number) {
+  return {
+    ...REPLAY_TRIVIA_SCHEMA,
+    properties: {
+      questions: {
+        ...REPLAY_TRIVIA_SCHEMA.properties.questions,
+        maxItems: questionCount,
+        minItems: questionCount
+      }
+    }
+  };
+}
+
 const REPLAY_TRIVIA_SCHEMA = {
   additionalProperties: false,
   properties: {
@@ -469,8 +502,7 @@ const REPLAY_TRIVIA_SCHEMA = {
             type: 'array'
           },
           correctChoiceIndex: {
-            maximum: 3,
-            minimum: 0,
+            enum: [0],
             type: 'integer'
           },
           difficulty: {
