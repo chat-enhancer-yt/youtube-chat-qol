@@ -1,34 +1,81 @@
-(() => {
+interface DocsConfig {
+  supportEmail?: unknown;
+  walkthrough?: unknown;
+}
+
+interface NavigatorUAData {
+  brands?: Array<{ brand: string }>;
+}
+
+interface WalkthroughOpenOptions {
+  allowMutedFallback?: boolean;
+  updateHash?: boolean;
+}
+
+interface WalkthroughPlaybackOptions {
+  allowMutedFallback?: boolean;
+}
+
+interface WalkthroughCloseOptions {
+  clearHash?: boolean;
+}
+
+interface WalkthroughSeekOptions {
+  updateHash?: boolean;
+}
+
+interface CycleOptionOptions {
+  automatic?: boolean;
+}
+
+interface VersionBadgeSource {
+  image: string;
+  json: string;
+  showPendingState?: boolean;
+}
+
+interface NavigationSectionEntry {
+  link: HTMLAnchorElement;
+  section: HTMLElement;
+}
+
+type StoreKey = "chrome" | "firefox" | "safari";
+type VersionBadgeKey = "release" | StoreKey;
+type VersionMap = Partial<Record<VersionBadgeKey, string>>;
+type WalkthroughPreload = "auto" | "metadata";
+type WalkthroughPlaybackState = "pause" | "play";
+
+export function initializeDocsHome() {
   const docsConfig = readDocsConfig();
-  const installActions = document.querySelector("[data-install-actions]");
-  const storePicker = document.querySelector("[data-browser-store-picker]");
-  const primaryStoreLink = document.querySelector("[data-browser-primary-store-link]");
-  const primaryStoreIcon = document.querySelector("[data-browser-primary-store-icon]");
-  const primaryGenericIcon = document.querySelector("[data-browser-primary-generic-icon]");
-  const primaryStoreLabel = document.querySelector("[data-browser-primary-store-label]");
-  const storeToggle = document.querySelector("[data-browser-store-toggle]");
-  const storeOptions = document.querySelector("[data-browser-store-options]");
-  const chromeStoreLink = document.querySelector('[data-browser-store-link="chrome"]');
-  const firefoxStoreLink = document.querySelector('[data-browser-store-link="firefox"]');
-  const safariStoreLink = document.querySelector('[data-browser-store-link="safari"]');
-  const languageSwitchers = document.querySelectorAll("[data-language-switcher]");
-  const mobileHeaderMenu = document.querySelector("[data-mobile-header-menu]");
-  const walkthroughCtas = document.querySelectorAll("[data-walkthrough-cta]");
-  const walkthroughOpenButtons = document.querySelectorAll("[data-walkthrough-open]");
-  const walkthroughModal = document.querySelector("[data-walkthrough-modal]");
-  const walkthroughClose = document.querySelector("[data-walkthrough-close]");
-  const walkthroughTime = document.querySelector("[data-walkthrough-time]");
-  const walkthroughTimeLabel = document.querySelector("[data-walkthrough-time-label]");
-  const walkthroughTimeToggle = document.querySelector("[data-walkthrough-time-toggle]");
-  const walkthroughVideo = document.querySelector("[data-walkthrough-video]");
-  const walkthroughVideoFeedback = document.querySelector("[data-walkthrough-feedback]");
-  const walkthroughKeyPoints = document.querySelector("[data-walkthrough-key-points]");
-  const walkthroughKeyPointList = document.querySelector("[data-walkthrough-key-point-list]");
-  const walkthroughKeyPointTrack = document.querySelector("[data-walkthrough-key-point-track]");
-  const walkthroughSeekButtons = Array.from(document.querySelectorAll("[data-walkthrough-seek]"));
-  const heroBlogTicker = document.querySelector("[data-hero-blog-ticker]");
+  const installActions = document.querySelector<HTMLElement>("[data-install-actions]");
+  const storePicker = document.querySelector<HTMLElement>("[data-browser-store-picker]");
+  const primaryStoreLink = document.querySelector<HTMLAnchorElement>("[data-browser-primary-store-link]");
+  const primaryStoreIcon = document.querySelector<HTMLImageElement>("[data-browser-primary-store-icon]");
+  const primaryGenericIcon = document.querySelector<HTMLElement>("[data-browser-primary-generic-icon]");
+  const primaryStoreLabel = document.querySelector<HTMLElement>("[data-browser-primary-store-label]");
+  const storeToggle = document.querySelector<HTMLButtonElement>("[data-browser-store-toggle]");
+  const storeOptions = document.querySelector<HTMLElement>("[data-browser-store-options]");
+  const chromeStoreLink = document.querySelector<HTMLAnchorElement>('[data-browser-store-link="chrome"]');
+  const firefoxStoreLink = document.querySelector<HTMLAnchorElement>('[data-browser-store-link="firefox"]');
+  const safariStoreLink = document.querySelector<HTMLAnchorElement>('[data-browser-store-link="safari"]');
+  const languageSwitchers = document.querySelectorAll<HTMLSelectElement>("[data-language-switcher]");
+  const mobileHeaderMenu = document.querySelector<HTMLDetailsElement>("[data-mobile-header-menu]");
+  const walkthroughCtas = document.querySelectorAll<HTMLElement>("[data-walkthrough-cta]");
+  const walkthroughOpenButtons = document.querySelectorAll<HTMLElement>("[data-walkthrough-open]");
+  const walkthroughModal = document.querySelector<HTMLDialogElement>("[data-walkthrough-modal]");
+  const walkthroughClose = document.querySelector<HTMLButtonElement>("[data-walkthrough-close]");
+  const walkthroughTime = document.querySelector<HTMLElement>("[data-walkthrough-time]");
+  const walkthroughTimeLabel = document.querySelector<HTMLElement>("[data-walkthrough-time-label]");
+  const walkthroughTimeToggle = document.querySelector<HTMLButtonElement>("[data-walkthrough-time-toggle]");
+  const walkthroughVideo = document.querySelector<HTMLVideoElement>("[data-walkthrough-video]");
+  const walkthroughVideoFeedback = document.querySelector<HTMLElement>("[data-walkthrough-feedback]");
+  const walkthroughKeyPoints = document.querySelector<HTMLElement>("[data-walkthrough-key-points]");
+  const walkthroughKeyPointList = document.querySelector<HTMLElement>("[data-walkthrough-key-point-list]");
+  const walkthroughKeyPointTrack = document.querySelector<HTMLElement>("[data-walkthrough-key-point-track]");
+  const walkthroughSeekButtons = Array.from(document.querySelectorAll<HTMLElement>("[data-walkthrough-seek]"));
+  const heroBlogTicker = document.querySelector<HTMLElement>("[data-hero-blog-ticker]");
   const walkthroughHash = "#walkthrough";
-  const versionBadgeSources = {
+  const versionBadgeSources: Record<VersionBadgeKey, VersionBadgeSource> = {
     release: {
       image: "https://img.shields.io/github/v/release/chat-enhancer-yt/youtube-chat-qol?label=release&logo=github",
       json: "https://img.shields.io/github/v/release/chat-enhancer-yt/youtube-chat-qol.json?label=release"
@@ -54,8 +101,9 @@
     pending: "f59e0b",
     unknown: "6b7280"
   };
+  const storeKeys: readonly StoreKey[] = ["chrome", "firefox", "safari"];
   let walkthroughFeedbackTimer = 0;
-  let walkthroughPendingSeekTime = null;
+  let walkthroughPendingSeekTime: number | null = null;
 
   setupTopHeaderState();
   setupActiveNavigation();
@@ -69,10 +117,11 @@
   function setupHeroBlogTicker() {
     if (!(heroBlogTicker instanceof HTMLElement)) return;
 
-    const slides = Array.from(heroBlogTicker.querySelectorAll("[data-hero-blog-slide]"))
-      .filter((slide) => slide instanceof HTMLAnchorElement);
-    const newPostBadges = Array.from(heroBlogTicker.querySelectorAll("[data-hero-blog-new]"))
-      .filter((badge) => badge instanceof HTMLElement);
+    const ticker = heroBlogTicker;
+    const slides = Array.from(ticker.querySelectorAll("[data-hero-blog-slide]"))
+      .filter((slide): slide is HTMLAnchorElement => slide instanceof HTMLAnchorElement);
+    const newPostBadges = Array.from(ticker.querySelectorAll("[data-hero-blog-new]"))
+      .filter((badge): badge is HTMLElement => badge instanceof HTMLElement);
     let newBadgeTimer = 0;
 
     updateNewPostBadges();
@@ -85,10 +134,10 @@
 
     if (slides.length < 2) return;
 
-    const previousButton = heroBlogTicker.querySelector("[data-hero-blog-previous]");
-    const nextButton = heroBlogTicker.querySelector("[data-hero-blog-next]");
+    const previousButton = ticker.querySelector<HTMLButtonElement>("[data-hero-blog-previous]");
+    const nextButton = ticker.querySelector<HTMLButtonElement>("[data-hero-blog-next]");
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const configuredInterval = Number(heroBlogTicker.dataset.heroBlogTickerInterval);
+    const configuredInterval = Number(ticker.dataset.heroBlogTickerInterval);
     const interval = Number.isFinite(configuredInterval) && configuredInterval >= 3000 ? configuredInterval : 6000;
     let activeIndex = Math.max(0, slides.findIndex((slide) => slide.classList.contains("is-active")));
     let timer = 0;
@@ -100,11 +149,11 @@
 
     previousButton?.addEventListener("click", () => showAdjacentSlide(-1));
     nextButton?.addEventListener("click", () => showAdjacentSlide(1));
-    heroBlogTicker.addEventListener("pointerenter", pauseTicker);
-    heroBlogTicker.addEventListener("pointerleave", resumeTicker);
-    heroBlogTicker.addEventListener("focusin", pauseTicker);
-    heroBlogTicker.addEventListener("focusout", (event) => {
-      if (event.relatedTarget instanceof Node && heroBlogTicker.contains(event.relatedTarget)) return;
+    ticker.addEventListener("pointerenter", pauseTicker);
+    ticker.addEventListener("pointerleave", resumeTicker);
+    ticker.addEventListener("focusin", pauseTicker);
+    ticker.addEventListener("focusout", (event) => {
+      if (event.relatedTarget instanceof Node && ticker.contains(event.relatedTarget)) return;
       resumeTicker();
     });
     document.addEventListener("visibilitychange", () => {
@@ -116,7 +165,7 @@
     });
     reducedMotion.addEventListener("change", scheduleNextSlide);
 
-    function setActiveSlide(nextIndex, direction = 0) {
+    function setActiveSlide(nextIndex: number, direction = 0) {
       const previousIndex = activeIndex;
       const shouldAnimate = direction !== 0 && previousIndex !== nextIndex && !reducedMotion.matches;
       clearSlideAnimation();
@@ -132,8 +181,8 @@
 
       const previousSlide = slides[previousIndex];
       const nextSlide = slides[activeIndex];
-      heroBlogTicker.classList.toggle("is-moving-next", direction > 0);
-      heroBlogTicker.classList.toggle("is-moving-previous", direction < 0);
+      ticker.classList.toggle("is-moving-next", direction > 0);
+      ticker.classList.toggle("is-moving-previous", direction < 0);
       previousSlide?.classList.add("is-leaving");
       nextSlide?.classList.add("is-entering");
       slideAnimationTimer = window.setTimeout(clearSlideAnimation, 520);
@@ -149,7 +198,7 @@
       }, interval);
     }
 
-    function showAdjacentSlide(direction) {
+    function showAdjacentSlide(direction: number) {
       setActiveSlide((activeIndex + direction + slides.length) % slides.length, direction);
       scheduleNextSlide();
     }
@@ -157,7 +206,7 @@
     function clearSlideAnimation() {
       if (slideAnimationTimer) window.clearTimeout(slideAnimationTimer);
       slideAnimationTimer = 0;
-      heroBlogTicker.classList.remove("is-moving-next", "is-moving-previous");
+      ticker.classList.remove("is-moving-next", "is-moving-previous");
       slides.forEach((slide) => slide.classList.remove("is-entering", "is-leaving"));
     }
 
@@ -238,14 +287,14 @@
     });
   }
 
-  function getLocalePath(select) {
+  function getLocalePath(select: HTMLSelectElement) {
     const value = select.value;
     const optionExists = Array.from(select.options).some((option) => option.value === value);
     if (!optionExists) return "/";
     return value.startsWith("/") && !value.startsWith("//") ? value : "/";
   }
 
-  function getCurrentLocalePath(select) {
+  function getCurrentLocalePath(select: HTMLSelectElement) {
     const path = window.location.pathname.endsWith("/") ? window.location.pathname : `${window.location.pathname}/`;
     const options = Array.from(select.options).map((option) => option.value);
     return options.find((value) => path === value) ||
@@ -297,8 +346,8 @@
   });
 
   if (walkthroughSeekButtons.length) {
-    window.addEventListener("resize", updateWalkthroughKeyPointViewport);
-    document.fonts?.ready.then(updateWalkthroughKeyPointViewport).catch(() => undefined);
+    window.addEventListener("resize", () => updateWalkthroughKeyPointViewport());
+    document.fonts?.ready.then(() => updateWalkthroughKeyPointViewport()).catch(() => undefined);
   }
 
   setupStoreVersionAlertScrollFade();
@@ -326,7 +375,8 @@
     && !userAgent.includes("crios/")
     && !userAgent.includes("edg/");
   const primaryStoreKey = isSafari ? "safari" : isFirefox ? "firefox" : "chrome";
-  const browserBrands = Array.from(navigator.userAgentData?.brands || [])
+  const userAgentData = (navigator as Navigator & { userAgentData?: NavigatorUAData }).userAgentData;
+  const browserBrands = Array.from(userAgentData?.brands || [])
     .map(({ brand }) => brand.toLowerCase());
   const isKnownAlternativeChromium = "brave" in navigator || [
     "edg/",
@@ -382,14 +432,15 @@
     setStoreOptionsExpanded(false);
   });
 
-  function setStoreOptionsExpanded(isExpanded) {
+  function setStoreOptionsExpanded(isExpanded: boolean) {
+    if (!storeToggle || !storeOptions) return;
     storeToggle.setAttribute("aria-expanded", String(isExpanded));
     storeOptions.hidden = !isExpanded;
   }
 
   async function checkStoreVersionStatus() {
-    const alert = document.querySelector("[data-store-version-alert]");
-    const message = document.querySelector("[data-store-version-alert-message]");
+    const alert = document.querySelector<HTMLElement>("[data-store-version-alert]");
+    const message = document.querySelector<HTMLElement>("[data-store-version-alert-message]");
     if (!alert || !message) return;
 
     const versions = await fetchPublishedVersions();
@@ -397,15 +448,13 @@
     const releaseVersion = versions.release;
     if (!releaseVersion) return;
 
-    const pendingStores = [
-      ["chrome", versions.chrome],
-      ["firefox", versions.firefox],
-      ["safari", versions.safari]
-    ].filter(([key, version]) => isPendingStoreVersion(key, releaseVersion, version));
+    const pendingStores = storeKeys.filter((key) => (
+      isPendingStoreVersion(key, releaseVersion, versions[key])
+    ));
 
     if (!pendingStores.length) return;
 
-    const stores = pendingStores.map(([key]) => alert.dataset[`alert${capitalize(key)}`]);
+    const stores = pendingStores.map((key) => alert.dataset[`alert${capitalize(key)}`]);
     const storeList = formatStoreList(stores, alert.dataset.alertAnd || "and");
     const bodyTemplate = alert.dataset.alertBody || "{stores} will get the latest version soon.";
 
@@ -414,7 +463,7 @@
   }
 
   function setupStoreVersionAlertScrollFade() {
-    const alert = document.querySelector("[data-store-version-alert]");
+    const alert = document.querySelector<HTMLElement>("[data-store-version-alert]");
     if (!alert) return;
 
     let frame = 0;
@@ -436,7 +485,7 @@
   }
 
   function setupTopHeaderState() {
-    const header = document.querySelector(".site-header");
+    const header = document.querySelector<HTMLElement>(".site-header");
     if (!header) return;
 
     let frame = 0;
@@ -446,7 +495,7 @@
     const replayLogoAnimation = () => {
       if (reducedMotion.matches || logoAnimationTimer) return;
 
-      const animatedParts = header.querySelectorAll(".brand-logo-bg, .brand-logo-mark");
+      const animatedParts = header.querySelectorAll<HTMLElement>(".brand-logo-bg, .brand-logo-mark");
       if (!animatedParts.length) return;
 
       animatedParts.forEach((part) => {
@@ -480,20 +529,20 @@
   }
 
   function setupActiveNavigation() {
-    const navLinks = Array.from(document.querySelectorAll(
+    const navLinks = Array.from(document.querySelectorAll<HTMLAnchorElement>(
       ".site-nav a[data-nav-section], .site-nav a[data-nav-page], .mobile-header-menu-nav a[data-nav-section], .mobile-header-menu-nav a[data-nav-page]"
     ));
     if (!navLinks.length) return;
 
-    const desktopNav = document.querySelector(".site-nav");
+    const desktopNav = document.querySelector<HTMLElement>(".site-nav");
     const desktopNavLinks = desktopNav instanceof HTMLElement
-      ? Array.from(desktopNav.querySelectorAll("a")).filter((link) => link instanceof HTMLElement)
+      ? Array.from(desktopNav.querySelectorAll<HTMLAnchorElement>("a"))
       : [];
-    let hoveredDesktopNavLink = null;
+    let hoveredDesktopNavLink: HTMLAnchorElement | null = null;
 
     const getActiveDesktopNavLink = () => desktopNavLinks.find((link) => link.classList.contains("site-nav-active")) || null;
 
-    const setDesktopNavHighlight = (link) => {
+    const setDesktopNavHighlight = (link: HTMLElement | null) => {
       if (!(desktopNav instanceof HTMLElement)) return;
 
       if (!(link instanceof HTMLElement) || !desktopNav.offsetParent) {
@@ -542,7 +591,7 @@
       document.fonts?.ready.then(syncDesktopNavHighlight).catch(() => undefined);
     }
 
-    const setActiveLink = (activeLink, currentValue = "location") => {
+    const setActiveLink = (activeLink: HTMLAnchorElement | null | undefined, currentValue = "location") => {
       const activeSection = activeLink?.dataset.navSection;
       const activePage = activeLink?.dataset.navPage;
       navLinks.forEach((link) => {
@@ -572,20 +621,24 @@
       return;
     }
 
-    const seenSectionIds = new Set();
-    const sectionEntries = navLinks
-      .map((link) => {
-        const sectionId = link.dataset.navSection;
-        if (!sectionId || seenSectionIds.has(sectionId)) return null;
+    const seenSectionIds = new Set<string>();
+    const sectionEntries: NavigationSectionEntry[] = [];
+    navLinks.forEach((link) => {
+      const sectionId = link.dataset.navSection;
+      if (!sectionId || seenSectionIds.has(sectionId)) return;
 
-        seenSectionIds.add(sectionId);
-        return { link, section: document.getElementById(sectionId) };
-      })
-      .filter((entry) => entry?.section);
+      const section = document.getElementById(sectionId);
+      if (!section) return;
+
+      seenSectionIds.add(sectionId);
+      sectionEntries.push({ link, section });
+    });
     if (!sectionEntries.length) return;
 
-    const sectionEntriesById = new Map(sectionEntries.map((entry) => [entry.section.id, entry]));
-    let pendingSectionId = null;
+    const sectionEntriesById = new Map<string, NavigationSectionEntry>(
+      sectionEntries.map((entry) => [entry.section.id, entry])
+    );
+    let pendingSectionId: string | null = null;
     let pendingSectionTimer = 0;
     let frame = 0;
     const clearPendingSection = () => {
@@ -597,7 +650,7 @@
     };
     const getScrollActiveEntry = () => {
       const probeLine = window.innerHeight * 0.42;
-      return sectionEntries.reduce((currentEntry, entry) => {
+      return sectionEntries.reduce<NavigationSectionEntry | null>((currentEntry, entry) => {
         const rect = entry.section.getBoundingClientRect();
         return rect.top <= probeLine ? entry : currentEntry;
       }, null);
@@ -622,7 +675,7 @@
       if (frame) return;
       frame = window.requestAnimationFrame(update);
     };
-    const setPendingSection = (sectionId) => {
+    const setPendingSection = (sectionId: string) => {
       clearPendingSection();
       pendingSectionId = sectionId;
       pendingSectionTimer = window.setTimeout(() => {
@@ -664,18 +717,18 @@
   }
 
   function setupCommandDemo() {
-    const demo = document.querySelector("[data-command-demo]");
+    const demo = document.querySelector<HTMLElement>("[data-command-demo]");
     if (!demo) return;
 
-    const input = demo.querySelector("[data-command-input]");
-    const inputWrap = demo.querySelector("[data-command-input-wrap]");
-    const cycleCurrent = demo.querySelector("[data-command-cycle-current]");
-    const cycleCurrentText = demo.querySelector("[data-command-cycle-current-text]");
-    const cycleNext = demo.querySelector("[data-command-cycle-next]");
-    const cycleNextText = demo.querySelector("[data-command-cycle-next-text]");
-    const menu = demo.querySelector("[data-command-menu]");
+    const input = demo.querySelector<HTMLInputElement>("[data-command-input]");
+    const inputWrap = demo.querySelector<HTMLElement>("[data-command-input-wrap]");
+    const cycleCurrent = demo.querySelector<HTMLElement>("[data-command-cycle-current]");
+    const cycleCurrentText = demo.querySelector<HTMLElement>("[data-command-cycle-current-text]");
+    const cycleNext = demo.querySelector<HTMLElement>("[data-command-cycle-next]");
+    const cycleNextText = demo.querySelector<HTMLElement>("[data-command-cycle-next-text]");
+    const menu = demo.querySelector<HTMLElement>("[data-command-menu]");
     const options = Array.from(demo.querySelectorAll("[data-command-option]"))
-      .filter((option) => option instanceof HTMLElement);
+      .filter((option): option is HTMLElement => option instanceof HTMLElement);
 
     if (!(input instanceof HTMLInputElement) || !(menu instanceof HTMLElement) || !options.length) return;
 
@@ -691,14 +744,14 @@
     let cycleAnimationTimer = 0;
     let interactionTimer = 0;
     let cycleIndex = Math.max(0, options.indexOf(initialOption));
-    const optionTemplate = (option) => option?.dataset.commandTemplate || option?.dataset.commandValue || "";
-    const optionAfter = (index) => options[(index + 1) % options.length] || options[0];
-    const setInputTemplateWidth = (template) => {
+    const optionTemplate = (option: HTMLElement | null | undefined) => option?.dataset.commandTemplate || option?.dataset.commandValue || "";
+    const optionAfter = (index: number) => options[(index + 1) % options.length] || options[0];
+    const setInputTemplateWidth = (template: string) => {
       if (!(inputWrap instanceof HTMLElement)) return;
       const width = Math.min(Math.max(template.length + 1, 9), 34);
       inputWrap.style.setProperty("--command-input-text-width", `${width}ch`);
     };
-    const setActiveOption = (nextOption) => {
+    const setActiveOption = (nextOption: HTMLElement | null | undefined) => {
       if (!nextOption) return;
       options.forEach((option) => {
         const isActive = option === nextOption;
@@ -707,7 +760,7 @@
         option.setAttribute("tabindex", isActive ? "0" : "-1");
       });
     };
-    const updateCycleText = (currentOption) => {
+    const updateCycleText = (currentOption: HTMLElement) => {
       if (!(cycleCurrentText instanceof HTMLElement) || !(cycleNextText instanceof HTMLElement)) return;
       const currentIndex = Math.max(0, options.indexOf(currentOption));
       const currentTemplate = optionTemplate(currentOption);
@@ -715,12 +768,12 @@
       cycleNextText.textContent = optionTemplate(optionAfter(currentIndex));
       setInputTemplateWidth(currentTemplate);
     };
-    const setCycleState = (enabled) => {
+    const setCycleState = (enabled: boolean) => {
       if (!(inputWrap instanceof HTMLElement)) return;
       inputWrap.classList.toggle("is-cycling", enabled);
       if (!enabled) inputWrap.classList.remove("is-sliding");
     };
-    const keepOptionVisible = (option) => {
+    const keepOptionVisible = (option: HTMLElement) => {
       if (isManuallyScrollingMenu) return;
 
       const optionRect = option.getBoundingClientRect();
@@ -742,7 +795,7 @@
         behavior: reducedMotion.matches ? "auto" : "smooth"
       });
     };
-    const selectCycleOption = (option) => {
+    const selectCycleOption = (option: HTMLElement | undefined) => {
       if (!option) return;
       setActiveOption(option);
       keepOptionVisible(option);
@@ -792,7 +845,7 @@
       window.clearTimeout(cycleTimer);
       cycleTimer = window.setTimeout(cycleToNextOption, cycleDelayMs);
     };
-    const cycleToOption = (nextOption, { automatic = true } = {}) => {
+    const cycleToOption = (nextOption: HTMLElement | undefined, { automatic = true }: CycleOptionOptions = {}) => {
       if (!nextOption || (automatic && !isAutoCycling)) return;
       const nextIndex = Math.max(0, options.indexOf(nextOption));
       const completeCycle = () => {
@@ -859,7 +912,7 @@
     });
   }
 
-  function formatStoreList(stores, conjunction) {
+  function formatStoreList(stores: Array<string | undefined>, conjunction: string) {
     if (stores.length <= 2) return stores.join(` ${conjunction} `);
     return `${stores.slice(0, -1).join(", ")} ${conjunction} ${stores.at(-1)}`;
   }
@@ -913,7 +966,7 @@
     }
   }
 
-  function openWalkthroughModal(videoUrl, options = {}) {
+  function openWalkthroughModal(videoUrl: URL, options: WalkthroughOpenOptions = {}) {
     if (!(walkthroughVideo instanceof HTMLVideoElement)) return;
 
     if (options.updateHash && !isWalkthroughHash()) {
@@ -944,7 +997,7 @@
     window.open(fallbackVideoUrl.href, "_blank", "noopener");
   }
 
-  function prepareWalkthroughVideo(videoUrl, preload) {
+  function prepareWalkthroughVideo(videoUrl: URL, preload: WalkthroughPreload) {
     if (!(walkthroughVideo instanceof HTMLVideoElement)) return;
     if (preload !== "auto" && walkthroughVideo.preload === "auto") return;
 
@@ -957,7 +1010,7 @@
     walkthroughVideo.load();
   }
 
-  function scheduleWalkthroughMetadataPreload(videoUrl) {
+  function scheduleWalkthroughMetadataPreload(videoUrl: URL) {
     const preloadMetadata = () => {
       if (document.hidden) return;
       prepareWalkthroughVideo(videoUrl, "metadata");
@@ -971,7 +1024,7 @@
     window.setTimeout(preloadMetadata, 2_000);
   }
 
-  function startWalkthroughPlayback(options = {}) {
+  function startWalkthroughPlayback(options: WalkthroughPlaybackOptions = {}) {
     if (!(walkthroughVideo instanceof HTMLVideoElement)) return;
 
     walkthroughVideo.volume = 1;
@@ -984,7 +1037,7 @@
     });
   }
 
-  function closeWalkthroughModal(options = {}) {
+  function closeWalkthroughModal(options: WalkthroughCloseOptions = {}) {
     if (walkthroughVideo instanceof HTMLVideoElement) walkthroughVideo.pause();
     hideWalkthroughPlaybackFeedback();
     if (walkthroughModal && typeof walkthroughModal.close === "function") walkthroughModal.close();
@@ -1000,7 +1053,7 @@
     history.replaceState(null, "", `${window.location.pathname}${window.location.search}`);
   }
 
-  function handleWalkthroughModalKeydown(event) {
+  function handleWalkthroughModalKeydown(event: KeyboardEvent) {
     if (!(walkthroughVideo instanceof HTMLVideoElement)) return;
     if (!walkthroughModal || !walkthroughModal.open) return;
     if (event.key === " " || event.key === "Spacebar" || event.code === "Space") {
@@ -1035,7 +1088,7 @@
     return { button, seconds };
   }
 
-  function setWalkthroughCurrentTime(nextTime) {
+  function setWalkthroughCurrentTime(nextTime: number) {
     if (!(walkthroughVideo instanceof HTMLVideoElement)) return;
     if (!Number.isFinite(nextTime) || nextTime < 0) return;
 
@@ -1054,7 +1107,7 @@
     walkthroughPendingSeekTime = null;
   }
 
-  function seekWalkthroughToKeyPoint(button, options = {}) {
+  function seekWalkthroughToKeyPoint(button: HTMLElement, options: WalkthroughSeekOptions = {}) {
     if (!(button instanceof HTMLElement)) return;
     if (!(walkthroughVideo instanceof HTMLVideoElement)) return;
 
@@ -1068,7 +1121,7 @@
     walkthroughVideo.focus({ preventScroll: true });
   }
 
-  function updateWalkthroughHash(button) {
+  function updateWalkthroughHash(button: HTMLElement) {
     const chapter = button.dataset.walkthroughChapter;
     if (!chapter) return;
 
@@ -1083,7 +1136,7 @@
     setWalkthroughKeyPointPanelOpen(!walkthroughKeyPoints.classList.contains("is-key-points-open"));
   }
 
-  function setWalkthroughKeyPointPanelOpen(isOpen) {
+  function setWalkthroughKeyPointPanelOpen(isOpen: boolean) {
     if (walkthroughKeyPoints instanceof HTMLElement) {
       walkthroughKeyPoints.classList.toggle("is-key-points-open", isOpen);
     }
@@ -1111,7 +1164,7 @@
     showWalkthroughPlaybackFeedback("pause");
   }
 
-  function showWalkthroughPlaybackFeedback(state) {
+  function showWalkthroughPlaybackFeedback(state: WalkthroughPlaybackState) {
     if (!(walkthroughVideoFeedback instanceof HTMLElement)) return;
 
     window.clearTimeout(walkthroughFeedbackTimer);
@@ -1135,7 +1188,7 @@
   }
 
   function updateWalkthroughTimeBadge() {
-    const updateTimeText = (text) => {
+    const updateTimeText = (text: string) => {
       if (walkthroughTimeLabel instanceof HTMLElement) {
         walkthroughTimeLabel.textContent = text;
         return;
@@ -1232,12 +1285,12 @@
     return Math.max(48, Math.floor(availableHeight));
   }
 
-  function getCssPixelValue(value) {
+  function getCssPixelValue(value: string) {
     const pixels = Number.parseFloat(value);
     return Number.isFinite(pixels) ? pixels : 0;
   }
 
-  function formatWalkthroughTime(value) {
+  function formatWalkthroughTime(value: number) {
     if (!Number.isFinite(value) || value < 0) return "0:00";
 
     const totalSeconds = Math.floor(value);
@@ -1246,18 +1299,19 @@
     return `${minutes}:${String(seconds).padStart(2, "0")}`;
   }
 
-  async function fetchPublishedVersions() {
+  async function fetchPublishedVersions(): Promise<VersionMap> {
     const entries = await Promise.all(
-      Object.entries(versionBadgeSources).map(async ([key, source]) => [key, await fetchShieldMessage(source.json)])
+      (Object.entries(versionBadgeSources) as Array<[VersionBadgeKey, VersionBadgeSource]>)
+        .map(async ([key, source]): Promise<[VersionBadgeKey, string]> => [key, await fetchShieldMessage(source.json)])
     );
     return Object.fromEntries(entries);
   }
 
-  function updateVersionBadges(versions) {
+  function updateVersionBadges(versions: VersionMap) {
     const releaseVersion = versions.release;
     setVersionBadgeColor("release", versionBadgeColors.current);
 
-    for (const key of ["chrome", "firefox", "safari"]) {
+    for (const key of storeKeys) {
       const storeVersion = versions[key];
       const color = getStoreVersionBadgeColor(key, releaseVersion, storeVersion);
 
@@ -1265,7 +1319,7 @@
     }
   }
 
-  function getStoreVersionBadgeColor(key, releaseVersion, storeVersion) {
+  function getStoreVersionBadgeColor(key: StoreKey, releaseVersion: string | undefined, storeVersion: string | undefined) {
     if (!releaseVersion || !storeVersion) return versionBadgeColors.unknown;
     if (normalizeVersion(storeVersion) === normalizeVersion(releaseVersion)) {
       return versionBadgeColors.current;
@@ -1273,57 +1327,61 @@
     return shouldShowPendingState(key) ? versionBadgeColors.pending : versionBadgeColors.unknown;
   }
 
-  function isPendingStoreVersion(key, releaseVersion, storeVersion) {
+  function isPendingStoreVersion(key: StoreKey, releaseVersion: string, storeVersion: string | undefined) {
+    if (!storeVersion) return false;
     return shouldShowPendingState(key)
-      && Boolean(storeVersion)
       && normalizeVersion(storeVersion) !== normalizeVersion(releaseVersion);
   }
 
-  function shouldShowPendingState(key) {
+  function shouldShowPendingState(key: StoreKey) {
     return versionBadgeSources[key]?.showPendingState !== false;
   }
 
-  function setVersionBadgeColor(key, color) {
-    const image = document.querySelector(`[data-version-badge="${key}"]`);
+  function setVersionBadgeColor(key: VersionBadgeKey, color: string) {
+    const image = document.querySelector<HTMLImageElement>(`[data-version-badge="${key}"]`);
     const source = versionBadgeSources[key];
     if (!(image instanceof HTMLImageElement) || !source) return;
 
     image.src = `${source.image}&color=${encodeURIComponent(color)}`;
   }
 
-  async function fetchShieldMessage(url) {
+  async function fetchShieldMessage(url: string) {
     try {
       const response = await fetch(url, { cache: "no-store" });
       if (!response.ok) return "";
-      const badge = await response.json();
-      const message = typeof badge.message === "string" ? badge.message : "";
+      const badge: unknown = await response.json();
+      const message = badge && typeof badge === "object" && "message" in badge && typeof badge.message === "string"
+        ? badge.message
+        : "";
       return isVersionMessage(message) ? message : "";
     } catch {
       return "";
     }
   }
 
-  function isVersionMessage(value) {
+  function isVersionMessage(value: unknown) {
     return /^v?\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$/.test(String(value).trim());
   }
 
-  function normalizeVersion(version) {
+  function normalizeVersion(version: string) {
     return String(version).trim().replace(/^v/i, "");
   }
 
-  function capitalize(value) {
+  function capitalize(value: string) {
     return value.charAt(0).toUpperCase() + value.slice(1);
   }
 
-  function readDocsConfig() {
+  function readDocsConfig(): DocsConfig {
     const configScript = document.querySelector('script[type="application/json"][data-docs-config]');
     if (!(configScript instanceof HTMLScriptElement)) return {};
 
     try {
-      const value = JSON.parse(configScript.textContent || "{}");
+      const value: unknown = JSON.parse(configScript.textContent || "{}");
       return value && typeof value === "object" && !Array.isArray(value) ? value : {};
     } catch {
       return {};
     }
   }
-})();
+}
+
+initializeDocsHome();

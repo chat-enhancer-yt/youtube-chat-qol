@@ -1,31 +1,61 @@
-(() => {
-  const clipTriggers = Array.from(document.querySelectorAll("[data-walkthrough-clip-open]"));
-  const clipModal = document.querySelector("[data-walkthrough-clip-modal]");
-  const clipTitle = clipModal?.querySelector("[data-walkthrough-clip-title]");
-  const clipVideo = document.querySelector("[data-walkthrough-clip-video]");
-  const clipFrame = document.querySelector("[data-walkthrough-clip-frame]");
-  const clipModalPanel = document.querySelector("[data-walkthrough-clip-modal-panel]");
-  const clipPreview = document.querySelector("[data-walkthrough-clip-preview]");
+interface WalkthroughClip {
+  endSeconds: number | null;
+  hash: string;
+  startSeconds: number;
+  title: string;
+}
+
+interface ClipOpenOptions {
+  continueFromPreview?: boolean;
+  updateHash?: boolean;
+}
+
+interface ClipPreviewCloseOptions {
+  keepActive?: boolean;
+  keepPlayback?: boolean;
+}
+
+interface ClipCloseOptions {
+  clearHash?: boolean;
+}
+
+interface DocsConfig {
+  walkthrough?: unknown;
+}
+
+type ClipPreload = "auto" | "metadata";
+
+export function initializeWalkthroughClips() {
+  const clipTriggers = Array.from(document.querySelectorAll<HTMLElement>("[data-walkthrough-clip-open]"));
+  const clipModalElement = document.querySelector<HTMLDialogElement>("[data-walkthrough-clip-modal]");
+  const clipTitle = clipModalElement?.querySelector<HTMLElement>("[data-walkthrough-clip-title]");
+  const clipVideoElement = document.querySelector<HTMLVideoElement>("[data-walkthrough-clip-video]");
+  const clipFrame = document.querySelector<HTMLElement>("[data-walkthrough-clip-frame]");
+  const clipModalPanel = document.querySelector<HTMLElement>("[data-walkthrough-clip-modal-panel]");
+  const clipPreview = document.querySelector<HTMLElement>("[data-walkthrough-clip-preview]");
   const walkthroughPath = readDocsConfig().walkthrough;
 
   if (
     !clipTriggers.length ||
-    !clipModal ||
-    !(clipVideo instanceof HTMLVideoElement) ||
+    !clipModalElement ||
+    !(clipVideoElement instanceof HTMLVideoElement) ||
     typeof walkthroughPath !== "string" ||
     !walkthroughPath
   ) {
     return;
   }
 
-  const clips = new Map(
-    clipTriggers
-      .map((trigger) => [trigger, readClip(trigger)])
-      .filter((entry) => entry[1] !== null)
-  );
+  const clipModal = clipModalElement;
+  const clipVideo = clipVideoElement;
+
+  const clips = new Map<HTMLElement, WalkthroughClip>();
+  for (const trigger of clipTriggers) {
+    const clip = readClip(trigger);
+    if (clip) clips.set(trigger, clip);
+  }
   if (!clips.size) return;
 
-  const clipsByHash = new Map();
+  const clipsByHash = new Map<string, WalkthroughClip>();
   const videoUrl = new URL(walkthroughPath, window.location.href);
   const hoverPreviewQuery = typeof window.matchMedia === "function"
     ? window.matchMedia("(hover: hover) and (pointer: fine)")
@@ -33,20 +63,20 @@
   const reducedMotionQuery = typeof window.matchMedia === "function"
     ? window.matchMedia("(prefers-reduced-motion: reduce)")
     : null;
-  const canPreviewOnHover = (
+  const previewElements = (
     clipFrame instanceof HTMLElement &&
     clipModalPanel instanceof HTMLElement &&
-    clipPreview instanceof HTMLElement &&
-    hoverPreviewQuery?.matches === true
-  );
-  let activeClip = null;
+    clipPreview instanceof HTMLElement
+  ) ? { frame: clipFrame, modalPanel: clipModalPanel, preview: clipPreview } : null;
+  const canPreviewOnHover = previewElements !== null && hoverPreviewQuery?.matches === true;
+  let activeClip: WalkthroughClip | null = null;
   let clearHashOnModalClose = true;
-  let hoveredTrigger = null;
+  let hoveredTrigger: HTMLElement | null = null;
   let loopFrame = 0;
-  let pendingStartTime = null;
+  let pendingStartTime: number | null = null;
   let previewCloseTimer = 0;
   let previewTimer = 0;
-  let previewTrigger = null;
+  let previewTrigger: HTMLElement | null = null;
 
   clips.forEach((clip, trigger) => {
     if (!clipsByHash.has(clip.hash)) clipsByHash.set(clip.hash, clip);
@@ -117,9 +147,9 @@
     startActivePlayback();
   });
 
-  if (canPreviewOnHover) {
-    clipPreview.addEventListener("pointerenter", cancelPreviewCloseTimer);
-    clipPreview.addEventListener("pointerleave", scheduleClipPreviewClose);
+  if (canPreviewOnHover && previewElements) {
+    previewElements.preview.addEventListener("pointerenter", cancelPreviewCloseTimer);
+    previewElements.preview.addEventListener("pointerleave", scheduleClipPreviewClose);
     window.addEventListener("resize", positionClipPreview);
     window.addEventListener("scroll", positionClipPreview, true);
   }
@@ -130,7 +160,7 @@
     window.requestAnimationFrame(syncClipToHash);
   }
 
-  function readClip(trigger) {
+  function readClip(trigger: HTMLElement): WalkthroughClip | null {
     if (!(trigger instanceof HTMLElement)) return null;
 
     const chapter = trigger.dataset.walkthroughClipChapter?.trim().toLowerCase();
@@ -149,7 +179,7 @@
     };
   }
 
-  function openClip(clip, options = {}) {
+  function openClip(clip: WalkthroughClip | null | undefined, options: ClipOpenOptions = {}) {
     if (!clip) return;
 
     const continueFromPreview = (
@@ -174,13 +204,13 @@
 
     activeClip = clip;
     prepareClipVideo("auto");
-    if (clipTitle instanceof HTMLElement && clip.title) clipTitle.textContent = clip.title;
+    if (clipTitle && clip.title) clipTitle.textContent = clip.title;
     if (!continueFromPreview) seekToClipStart();
     if (!clipModal.open) clipModal.showModal();
     startPlayback();
   }
 
-  function scheduleClipPreview(trigger) {
+  function scheduleClipPreview(trigger: HTMLElement) {
     if (
       !canPreviewOnHover ||
       clipModal.open ||
@@ -195,31 +225,31 @@
     }, 250);
   }
 
-  function openClipPreview(trigger, clip) {
-    if (!canPreviewOnHover || !clip || hoveredTrigger !== trigger || clipModal.open) return;
+  function openClipPreview(trigger: HTMLElement, clip: WalkthroughClip | undefined) {
+    if (!canPreviewOnHover || !previewElements || !clip || hoveredTrigger !== trigger || clipModal.open) return;
 
     cancelPreviewCloseTimer();
     activeClip = clip;
     previewTrigger = trigger;
     prepareClipVideo("auto");
-    clipPreview.append(clipFrame);
-    clipPreview.hidden = false;
+    previewElements.preview.append(previewElements.frame);
+    previewElements.preview.hidden = false;
     positionClipPreview();
-    void clipPreview.offsetWidth;
-    clipPreview.classList.add("is-visible");
+    void previewElements.preview.offsetWidth;
+    previewElements.preview.classList.add("is-visible");
     seekToClipStart();
     startPreviewPlayback();
   }
 
-  function closeClipPreview(options = {}) {
+  function closeClipPreview(options: ClipPreviewCloseOptions = {}) {
     cancelPreviewTimer();
     cancelPreviewCloseTimer();
-    if (!isClipPreviewOpen()) return;
+    if (!previewElements || !isClipPreviewOpen()) return;
 
-    clipPreview.classList.remove("is-visible");
-    clipPreview.hidden = true;
-    clipPreview.removeAttribute("data-placement");
-    clipModalPanel.append(clipFrame);
+    previewElements.preview.classList.remove("is-visible");
+    previewElements.preview.hidden = true;
+    previewElements.preview.removeAttribute("data-placement");
+    previewElements.modalPanel.append(previewElements.frame);
     previewTrigger = null;
     if (!options.keepPlayback) clipVideo.pause();
     if (!options.keepActive) {
@@ -251,14 +281,14 @@
   }
 
   function isClipPreviewOpen() {
-    return canPreviewOnHover && clipPreview.hidden === false;
+    return canPreviewOnHover && previewElements?.preview.hidden === false;
   }
 
   function positionClipPreview() {
-    if (!isClipPreviewOpen() || !(previewTrigger instanceof HTMLElement)) return;
+    if (!previewElements || !isClipPreviewOpen() || !(previewTrigger instanceof HTMLElement)) return;
 
     const triggerRect = previewTrigger.getBoundingClientRect();
-    const previewRect = clipPreview.getBoundingClientRect();
+    const previewRect = previewElements.preview.getBoundingClientRect();
     const viewportMargin = 12;
     const previewGap = 10;
     const previewWidth = previewRect.width;
@@ -272,12 +302,12 @@
     const maximumTop = Math.max(viewportMargin, window.innerHeight - previewHeight - viewportMargin);
     const top = Math.min(Math.max(viewportMargin, placeBelow ? below : above), maximumTop);
 
-    clipPreview.dataset.placement = placeBelow ? "below" : "above";
-    clipPreview.style.left = `${Math.round(left)}px`;
-    clipPreview.style.top = `${Math.round(top)}px`;
+    previewElements.preview.dataset.placement = placeBelow ? "below" : "above";
+    previewElements.preview.style.left = `${Math.round(left)}px`;
+    previewElements.preview.style.top = `${Math.round(top)}px`;
   }
 
-  function prepareClipVideo(preload) {
+  function prepareClipVideo(preload: ClipPreload) {
     if (preload !== "auto" && clipVideo.preload === "auto") return;
 
     const sourceChanged = clipVideo.src !== videoUrl.href;
@@ -303,7 +333,7 @@
     window.setTimeout(preloadMetadata, 2_000);
   }
 
-  function closeClip(options = {}) {
+  function closeClip(options: ClipCloseOptions = {}) {
     clipVideo.pause();
     if (typeof clipModal.close === "function" && clipModal.open) {
       clearHashOnModalClose = options.clearHash !== false;
@@ -336,12 +366,12 @@
     if (clipModal.open) closeClip({ clearHash: false });
   }
 
-  function updateClipHash(clip) {
+  function updateClipHash(clip: WalkthroughClip) {
     if (window.location.hash.toLowerCase() === clip.hash) return;
     history.pushState(null, "", clip.hash);
   }
 
-  function clearClipHash(clip) {
+  function clearClipHash(clip: WalkthroughClip | null) {
     if (!clip || window.location.hash.toLowerCase() !== clip.hash) return;
     history.replaceState(null, "", `${window.location.pathname}${window.location.search}`);
   }
@@ -434,15 +464,17 @@
     });
   }
 
-  function readDocsConfig() {
+  function readDocsConfig(): DocsConfig {
     const configScript = document.querySelector('script[type="application/json"][data-docs-config]');
     if (!(configScript instanceof HTMLScriptElement)) return {};
 
     try {
-      const value = JSON.parse(configScript.textContent || "{}");
+      const value: unknown = JSON.parse(configScript.textContent || "{}");
       return value && typeof value === "object" && !Array.isArray(value) ? value : {};
     } catch {
       return {};
     }
   }
-})();
+}
+
+initializeWalkthroughClips();

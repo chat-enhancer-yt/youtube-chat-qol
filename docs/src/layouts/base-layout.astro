@@ -1,7 +1,5 @@
 ---
 import '../styles/site.css';
-import homeScriptUrl from '../scripts/home.js?url';
-import walkthroughClipsScriptUrl from '../scripts/walkthrough-clips.js?url';
 import WalkthroughClipModal from '../components/common/walkthrough-clip-modal.astro';
 import type { Locale } from '../data/locales';
 import { canonicalUrlFor, htmlLangFor, localeMeta, locales } from '../data/locales';
@@ -165,8 +163,8 @@ const structuredDataJson = resolvedStructuredData
       </pagefind-modal-footer>
     </pagefind-modal>
     <script is:inline type="application/json" data-docs-config set:html={JSON.stringify(docsConfig).replace(/</g, '\\u003c')}></script>
-    <script is:inline src={homeScriptUrl}></script>
-    <script is:inline src={walkthroughClipsScriptUrl}></script>
+    <script src="../scripts/home.ts"></script>
+    <script src="../scripts/walkthrough-clips.ts"></script>
     <script is:inline type="module" src="/pagefind/pagefind-component-ui.js"></script>
     <script is:inline type="module">
       customElements.whenDefined('pagefind-input').then(() => {

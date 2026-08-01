@@ -1,11 +1,22 @@
-import { readFile } from 'node:fs/promises';
-import path from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { initializeWalkthroughClips } from './walkthrough-clips';
 
-const walkthroughClipsScript = await readFile(
-  path.resolve('docs/src/scripts/walkthrough-clips.js'),
-  'utf8'
-);
+const idleDeadline: IdleDeadline = {
+  didTimeout: false,
+  timeRemaining: () => 50
+};
+
+function requireElement<T extends Element>(selector: string, root: ParentNode = document): T {
+  const element = root.querySelector<T>(selector);
+  if (!element) throw new Error(`Expected element matching ${selector}`);
+  return element;
+}
+
+function takeNext<T>(callbacks: T[]): T {
+  const callback = callbacks.shift();
+  if (!callback) throw new Error('Expected a queued callback');
+  return callback;
+}
 
 describe('docs walkthrough clips', () => {
   afterEach(() => {
@@ -33,22 +44,22 @@ describe('docs walkthrough clips', () => {
       <script type="application/json" data-docs-config>{"walkthrough":"../videos/walkthrough.mp4"}</script>
     `;
 
-    const trigger = document.querySelector('#games-clip');
-    const video = document.querySelector('[data-walkthrough-clip-video]');
-    const idleCallbacks = [];
+    const trigger = requireElement<HTMLElement>('#games-clip');
+    const video = requireElement<HTMLVideoElement>('[data-walkthrough-clip-video]');
+    const idleCallbacks: IdleRequestCallback[] = [];
     Object.defineProperty(video, 'load', { configurable: true, value: vi.fn() });
-    vi.stubGlobal('requestIdleCallback', vi.fn((callback) => {
+    vi.stubGlobal('requestIdleCallback', vi.fn((callback: IdleRequestCallback) => {
       idleCallbacks.push(callback);
       return idleCallbacks.length;
     }));
 
-    window.eval(walkthroughClipsScript);
+    initializeWalkthroughClips();
 
     expect(video.src).toBe('');
     expect(video.preload).toBe('none');
     expect(video.load).not.toHaveBeenCalled();
 
-    idleCallbacks.shift()();
+    takeNext(idleCallbacks)(idleDeadline);
     expect(video.src).toBe(new URL('../videos/walkthrough.mp4', window.location.href).href);
     expect(video.preload).toBe('metadata');
     expect(video.load).toHaveBeenCalledOnce();
@@ -82,18 +93,18 @@ describe('docs walkthrough clips', () => {
       <script type="application/json" data-docs-config>{"walkthrough":"../videos/walkthrough.mp4"}</script>
     `;
 
-    const trigger = document.querySelector('#games-clip');
-    const preview = document.querySelector('[data-walkthrough-clip-preview]');
-    const modal = document.querySelector('[data-walkthrough-clip-modal]');
-    const modalPanel = document.querySelector('[data-walkthrough-clip-modal-panel]');
-    const frame = document.querySelector('[data-walkthrough-clip-frame]');
-    const video = document.querySelector('[data-walkthrough-clip-video]');
+    const trigger = requireElement<HTMLElement>('#games-clip');
+    const preview = requireElement<HTMLElement>('[data-walkthrough-clip-preview]');
+    const modal = requireElement<HTMLDialogElement>('[data-walkthrough-clip-modal]');
+    const modalPanel = requireElement<HTMLElement>('[data-walkthrough-clip-modal-panel]');
+    const frame = requireElement<HTMLElement>('[data-walkthrough-clip-frame]');
+    const video = requireElement<HTMLVideoElement>('[data-walkthrough-clip-video]');
     let currentTime = 0;
     let isPaused = true;
 
-    vi.stubGlobal('matchMedia', vi.fn((query) => ({
+    vi.stubGlobal('matchMedia', vi.fn((query: string) => ({
       matches: query === '(hover: hover) and (pointer: fine)'
-    })));
+    }) as MediaQueryList));
     vi.spyOn(trigger, 'getBoundingClientRect').mockReturnValue({
       bottom: 330,
       height: 30,
@@ -121,7 +132,7 @@ describe('docs walkthrough clips', () => {
       currentTime: {
         configurable: true,
         get: () => currentTime,
-        set: (value) => {
+        set: (value: number) => {
           currentTime = value;
         }
       },
@@ -150,7 +161,7 @@ describe('docs walkthrough clips', () => {
       value: vi.fn(() => modal.setAttribute('open', ''))
     });
 
-    window.eval(walkthroughClipsScript);
+    initializeWalkthroughClips();
     trigger.dispatchEvent(new Event('pointerenter'));
 
     vi.advanceTimersByTime(249);
@@ -231,13 +242,13 @@ describe('docs walkthrough clips', () => {
       <script type="application/json" data-docs-config>{"walkthrough":"../videos/walkthrough.mp4"}</script>
     `;
 
-    const modal = document.querySelector('[data-walkthrough-clip-modal]');
-    const video = document.querySelector('[data-walkthrough-clip-video]');
-    const gamesTrigger = document.querySelector('#games-clip');
-    const draftsTrigger = document.querySelector('#drafts-clip');
-    const commandsTrigger = document.querySelector('#commands-tag');
-    const frameCallbacks = [];
-    const idleCallbacks = [];
+    const modal = requireElement<HTMLDialogElement>('[data-walkthrough-clip-modal]');
+    const video = requireElement<HTMLVideoElement>('[data-walkthrough-clip-video]');
+    const gamesTrigger = requireElement<HTMLElement>('#games-clip');
+    const draftsTrigger = requireElement<HTMLElement>('#drafts-clip');
+    const commandsTrigger = requireElement<HTMLElement>('#commands-tag');
+    const frameCallbacks: FrameRequestCallback[] = [];
+    const idleCallbacks: IdleRequestCallback[] = [];
     let currentTime = 0;
     let isPaused = true;
 
@@ -245,7 +256,7 @@ describe('docs walkthrough clips', () => {
       currentTime: {
         configurable: true,
         get: () => currentTime,
-        set: (value) => {
+        set: (value: number) => {
           currentTime = value;
         }
       },
@@ -287,25 +298,25 @@ describe('docs walkthrough clips', () => {
       return frameCallbacks.length;
     });
     vi.spyOn(window, 'cancelAnimationFrame').mockImplementation(() => undefined);
-    vi.stubGlobal('requestIdleCallback', vi.fn((callback) => {
+    vi.stubGlobal('requestIdleCallback', vi.fn((callback: IdleRequestCallback) => {
       idleCallbacks.push(callback);
       return idleCallbacks.length;
     }));
 
     window.history.replaceState(null, '', '#clip-translate-what-you-type');
-    window.eval(walkthroughClipsScript);
+    initializeWalkthroughClips();
     expect(window.requestIdleCallback).toHaveBeenCalledOnce();
-    frameCallbacks.shift()(0);
+    takeNext(frameCallbacks)(0);
 
     expect(modal.open).toBe(true);
     expect(window.location.hash).toBe('#clip-translate-what-you-type');
-    expect(modal.querySelector('[data-walkthrough-clip-title]').textContent).toBe('Draft translator');
+    expect(requireElement<HTMLElement>('[data-walkthrough-clip-title]', modal).textContent).toBe('Draft translator');
     expect(video.currentTime).toBe(28);
     expect(video.play).toHaveBeenCalledOnce();
     expect(video.preload).toBe('auto');
     expect(video.src).toBe(new URL('../videos/walkthrough.mp4', window.location.href).href);
 
-    idleCallbacks.shift()();
+    takeNext(idleCallbacks)(idleDeadline);
     expect(video.preload).toBe('auto');
 
     expect(gamesTrigger.getAttribute('aria-controls')).toBe('walkthrough-clip');
@@ -314,7 +325,7 @@ describe('docs walkthrough clips', () => {
     expect(window.location.hash).toBe('#clip-games');
     expect(modal.open).toBe(true);
     expect(gamesTrigger.textContent).toBe('Games');
-    expect(modal.querySelector('[data-walkthrough-clip-title]').textContent).toBe('Games');
+    expect(requireElement<HTMLElement>('[data-walkthrough-clip-title]', modal).textContent).toBe('Games');
     expect(video.currentTime).toBe(122);
     expect(video.play).toHaveBeenCalledTimes(2);
 
@@ -330,14 +341,14 @@ describe('docs walkthrough clips', () => {
     draftsTrigger.dispatchEvent(new MouseEvent('click', { bubbles: true, button: 0, cancelable: true }));
     expect(window.location.hash).toBe('#clip-translate-what-you-type');
     expect(draftsTrigger.textContent).toBe('Drafts');
-    expect(modal.querySelector('[data-walkthrough-clip-title]').textContent).toBe('Draft translator');
+    expect(requireElement<HTMLElement>('[data-walkthrough-clip-title]', modal).textContent).toBe('Draft translator');
     expect(video.currentTime).toBe(28);
 
     commandsTrigger.dispatchEvent(new MouseEvent('click', { bubbles: true, button: 0, cancelable: true }));
     expect(window.location.hash).toBe('#clip-use-tab-commands');
     expect(commandsTrigger.textContent).toBe('Watch');
     expect(commandsTrigger.getAttribute('aria-controls')).toBe('walkthrough-clip');
-    expect(modal.querySelector('[data-walkthrough-clip-title]').textContent).toBe('Use Tab commands');
+    expect(requireElement<HTMLElement>('[data-walkthrough-clip-title]', modal).textContent).toBe('Use Tab commands');
     expect(video.currentTime).toBe(185);
 
     modal.dispatchEvent(new MouseEvent('click', { bubbles: true, button: 0 }));
@@ -348,7 +359,7 @@ describe('docs walkthrough clips', () => {
     window.history.pushState(null, '', '#clip-games');
     window.dispatchEvent(new Event('hashchange'));
     expect(modal.open).toBe(true);
-    expect(modal.querySelector('[data-walkthrough-clip-title]').textContent).toBe('Games');
+    expect(requireElement<HTMLElement>('[data-walkthrough-clip-title]', modal).textContent).toBe('Games');
 
     window.history.replaceState(null, '', '#features');
     window.dispatchEvent(new Event('hashchange'));
