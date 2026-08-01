@@ -60,7 +60,7 @@ Tłumaczenie czatu wysyła tekst wiadomości czatu widoczny w czacie na żywo i 
 
 Dostęp do Google Translate przez `translate.googleapis.com` jest nieoficjalny i może być limitowany, zmieniony lub niedostępny.
 
-### <span id="playground"></span>Chat Enhancer Playground (`playground.chatenhancer.com`)
+### <span id="playground"></span>Chat Enhancer Playground ([playground.chatenhancer.com](https://playground.chatenhancer.com))
 
 Jeśli włączysz Playground i użyjesz panelu gier, rozszerzenie połączy się z serwerem gier Chat Enhancer Playground, aby użytkownicy opt-in w tym samym streamie mogli widzieć dostępność, wymieniać zaproszenia i grać.
 
@@ -72,7 +72,7 @@ Rozszerzenie nie wysyła tekstu czatu na żywo, Twojej nazwy wyświetlanej YouTu
 
 Oddzielnie generowanie pytań HELP-A-FRIEND! Trivia może wysyłać wybrane fragmenty publicznych transkrypcji wideo YouTube i identyfikatory gry na serwer gier Playground. Te fragmenty pochodzą z transkrypcji wideo, a nie z czatu na żywo. Serwer używa OpenAI do generowania pytań trivia z tych fragmentów.
 
-Generowanie Replay Trivia może wymagać weryfikacji Cloudflare Turnstile na `https://playground.chatenhancer.com`. Cloudflare może otrzymać normalne dane weryfikacyjne, takie jak adres IP, informacje o przeglądarce i urządzeniu oraz wynik wyzwania.
+Generowanie Replay Trivia może wymagać weryfikacji Cloudflare Turnstile na [playground.chatenhancer.com](https://playground.chatenhancer.com). Cloudflare może otrzymać normalne dane weryfikacyjne, takie jak adres IP, informacje o przeglądarce i urządzeniu oraz wynik wyzwania.
 
 Jak każda usługa webowa, serwer gier Playground może otrzymać normalne informacje o połączeniu, takie jak adres IP oraz informacje o przeglądarce/urządzeniu, od przeglądarki lub dostawcy sieci.
 

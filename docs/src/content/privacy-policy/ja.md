@@ -60,7 +60,7 @@ Chat Enhancer for YouTube は、YouTube ライブチャット向けのブラウ�
 
 `translate.googleapis.com` 経由の Google Translate アクセスは非公式であり、レート制限、変更、または利用不能になる場合があります。
 
-### <span id="playground"></span>Chat Enhancer Playground (`playground.chatenhancer.com`)
+### <span id="playground"></span>Chat Enhancer Playground ([playground.chatenhancer.com](https://playground.chatenhancer.com))
 
 Playground を有効にしてゲームパネルを使用すると、拡張機能は Chat Enhancer Playground ゲームサーバーに接続し、同じストリームでオプトインしたユーザーが空き状況を確認し、招待を交換し、ゲームをプレイできるようにします。
 
@@ -72,7 +72,7 @@ Playground はプレイヤー統計を提供するため、生成された Playg
 
 これとは別に、HELP-A-FRIEND! Trivia の質問生成では、選択された公開 YouTube 動画トランスクリプトの抜粋とゲーム識別子が Playground ゲームサーバーに送信される場合があります。これらの抜粋は動画のトランスクリプトから取得されるもので、ライブチャットからではありません。サーバーは OpenAI を使用して、それらの抜粋から trivia 質問を生成します。
 
-Replay Trivia の生成では、`https://playground.chatenhancer.com` で Cloudflare Turnstile 検証が必要になる場合があります。Cloudflare は IP アドレス、ブラウザーおよびデバイス情報、チャレンジ結果などの通常の検証データを受け取る場合があります。
+Replay Trivia の生成では、[playground.chatenhancer.com](https://playground.chatenhancer.com) で Cloudflare Turnstile 検証が必要になる場合があります。Cloudflare は IP アドレス、ブラウザーおよびデバイス情報、チャレンジ結果などの通常の検証データを受け取る場合があります。
 
 他の Web サービスと同様に、Playground ゲームサーバーはブラウザーまたはネットワークプロバイダーから、IP アドレスやブラウザー/デバイス情報などの通常の接続情報を受け取る場合があります。
 

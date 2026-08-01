@@ -60,7 +60,7 @@ Chat Enhancer for YouTube هو إضافة متصفح لدردشة YouTube الم
 
 الوصول إلى Google Translate عبر `translate.googleapis.com` غير رسمي وقد يخضع لقيود معدل الاستخدام أو يتغير أو يصبح غير متاح.
 
-### <span id="playground"></span>Chat Enhancer Playground (`playground.chatenhancer.com`)
+### <span id="playground"></span>Chat Enhancer Playground ([playground.chatenhancer.com](https://playground.chatenhancer.com))
 
 إذا فعّلت Playground واستخدمت لوحة الألعاب، تتصل الإضافة بخادم ألعاب Chat Enhancer Playground حتى يتمكن المستخدمون المشتركون اختياريًا في البث نفسه من رؤية التوفر وتبادل الدعوات ولعب الألعاب.
 
@@ -72,7 +72,7 @@ Chat Enhancer for YouTube هو إضافة متصفح لدردشة YouTube الم
 
 بشكل منفصل، قد ترسل عملية توليد أسئلة HELP-A-FRIEND! Trivia مقتطفات مختارة من نصوص فيديوهات YouTube العامة ومعرّفات اللعبة إلى خادم ألعاب Playground. تأتي هذه المقتطفات من نص الفيديو، وليس من الدردشة المباشرة. يستخدم الخادم OpenAI لتوليد أسئلة trivia من تلك المقتطفات.
 
-قد تتطلب عملية توليد Replay Trivia تحقق Cloudflare Turnstile على `https://playground.chatenhancer.com`. قد تتلقى Cloudflare بيانات تحقق عادية مثل عنوان IP ومعلومات المتصفح والجهاز ونتيجة التحدي.
+قد تتطلب عملية توليد Replay Trivia تحقق Cloudflare Turnstile على [playground.chatenhancer.com](https://playground.chatenhancer.com). قد تتلقى Cloudflare بيانات تحقق عادية مثل عنوان IP ومعلومات المتصفح والجهاز ونتيجة التحدي.
 
 مثل أي خدمة ويب، قد يتلقى خادم ألعاب Playground معلومات اتصال عادية مثل عنوان IP ومعلومات المتصفح/الجهاز من المتصفح أو مزود الشبكة.
 

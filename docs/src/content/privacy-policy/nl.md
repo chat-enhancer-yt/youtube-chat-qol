@@ -60,7 +60,7 @@ Vertaalverzoeken bevatten de te vertalen tekst en de doeltaal. De extensie stuur
 
 Toegang tot Google Translate via `translate.googleapis.com` is onofficieel en kan worden beperkt, gewijzigd of onbeschikbaar worden.
 
-### <span id="playground"></span>Chat Enhancer Playground (`playground.chatenhancer.com`)
+### <span id="playground"></span>Chat Enhancer Playground ([playground.chatenhancer.com](https://playground.chatenhancer.com))
 
 Als je Playground inschakelt en het gamespaneel gebruikt, maakt de extensie verbinding met de Chat Enhancer Playground-gameserver zodat opt-in gebruikers in dezelfde stream beschikbaarheid kunnen zien, uitnodigingen kunnen uitwisselen en games kunnen spelen.
 
@@ -72,7 +72,7 @@ De extensie stuurt geen livechatberichttekst, je YouTube-weergavenaam, je YouTub
 
 Afzonderlijk kan HELP-A-FRIEND! Trivia-vraaggeneratie geselecteerde openbare YouTube-videotranscriptfragmenten en game-ID’s naar de Playground-gameserver sturen. Deze fragmenten komen uit het transcript van de video, niet uit livechat. De server gebruikt OpenAI om trivia-vragen uit die fragmenten te genereren.
 
-Replay Trivia-generatie kan Cloudflare Turnstile-verificatie op `https://playground.chatenhancer.com` vereisen. Cloudflare kan normale verificatiegegevens ontvangen, zoals IP-adres, browser- en apparaatinformatie en het resultaat van de challenge.
+Replay Trivia-generatie kan Cloudflare Turnstile-verificatie op [playground.chatenhancer.com](https://playground.chatenhancer.com) vereisen. Cloudflare kan normale verificatiegegevens ontvangen, zoals IP-adres, browser- en apparaatinformatie en het resultaat van de challenge.
 
 Zoals elke webservice kan de Playground-gameserver normale verbindingsinformatie ontvangen, zoals IP-adres en browser-/apparaatinformatie, van de browser of netwerkprovider.
 

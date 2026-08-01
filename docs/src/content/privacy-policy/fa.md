@@ -60,7 +60,7 @@ Chat Enhancer for YouTube یک افزونه مرورگر برای گفت‌وگ�
 
 دسترسی به Google Translate از طریق `translate.googleapis.com` غیررسمی است و ممکن است محدود شود، تغییر کند یا در دسترس نباشد.
 
-### <span id="playground"></span>Chat Enhancer Playground (`playground.chatenhancer.com`)
+### <span id="playground"></span>Chat Enhancer Playground ([playground.chatenhancer.com](https://playground.chatenhancer.com))
 
 اگر Playground را فعال کنید و از پنل بازی‌ها استفاده کنید، افزونه به سرور بازی Chat Enhancer Playground متصل می‌شود تا کاربران داوطلب در همان پخش بتوانند در دسترس بودن را ببینند، دعوت ردوبدل کنند و بازی کنند.
 
@@ -72,7 +72,7 @@ Playground نتایج فشرده مسابقه را که به هویت‌های �
 
 به‌طور جداگانه، تولید پرسش‌های HELP-A-FRIEND! Trivia ممکن است گزیده‌های انتخاب‌شده از رونوشت ویدیوهای عمومی YouTube و شناسه‌های بازی را به سرور بازی Playground ارسال کند. این گزیده‌ها از رونوشت ویدیو می‌آیند، نه از چت زنده. سرور از OpenAI برای تولید پرسش‌های trivia از آن گزیده‌ها استفاده می‌کند.
 
-تولید Replay Trivia ممکن است نیازمند تأیید Cloudflare Turnstile در `https://playground.chatenhancer.com` باشد. Cloudflare ممکن است داده‌های معمول تأیید مانند نشانی IP، اطلاعات مرورگر و دستگاه، و نتیجه چالش را دریافت کند.
+تولید Replay Trivia ممکن است نیازمند تأیید Cloudflare Turnstile در [playground.chatenhancer.com](https://playground.chatenhancer.com) باشد. Cloudflare ممکن است داده‌های معمول تأیید مانند نشانی IP، اطلاعات مرورگر و دستگاه، و نتیجه چالش را دریافت کند.
 
 مانند هر سرویس وب، سرور بازی Playground ممکن است اطلاعات اتصال معمول مانند نشانی IP و اطلاعات مرورگر/دستگاه را از مرورگر یا ارائه‌دهنده شبکه دریافت کند.
 

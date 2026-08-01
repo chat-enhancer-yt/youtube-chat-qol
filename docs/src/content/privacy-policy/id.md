@@ -60,7 +60,7 @@ Permintaan terjemahan mencakup teks yang akan diterjemahkan dan bahasa target. E
 
 Akses Google Translate melalui `translate.googleapis.com` tidak resmi dan dapat dibatasi, berubah, atau tidak tersedia.
 
-### <span id="playground"></span>Chat Enhancer Playground (`playground.chatenhancer.com`)
+### <span id="playground"></span>Chat Enhancer Playground ([playground.chatenhancer.com](https://playground.chatenhancer.com))
 
 Jika Anda mengaktifkan Playground dan menggunakan panel game, ekstensi terhubung ke server game Chat Enhancer Playground agar pengguna opt-in di stream yang sama dapat melihat ketersediaan, bertukar undangan, dan bermain game.
 
@@ -72,7 +72,7 @@ Ekstensi tidak mengirim teks live chat, nama tampilan YouTube Anda, URL avatar Y
 
 Secara terpisah, pembuatan pertanyaan HELP-A-FRIEND! Trivia dapat mengirim cuplikan transkrip video YouTube publik yang dipilih dan pengenal game ke server game Playground. Cuplikan ini berasal dari transkrip video, bukan dari live chat. Server menggunakan OpenAI untuk membuat pertanyaan trivia dari cuplikan tersebut.
 
-Pembuatan Replay Trivia dapat memerlukan verifikasi Cloudflare Turnstile di `https://playground.chatenhancer.com`. Cloudflare dapat menerima data verifikasi normal seperti alamat IP, informasi browser dan perangkat, serta hasil tantangan.
+Pembuatan Replay Trivia dapat memerlukan verifikasi Cloudflare Turnstile di [playground.chatenhancer.com](https://playground.chatenhancer.com). Cloudflare dapat menerima data verifikasi normal seperti alamat IP, informasi browser dan perangkat, serta hasil tantangan.
 
 Seperti layanan web lainnya, server game Playground dapat menerima informasi koneksi normal seperti alamat IP dan informasi browser/perangkat dari browser atau penyedia jaringan.
 

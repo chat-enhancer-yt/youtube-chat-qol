@@ -60,7 +60,7 @@ Les requêtes de traduction incluent le texte à traduire et la langue cible. L�
 
 L’accès à Google Translate via `translate.googleapis.com` est non officiel et peut être limité, modifié ou indisponible.
 
-### <span id="playground"></span>Chat Enhancer Playground (`playground.chatenhancer.com`)
+### <span id="playground"></span>Chat Enhancer Playground ([playground.chatenhancer.com](https://playground.chatenhancer.com))
 
 Si vous activez Playground et utilisez le panneau de jeux, l’extension se connecte au serveur de jeu Chat Enhancer Playground afin que les utilisateurs opt-in du même stream puissent voir la disponibilité, échanger des invitations et jouer.
 
@@ -72,7 +72,7 @@ L’extension n’envoie pas au serveur de jeu Playground le texte du chat en di
 
 Séparément, la génération de questions HELP-A-FRIEND! Trivia peut envoyer des extraits sélectionnés de transcripts publics de vidéos YouTube et des identifiants de jeu au serveur de jeu Playground. Ces extraits proviennent du transcript de la vidéo, pas du chat en direct. Le serveur utilise OpenAI pour générer des questions de trivia à partir de ces extraits.
 
-La génération Replay Trivia peut nécessiter une vérification Cloudflare Turnstile sur `https://playground.chatenhancer.com`. Cloudflare peut recevoir des données normales de vérification telles que l’adresse IP, des informations sur le navigateur et l’appareil, et le résultat du défi.
+La génération Replay Trivia peut nécessiter une vérification Cloudflare Turnstile sur [playground.chatenhancer.com](https://playground.chatenhancer.com). Cloudflare peut recevoir des données normales de vérification telles que l’adresse IP, des informations sur le navigateur et l’appareil, et le résultat du défi.
 
 Comme tout service web, le serveur de jeu Playground peut recevoir des informations normales de connexion telles que l’adresse IP et des informations sur le navigateur/l’appareil depuis le navigateur ou le fournisseur réseau.
 

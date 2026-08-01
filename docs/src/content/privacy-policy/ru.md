@@ -60,7 +60,7 @@ Chat Enhancer for YouTube — это расширение браузера дл�
 
 Доступ к Google Translate через `translate.googleapis.com` неофициальный и может быть ограничен по частоте, изменен или недоступен.
 
-### <span id="playground"></span>Chat Enhancer Playground (`playground.chatenhancer.com`)
+### <span id="playground"></span>Chat Enhancer Playground ([playground.chatenhancer.com](https://playground.chatenhancer.com))
 
 Если вы включаете Playground и используете панель игр, расширение подключается к игровому серверу Chat Enhancer Playground, чтобы пользователи, выбравшие участие в том же стриме, могли видеть доступность, обмениваться приглашениями и играть.
 
@@ -72,7 +72,7 @@ Playground хранит компактные результаты матчей, 
 
 Отдельно генерация вопросов HELP-A-FRIEND! Trivia может отправлять выбранные фрагменты публичных транскриптов видео YouTube и идентификаторы игры на игровой сервер Playground. Эти фрагменты берутся из транскрипта видео, а не из живого чата. Сервер использует OpenAI для генерации trivia-вопросов из этих фрагментов.
 
-Генерация Replay Trivia может требовать проверки Cloudflare Turnstile на `https://playground.chatenhancer.com`. Cloudflare может получать обычные проверочные данные, такие как IP-адрес, информация о браузере и устройстве, а также результат challenge.
+Генерация Replay Trivia может требовать проверки Cloudflare Turnstile на [playground.chatenhancer.com](https://playground.chatenhancer.com). Cloudflare может получать обычные проверочные данные, такие как IP-адрес, информация о браузере и устройстве, а также результат challenge.
 
 Как любой веб-сервис, игровой сервер Playground может получать обычную информацию о подключении, такую как IP-адрес и информация о браузере/устройстве, от браузера или сетевого провайдера.
 

@@ -60,7 +60,7 @@ Chat Enhancer for YouTube 是一款用於 YouTube 即時聊天室的瀏覽器擴
 
 透過 `translate.googleapis.com` 存取 Google Translate 是非官方的，可能會受到速率限制、變更或無法使用。
 
-### <span id="playground"></span>Chat Enhancer Playground (`playground.chatenhancer.com`)
+### <span id="playground"></span>Chat Enhancer Playground ([playground.chatenhancer.com](https://playground.chatenhancer.com))
 
 如果你啟用 Playground 並使用遊戲面板，擴充功能會連線到 Chat Enhancer Playground 遊戲伺服器，讓同一直播中選擇加入的使用者可以看到可用狀態、交換邀請並玩遊戲。
 
@@ -72,7 +72,7 @@ Playground 訊息可能包括 YouTube 直播或影片識別碼、你產生的 Pl
 
 另外，HELP-A-FRIEND! Trivia 問題生成可能會將選定的公開 YouTube 影片逐字稿摘錄和遊戲識別碼傳送到 Playground 遊戲伺服器。這些摘錄來自影片逐字稿，而不是即時聊天室。伺服器使用 OpenAI 從這些摘錄生成 trivia 問題。
 
-Replay Trivia 生成可能需要在 `https://playground.chatenhancer.com` 上進行 Cloudflare Turnstile 驗證。Cloudflare 可能會收到一般驗證資料，例如 IP 位址、瀏覽器與裝置資訊，以及挑戰結果。
+Replay Trivia 生成可能需要在 [playground.chatenhancer.com](https://playground.chatenhancer.com) 上進行 Cloudflare Turnstile 驗證。Cloudflare 可能會收到一般驗證資料，例如 IP 位址、瀏覽器與裝置資訊，以及挑戰結果。
 
 就像任何網路服務一樣，Playground 遊戲伺服器可能會從瀏覽器或網路供應商接收一般連線資訊，例如 IP 位址和瀏覽器/裝置資訊。
 

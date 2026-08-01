@@ -60,7 +60,7 @@ Translation requests में translate करने वाला text और t
 
 `translate.googleapis.com` के माध्यम से Google Translate access unofficial है और rate-limited, changed या unavailable हो सकता है।
 
-### <span id="playground"></span>Chat Enhancer Playground (`playground.chatenhancer.com`)
+### <span id="playground"></span>Chat Enhancer Playground ([playground.chatenhancer.com](https://playground.chatenhancer.com))
 
 यदि आप Playground चालू करते हैं और games panel का उपयोग करते हैं, तो extension Chat Enhancer Playground game server से connect होता है ताकि उसी stream में opted-in users availability देख सकें, invites exchange कर सकें और games खेल सकें।
 
@@ -72,7 +72,7 @@ Extension live chat message text, आपका YouTube display name, आपक�
 
 अलग से, HELP-A-FRIEND! Trivia question generation चयनित public YouTube video transcript excerpts और game identifiers को Playground game server को भेज सकता है। ये excerpts video के transcript से आते हैं, live chat से नहीं। Server उन excerpts से trivia questions generate करने के लिए OpenAI का उपयोग करता है।
 
-Replay Trivia generation को `https://playground.chatenhancer.com` पर Cloudflare Turnstile verification की आवश्यकता हो सकती है। Cloudflare सामान्य verification data जैसे IP address, browser और device information, और challenge result प्राप्त कर सकता है।
+Replay Trivia generation को [playground.chatenhancer.com](https://playground.chatenhancer.com) पर Cloudflare Turnstile verification की आवश्यकता हो सकती है। Cloudflare सामान्य verification data जैसे IP address, browser और device information, और challenge result प्राप्त कर सकता है।
 
 किसी भी web service की तरह, Playground game server browser या network provider से सामान्य connection information जैसे IP address और browser/device information प्राप्त कर सकता है।
 

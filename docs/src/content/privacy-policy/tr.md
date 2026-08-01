@@ -60,7 +60,7 @@ Sohbet çevirisi, çeviri etkinken canlı sohbette görünen ve çevrilmeye uygu
 
 `translate.googleapis.com` üzerinden Google Translate erişimi resmi değildir ve rate limit’e tabi olabilir, değişebilir veya kullanılamayabilir.
 
-### <span id="playground"></span>Chat Enhancer Playground (`playground.chatenhancer.com`)
+### <span id="playground"></span>Chat Enhancer Playground ([playground.chatenhancer.com](https://playground.chatenhancer.com))
 
 Playground’u etkinleştirir ve oyun panelini kullanırsanız uzantı, aynı stream’de opt-in kullanıcıların uygunluğu görmesi, davet alışverişi yapması ve oyun oynaması için Chat Enhancer Playground oyun sunucusuna bağlanır.
 
@@ -72,7 +72,7 @@ Uzantı canlı sohbet mesajı metnini, YouTube görünen adınızı, YouTube ava
 
 Ayrı olarak HELP-A-FRIEND! Trivia soru üretimi, seçilen herkese açık YouTube video transcript parçalarını ve oyun tanımlayıcılarını Playground oyun sunucusuna gönderebilir. Bu parçalar canlı sohbetten değil, videonun transcript’inden gelir. Sunucu, bu parçalardan trivia soruları üretmek için OpenAI kullanır.
 
-Replay Trivia üretimi `https://playground.chatenhancer.com` üzerinde Cloudflare Turnstile doğrulaması gerektirebilir. Cloudflare, IP adresi, tarayıcı ve cihaz bilgileri ve challenge sonucu gibi normal doğrulama verilerini alabilir.
+Replay Trivia üretimi [playground.chatenhancer.com](https://playground.chatenhancer.com) üzerinde Cloudflare Turnstile doğrulaması gerektirebilir. Cloudflare, IP adresi, tarayıcı ve cihaz bilgileri ve challenge sonucu gibi normal doğrulama verilerini alabilir.
 
 Her web hizmeti gibi Playground oyun sunucusu da tarayıcıdan veya ağ sağlayıcısından IP adresi ve tarayıcı/cihaz bilgileri gibi normal bağlantı bilgileri alabilir.
 

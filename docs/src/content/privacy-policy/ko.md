@@ -60,7 +60,7 @@ Chat Enhancer for YouTube는 YouTube 실시간 채팅용 브라우저 확장 프
 
 `translate.googleapis.com`을 통한 Google Translate 접근은 비공식이며, 속도 제한을 받거나 변경되거나 사용할 수 없게 될 수 있습니다.
 
-### <span id="playground"></span>Chat Enhancer Playground (`playground.chatenhancer.com`)
+### <span id="playground"></span>Chat Enhancer Playground ([playground.chatenhancer.com](https://playground.chatenhancer.com))
 
 Playground를 켜고 게임 패널을 사용하면 확장 프로그램이 Chat Enhancer Playground 게임 서버에 연결되어 같은 스트림의 참여 사용자가 이용 가능 상태를 보고, 초대를 교환하고, 게임을 할 수 있습니다.
 
@@ -72,7 +72,7 @@ Playground는 플레이어 통계를 제공하기 위해 생성된 Playground �
 
 별도로 HELP-A-FRIEND! Trivia 질문 생성은 선택된 공개 YouTube 동영상 자막 발췌문과 게임 식별자를 Playground 게임 서버로 보낼 수 있습니다. 이 발췌문은 실시간 채팅이 아니라 동영상 자막에서 가져옵니다. 서버는 OpenAI를 사용해 해당 발췌문에서 trivia 질문을 생성합니다.
 
-Replay Trivia 생성에는 `https://playground.chatenhancer.com`에서 Cloudflare Turnstile 확인이 필요할 수 있습니다. Cloudflare는 IP 주소, 브라우저 및 기기 정보, challenge 결과 같은 일반적인 확인 데이터를 받을 수 있습니다.
+Replay Trivia 생성에는 [playground.chatenhancer.com](https://playground.chatenhancer.com)에서 Cloudflare Turnstile 확인이 필요할 수 있습니다. Cloudflare는 IP 주소, 브라우저 및 기기 정보, challenge 결과 같은 일반적인 확인 데이터를 받을 수 있습니다.
 
 모든 웹 서비스와 마찬가지로 Playground 게임 서버는 브라우저 또는 네트워크 제공자로부터 IP 주소와 브라우저/기기 정보 같은 일반 연결 정보를 받을 수 있습니다.
 

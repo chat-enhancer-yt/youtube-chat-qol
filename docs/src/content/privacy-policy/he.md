@@ -60,7 +60,7 @@ Chat Enhancer for YouTube הוא תוסף דפדפן לצ׳אט חי ב-YouTube.
 
 הגישה ל-Google Translate דרך `translate.googleapis.com` אינה רשמית ועלולה להיות מוגבלת בקצב, להשתנות או לא להיות זמינה.
 
-### <span id="playground"></span>Chat Enhancer Playground (`playground.chatenhancer.com`)
+### <span id="playground"></span>Chat Enhancer Playground ([playground.chatenhancer.com](https://playground.chatenhancer.com))
 
 אם מפעילים את Playground ומשתמשים בלוח המשחקים, התוסף מתחבר לשרת המשחקים של Chat Enhancer Playground כדי שמשתמשים שבחרו להצטרף באותו שידור יוכלו לראות זמינות, להחליף הזמנות ולשחק.
 
@@ -72,7 +72,7 @@ Playground שומר תוצאות משחק תמציתיות המקושרות לז
 
 בנפרד, יצירת שאלות HELP-A-FRIEND! Trivia עשויה לשלוח קטעים נבחרים מתמלילי וידאו ציבוריים של YouTube ומזהי משחק לשרת המשחקים של Playground. הקטעים האלה מגיעים מתמליל הווידאו, לא מהצ׳אט החי. השרת משתמש ב-OpenAI כדי ליצור שאלות טריוויה מהקטעים האלה.
 
-יצירת Replay Trivia עשויה לדרוש אימות Cloudflare Turnstile ב-`https://playground.chatenhancer.com`. Cloudflare עשויה לקבל נתוני אימות רגילים כגון כתובת IP, מידע על הדפדפן והמכשיר, ותוצאת האתגר.
+יצירת Replay Trivia עשויה לדרוש אימות Cloudflare Turnstile ב-[playground.chatenhancer.com](https://playground.chatenhancer.com). Cloudflare עשויה לקבל נתוני אימות רגילים כגון כתובת IP, מידע על הדפדפן והמכשיר, ותוצאת האתגר.
 
 כמו כל שירות אינטרנט, שרת המשחקים של Playground עשוי לקבל מידע חיבור רגיל כגון כתובת IP ומידע על הדפדפן/המכשיר מהדפדפן או מספק הרשת.
 

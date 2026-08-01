@@ -60,7 +60,7 @@ Yêu cầu dịch bao gồm văn bản cần dịch và ngôn ngữ đích. Ti�
 
 Truy cập Google Translate qua `translate.googleapis.com` là không chính thức và có thể bị giới hạn tốc độ, thay đổi hoặc không khả dụng.
 
-### <span id="playground"></span>Chat Enhancer Playground (`playground.chatenhancer.com`)
+### <span id="playground"></span>Chat Enhancer Playground ([playground.chatenhancer.com](https://playground.chatenhancer.com))
 
 Nếu bạn bật Playground và sử dụng bảng trò chơi, tiện ích sẽ kết nối với máy chủ trò chơi Chat Enhancer Playground để người dùng opt-in trong cùng stream có thể thấy trạng thái sẵn sàng, trao đổi lời mời và chơi trò chơi.
 
@@ -72,7 +72,7 @@ Tiện ích không gửi văn bản live chat, tên hiển thị YouTube của b
 
 Riêng việc tạo câu hỏi HELP-A-FRIEND! Trivia có thể gửi các đoạn trích bản chép lời video YouTube công khai được chọn và mã định danh trò chơi đến máy chủ trò chơi Playground. Các đoạn trích này đến từ bản chép lời của video, không phải từ live chat. Máy chủ dùng OpenAI để tạo câu hỏi trivia từ các đoạn trích đó.
 
-Việc tạo Replay Trivia có thể yêu cầu xác minh Cloudflare Turnstile tại `https://playground.chatenhancer.com`. Cloudflare có thể nhận dữ liệu xác minh thông thường như địa chỉ IP, thông tin trình duyệt và thiết bị, và kết quả thử thách.
+Việc tạo Replay Trivia có thể yêu cầu xác minh Cloudflare Turnstile tại [playground.chatenhancer.com](https://playground.chatenhancer.com). Cloudflare có thể nhận dữ liệu xác minh thông thường như địa chỉ IP, thông tin trình duyệt và thiết bị, và kết quả thử thách.
 
 Như mọi dịch vụ web, máy chủ trò chơi Playground có thể nhận thông tin kết nối thông thường như địa chỉ IP và thông tin trình duyệt/thiết bị từ trình duyệt hoặc nhà cung cấp mạng.
 
