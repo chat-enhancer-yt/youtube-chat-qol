@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { getWalkthroughVideoUrl } from '../docs/src/data/media';
-import { locales } from '../docs/src/data/locales';
+import { getWalkthroughVideoUrl } from './media';
+import { locales } from './locales';
 
 describe('docs walkthrough media', () => {
   it('resolves the immutable R2 video for every docs locale', () => {

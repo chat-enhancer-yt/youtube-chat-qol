@@ -3,6 +3,7 @@
   "include": [
     "../.astro/types.d.ts",
     "src/**/*",
+    "vitest.config.ts",
     "../astro.docs.config.mjs"
   ],
   "exclude": [

@@ -1,11 +1,9 @@
-/* global document, window, KeyboardEvent, MouseEvent */
-
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 const walkthroughClipsScript = await readFile(
-  path.join(process.cwd(), 'docs', 'src', 'scripts', 'walkthrough-clips.js'),
+  path.resolve('docs/src/scripts/walkthrough-clips.js'),
   'utf8'
 );
 

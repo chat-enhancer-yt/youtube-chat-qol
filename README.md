@@ -8,7 +8,7 @@
   <a href="https://www.chatenhancer.com/chrome"><img alt="chrome" src="https://img.shields.io/chrome-web-store/v/pkhaaipeppfpakofgpdpcpkflangpghf?label=chrome&logo=googlechrome&color=4285f4"></a>
   <a href="https://www.chatenhancer.com/firefox"><img alt="firefox" src="https://img.shields.io/amo/v/chat-enhancer-for-youtube?label=firefox&logo=firefoxbrowser&color=ff7139"></a>
   <a href="https://www.chatenhancer.com/safari"><img alt="safari" src="https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fitunes.apple.com%2Flookup%3Fid%3D6783276323%26country%3Dus&query=%24.results%5B0%5D.version&label=safari&logo=apple&color=6e6e73&cacheSeconds=300"></a>
-  <a href="https://github.com/chat-enhancer-yt/youtube-chat-qol/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/chat-enhancer-yt/youtube-chat-qol/ci.yml?label=ci"></a>
+  <a href="https://github.com/chat-enhancer-yt/youtube-chat-qol/actions/workflows/extension.yml"><img alt="Extension CI" src="https://img.shields.io/github/actions/workflow/status/chat-enhancer-yt/youtube-chat-qol/extension.yml?label=extension"></a>
 </p>
 
 [Website](https://www.chatenhancer.com) · [Privacy policy](https://www.chatenhancer.com/privacy)

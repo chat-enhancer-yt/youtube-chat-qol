@@ -8,7 +8,7 @@ export default [
     ignores: ['coverage/**', 'dist/**', 'node_modules/**']
   },
   {
-    files: ['cloudflare/**/*.ts', 'src/**/*.ts', 'src/**/*.tsx', 'tests/**/*.ts'],
+    files: ['cloudflare/**/*.ts', 'docs/**/*.ts', 'src/**/*.ts', 'src/**/*.tsx', 'tests/**/*.ts'],
     languageOptions: {
       parser: tseslint.parser,
       parserOptions: {
@@ -83,7 +83,21 @@ export default [
     rules: js.configs.recommended.rules
   },
   {
-    files: ['tests/browser/**/*.ts', 'playwright.config.ts', 'vitest.config.ts'],
+    files: ['docs/**/*.js'],
+    languageOptions: {
+      globals: globals.browser
+    },
+    rules: js.configs.recommended.rules
+  },
+  {
+    files: ['docs/**/*.test.js', 'astro.docs.config.mjs'],
+    languageOptions: {
+      globals: globals.node
+    },
+    rules: js.configs.recommended.rules
+  },
+  {
+    files: ['tests/browser/**/*.ts', 'playwright*.config.ts', 'vitest.config.ts'],
     languageOptions: {
       parser: tseslint.parser,
       parserOptions: {
