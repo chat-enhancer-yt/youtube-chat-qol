@@ -149,15 +149,55 @@ export const bookmarkPopupRenderingScenario: BrowserScenario = async ({ context 
         await test.step('Render bookmark scroll fades above the list content', async () => {
           const shell = popup.locator('.bookmarks-list-shell');
           const list = popup.locator('#bookmarksList');
+          const scrollbar = popup.locator('.bookmarks-list-shell > .popup-scrollbar');
+          const scrollbarThumb = scrollbar.locator('.popup-scrollbar-thumb');
           await list.evaluate((element) => {
             element.style.maxHeight = '60px';
             element.dispatchEvent(new Event('scroll'));
           });
           await expect(shell).toHaveClass(/popup-scroll-fade-bottom/);
+          await expect(scrollbar).toBeVisible();
+          await expect(list).toHaveCSS('scrollbar-width', 'none');
+          const scrollMetrics = await list.evaluate((element) => {
+            const listElement = element as HTMLElement;
+            const thumb = listElement.parentElement?.querySelector<HTMLElement>(
+              '.popup-scrollbar-thumb'
+            );
+            return {
+              thumbHeight: thumb?.getBoundingClientRect().height || 0,
+              thumbWidth: thumb?.getBoundingClientRect().width || 0,
+              nativeScrollbarWidth: listElement.offsetWidth - listElement.clientWidth
+            };
+          });
+          expect(scrollMetrics.thumbHeight).toBeGreaterThan(0);
+          expect(scrollMetrics.thumbWidth).toBe(5);
+          expect(scrollMetrics.nativeScrollbarWidth).toBe(0);
           await expect
             .poll(() => shell.evaluate((element) => getComputedStyle(element, '::after').opacity))
             .toBe('1');
+          const thumbBox = await scrollbarThumb.boundingBox();
+          if (!thumbBox) throw new Error('Expected the popup scrollbar thumb');
+          await popup.mouse.move(20, 20);
+          await expect
+            .poll(() => scrollbar.evaluate((element) => getComputedStyle(element).opacity))
+            .toBe('0');
+          await popup.mouse.move(
+            thumbBox.x + thumbBox.width / 2,
+            thumbBox.y + thumbBox.height / 2
+          );
+          await expect
+            .poll(() => scrollbar.evaluate((element) => getComputedStyle(element).opacity))
+            .toBe('1');
+          await popup.mouse.down();
+          await popup.mouse.move(
+            thumbBox.x + thumbBox.width / 2,
+            thumbBox.y + thumbBox.height / 2 + 16
+          );
+          await popup.mouse.up();
+          await expect.poll(() => list.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
+          await popup.mouse.move(20, 20);
           await list.evaluate((element) => {
+            element.scrollTop = 0;
             element.style.removeProperty('max-height');
             element.dispatchEvent(new Event('scroll'));
           });

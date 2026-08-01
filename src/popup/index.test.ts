@@ -24,6 +24,9 @@ describe('popup', () => {
         <button id="playgroundTab" data-popup-tab-target="playgroundPanel" aria-selected="false"></button>
       </nav>
       <div class="popup-tab-panels">
+      <span class="popup-scrollbar" aria-hidden="true" hidden>
+        <span class="popup-scrollbar-thumb"></span>
+      </span>
       <div id="settingsPanel" data-popup-tab-panel>
       <select id="targetLanguage"></select>
       <select id="translationDisplay">
@@ -36,6 +39,9 @@ describe('popup', () => {
       </div>
       <div id="bookmarksPanel" data-popup-tab-panel hidden>
         <div class="bookmarks-list-shell" data-popup-scroll-fade-region>
+          <span class="popup-scrollbar" aria-hidden="true" hidden>
+            <span class="popup-scrollbar-thumb"></span>
+          </span>
           <div id="bookmarksList" data-popup-scroll-target></div>
         </div>
       </div>
@@ -776,6 +782,7 @@ describe('popup', () => {
   });
 
   it('shows popup scroll fades only when the active panel has hidden content beyond that edge', async () => {
+    vi.useFakeTimers();
     vi.mocked(chrome.tabs.query).mockImplementation(((
       _queryInfo: chrome.tabs.QueryInfo,
       callback?: (tabs: chrome.tabs.Tab[]) => void
@@ -788,6 +795,15 @@ describe('popup', () => {
     const bookmarksScrollRegion = document.querySelector<HTMLElement>(
       '[data-popup-scroll-fade-region]'
     )!;
+    const scrollbar = document.querySelector<HTMLElement>(
+      '.popup-tab-panels > .popup-scrollbar'
+    )!;
+    const scrollbarThumb = scrollbar.querySelector<HTMLElement>('.popup-scrollbar-thumb')!;
+    const bookmarksScrollbar = document.querySelector<HTMLElement>(
+      '.bookmarks-list-shell > .popup-scrollbar'
+    )!;
+    const bookmarksScrollbarThumb =
+      bookmarksScrollbar.querySelector<HTMLElement>('.popup-scrollbar-thumb')!;
     Object.defineProperties(settingsPanel, {
       clientHeight: { configurable: true, value: 100 },
       scrollHeight: { configurable: true, value: 300 },
@@ -804,27 +820,46 @@ describe('popup', () => {
     const scrollRegion = document.querySelector<HTMLElement>('.popup-tab-panels')!;
     expect(scrollRegion.classList.contains('popup-scroll-fade-top')).toBe(false);
     expect(scrollRegion.classList.contains('popup-scroll-fade-bottom')).toBe(true);
+    expect(scrollbar.hidden).toBe(false);
+    expect(scrollbar.classList.contains('popup-scrollbar-active')).toBe(true);
+    expect(scrollbarThumb.style.height).toBe('32px');
+    expect(scrollbarThumb.style.transform).toBe('translate3d(0, 2px, 0)');
+    await vi.advanceTimersByTimeAsync(800);
+    expect(scrollbar.classList.contains('popup-scrollbar-active')).toBe(false);
+    const wheelEvent = new WheelEvent('wheel', { cancelable: true, deltaY: 40 });
+    scrollbar.dispatchEvent(wheelEvent);
+    expect(wheelEvent.defaultPrevented).toBe(true);
+    expect(settingsPanel.scrollTop).toBe(40);
+    expect(scrollbar.classList.contains('popup-scrollbar-active')).toBe(true);
 
     settingsPanel.scrollTop = 80;
     settingsPanel.dispatchEvent(new Event('scroll'));
     expect(scrollRegion.classList.contains('popup-scroll-fade-top')).toBe(true);
     expect(scrollRegion.classList.contains('popup-scroll-fade-bottom')).toBe(true);
+    expect(scrollbar.classList.contains('popup-scrollbar-active')).toBe(true);
+    expect(scrollbarThumb.style.transform).toBe('translate3d(0, 28px, 0)');
 
     settingsPanel.scrollTop = 200;
     settingsPanel.dispatchEvent(new Event('scroll'));
     expect(scrollRegion.classList.contains('popup-scroll-fade-top')).toBe(true);
     expect(scrollRegion.classList.contains('popup-scroll-fade-bottom')).toBe(false);
+    expect(scrollbarThumb.style.transform).toBe('translate3d(0, 66px, 0)');
 
     document.querySelector<HTMLButtonElement>('#bookmarksTab')?.click();
     expect(scrollRegion.classList.contains('popup-scroll-fade-top')).toBe(false);
     expect(scrollRegion.classList.contains('popup-scroll-fade-bottom')).toBe(false);
     expect(bookmarksScrollRegion.classList.contains('popup-scroll-fade-top')).toBe(false);
     expect(bookmarksScrollRegion.classList.contains('popup-scroll-fade-bottom')).toBe(true);
+    expect(scrollbar.hidden).toBe(true);
+    expect(bookmarksScrollbar.hidden).toBe(false);
+    expect(bookmarksScrollbarThumb.style.height).toBe('32px');
+    expect(bookmarksScrollbarThumb.style.transform).toBe('translate3d(0, 2px, 0)');
 
     bookmarksList.scrollTop = 80;
     bookmarksList.dispatchEvent(new Event('scroll'));
     expect(bookmarksScrollRegion.classList.contains('popup-scroll-fade-top')).toBe(true);
     expect(bookmarksScrollRegion.classList.contains('popup-scroll-fade-bottom')).toBe(true);
+    expect(bookmarksScrollbarThumb.style.transform).toBe('translate3d(0, 28px, 0)');
 
     document.querySelector<HTMLButtonElement>('#settingsTab')?.click();
     expect(scrollRegion.classList.contains('popup-scroll-fade-top')).toBe(true);
@@ -842,6 +877,7 @@ describe('popup', () => {
     bookmarksList.dispatchEvent(new Event('scroll'));
     expect(bookmarksScrollRegion.classList.contains('popup-scroll-fade-top')).toBe(true);
     expect(bookmarksScrollRegion.classList.contains('popup-scroll-fade-bottom')).toBe(false);
+    expect(bookmarksScrollbarThumb.style.transform).toBe('translate3d(0, 66px, 0)');
   });
 
   it('renders bookmark fallback rows, profile handles, and storage-change refreshes', async () => {

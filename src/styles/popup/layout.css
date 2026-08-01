@@ -385,6 +385,48 @@ main {
   opacity: 1;
 }
 
+.popup-scrollbar {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-end: 0;
+  z-index: 3;
+  width: 7px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ytcq-popup-secondary-text) 12%, transparent);
+  opacity: 0;
+  pointer-events: auto;
+  touch-action: none;
+  transition: opacity 160ms ease;
+}
+
+.popup-scrollbar-active,
+.popup-scrollbar:hover,
+.popup-scrollbar-dragging {
+  opacity: 1;
+}
+
+.popup-scrollbar[hidden] {
+  display: none;
+}
+
+.popup-scrollbar-thumb {
+  position: absolute;
+  top: 0;
+  inset-inline-end: 1px;
+  width: 5px;
+  border-radius: 999px;
+  background: var(--ytcq-popup-secondary-text);
+  cursor: ns-resize;
+  opacity: 0.66;
+  transition: opacity 120ms ease;
+  will-change: height, transform;
+}
+
+.popup-scrollbar:hover .popup-scrollbar-thumb,
+.popup-scrollbar-dragging .popup-scrollbar-thumb {
+  opacity: 0.9;
+}
+
 .popup-tab-panel {
   grid-area: 1 / 1;
   display: flex;
@@ -408,7 +450,6 @@ main {
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
-  scrollbar-gutter: stable;
 }
 
 #bookmarksPanel[hidden],
@@ -423,7 +464,18 @@ main {
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
-  scrollbar-gutter: stable;
+}
+
+#settingsPanel:not([hidden]),
+#bookmarksPanel:not([hidden]),
+#playgroundPanel:not([hidden]) {
+  scrollbar-width: none;
+}
+
+#settingsPanel:not([hidden])::-webkit-scrollbar,
+#bookmarksPanel:not([hidden])::-webkit-scrollbar,
+#playgroundPanel:not([hidden])::-webkit-scrollbar {
+  display: none;
 }
 
 #playgroundPanel:not([hidden]) > .settings-section {
@@ -485,6 +537,8 @@ main {
   .popup-tabs.popup-tab-highlight-animated::before,
   .popup-tabs::before,
   .popup-tab,
+  .popup-scrollbar,
+  .popup-scrollbar-thumb,
   #playgroundGamesSection {
     transition: none;
   }
