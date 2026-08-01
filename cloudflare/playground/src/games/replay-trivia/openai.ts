@@ -155,7 +155,7 @@ function createOpenAIRequest(model: string, request: ReplayTriviaQuestionsReques
           'wrongReply is the friend speaking directly to the player after the player answers incorrectly.',
           'wrongReply must say the correct answer and must be valid for any wrong choice.',
           'Make wrongReply an 10-out-of-10 spicy roast from a close friend in a competitive group chat.',
-          'Use sharp sarcasm, mock disbelief, dramatic betrayal, or question-specific wordplay to make the player feel unmistakably called out for that particular miss.',
+          'Use short and sharp sarcasm, mock disbelief, dramatic betrayal, or question-specific wordplay to make the player feel unmistakably called out for that particular miss.',
           'Do not settle for neutral feedback such as "nope", "you missed it", "not quite", or "wrong" without a real jab.',
           'Never use slurs, threats, sexual content, degrading labels.',
           'Never make the friend blame or roast themself in wrongReply. Avoid self-blame such as "I missed", "my memory", "my notes", "my attention", or "we both".',
