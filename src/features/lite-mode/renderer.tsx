@@ -30,6 +30,13 @@ import {
 } from './store';
 
 const LIVE_EDGE_TOLERANCE_PX = 2;
+// Native live chat spreads continuation actions across the observed interval
+// between responses. It renders one row at a time when possible, then releases
+// ordered groups at the minimum interval when traffic is too fast to keep up.
+const LIVE_PRESENTATION_DEFAULT_WINDOW_MS = 10_000;
+const LIVE_PRESENTATION_MIN_INTERVAL_MS = 80;
+const LIVE_PRESENTATION_MAX_INTERVAL_MS = 1_000;
+const LIVE_PRESENTATION_INTERVAL_SAMPLE_LIMIT = 5;
 const MAX_PENDING_MESSAGE_COUNT = 999;
 const SCROLLBACK_LOAD_THRESHOLD_PX = 48;
 const LIVE_EDGE_SCROLL_INTENT_MS = 500;
@@ -80,13 +87,19 @@ export function createLiteChatRenderer(
   const renderedRecords = new Map<string, YouTubeChatMessageRecord>();
   const dispatchedRecordIds = new Set<string>();
   const pendingRowSources = new Map<string, LiteChatRowSource>();
+  const pendingLivePresentationIds: string[] = [];
+  const pendingLivePresentationIdSet = new Set<string>();
+  const liveBatchIntervals: number[] = [];
   let stagedActionSources = new Map<string, LiteChatRowSource>();
+  let stagedActionOrigin: YouTubeChatFeedBatchSource | null = null;
   let followingLiveEdge = true;
   let frozenEndId = '';
   let pendingMessageCount = 0;
   let destroyed = false;
   let scrollFrame = 0;
   let activeScrollPointer: ActiveScrollPointer | null = null;
+  let lastLiveBatchAt: number | null = null;
+  let livePresentationTimer = 0;
   let returnIntentPending = false;
   let returnIntentTimer = 0;
   const scrollListeners = new AbortController();
@@ -211,6 +224,7 @@ export function createLiteChatRenderer(
   ): void {
     const source: LiteChatRowSource = origin === 'initial' ? 'existing' : 'added';
     stagedActionSources = new Map();
+    stagedActionOrigin = origin;
     for (const action of actions) {
       if (action.type !== 'upsert') continue;
       stagedActionSources.set(
@@ -223,8 +237,11 @@ export function createLiteChatRenderer(
   function handleStoreChange(change: LiteChatStoreChange): void {
     const wasFollowingLiveEdge = followingLiveEdge;
     const previousFrozenEndId = frozenEndId;
+    const actionOrigin = stagedActionOrigin;
+    stagedActionOrigin = null;
     rememberChangedRowSources(change);
     if (change.reset) {
+      clearLivePresentation();
       if (wasFollowingLiveEdge) {
         setFollowingLiveEdge(true);
         frozenEndId = '';
@@ -241,6 +258,12 @@ export function createLiteChatRenderer(
       );
     }
 
+    if (!change.reset) {
+      removePendingLivePresentationIds(change.removedIds);
+      stageLiveAdditions(change, actionOrigin);
+      ensureRetainedLivePresentationRow();
+    }
+
     if (followingLiveEdge || doesStoreChangeAffectFrozenWindow(change)) {
       renderRecords(change);
     }
@@ -248,6 +271,154 @@ export function createLiteChatRenderer(
     if (followingLiveEdge) {
       pinScrollToBottom();
     }
+  }
+
+  function stageLiveAdditions(
+    change: LiteChatStoreChange,
+    origin: YouTubeChatFeedBatchSource | null
+  ): void {
+    if (origin !== 'live') return;
+
+    const newMessageIds = change.addedIds.filter((id) => {
+      return Boolean(store.get(id)) && pendingRowSources.get(id) === 'added';
+    });
+    if (!newMessageIds.length) return;
+
+    rememberLiveBatchArrival(performance.now());
+    if (!followingLiveEdge) return;
+    if (document.visibilityState !== 'visible') {
+      // There is no presentation to smooth while hidden. Drop any existing
+      // hold as well so a newer hidden response cannot pass queued rows.
+      clearLivePresentation();
+      return;
+    }
+
+    const alreadyPresenting = pendingLivePresentationIdSet.size > 0;
+    // The first row is the queue's zero-delay emission. If a queue is already
+    // draining, every new row joins it so a newer response cannot jump ahead.
+    const idsToStage = alreadyPresenting ? newMessageIds : newMessageIds.slice(1);
+    for (const id of idsToStage) {
+      if (pendingLivePresentationIdSet.has(id)) continue;
+      pendingLivePresentationIdSet.add(id);
+      pendingLivePresentationIds.push(id);
+    }
+    if (!pendingLivePresentationIds.length) return;
+    scheduleLivePresentation(getNextLivePresentationDelay(performance.now()));
+  }
+
+  function rememberLiveBatchArrival(now: number): void {
+    if (lastLiveBatchAt !== null) {
+      const interval = now - lastLiveBatchAt;
+      if (interval > 0) {
+        liveBatchIntervals.push(interval);
+        if (liveBatchIntervals.length > LIVE_PRESENTATION_INTERVAL_SAMPLE_LIMIT) {
+          liveBatchIntervals.shift();
+        }
+      }
+    }
+    lastLiveBatchAt = now;
+  }
+
+  function getRemainingLivePresentationWindow(now: number): number {
+    if (lastLiveBatchAt === null || !liveBatchIntervals.length) {
+      return LIVE_PRESENTATION_DEFAULT_WINDOW_MS;
+    }
+    return Math.max(0, Math.max(...liveBatchIntervals) - (now - lastLiveBatchAt));
+  }
+
+  function getLivePresentationReleaseCount(remainingWindow: number): number {
+    const availableIntervals = Math.max(1, remainingWindow / LIVE_PRESENTATION_MIN_INTERVAL_MS);
+    return Math.max(1, Math.ceil(pendingLivePresentationIds.length / availableIntervals));
+  }
+
+  function getNextLivePresentationDelay(now: number): number {
+    const remainingWindow = getRemainingLivePresentationWindow(now);
+    if (getLivePresentationReleaseCount(remainingWindow) > 1) {
+      return LIVE_PRESENTATION_MIN_INTERVAL_MS;
+    }
+    const randomizedInterval =
+      (remainingWindow / Math.max(1, pendingLivePresentationIds.length)) * (Math.random() + 0.5);
+    return Math.min(
+      LIVE_PRESENTATION_MAX_INTERVAL_MS,
+      Math.max(LIVE_PRESENTATION_MIN_INTERVAL_MS, randomizedInterval)
+    );
+  }
+
+  function scheduleLivePresentation(delay: number): void {
+    if (
+      destroyed ||
+      !followingLiveEdge ||
+      !pendingLivePresentationIds.length ||
+      livePresentationTimer
+    ) {
+      return;
+    }
+
+    livePresentationTimer = window.setTimeout(presentNextLiveRows, delay);
+  }
+
+  function presentNextLiveRows(): void {
+    livePresentationTimer = 0;
+    if (destroyed || !followingLiveEdge) {
+      clearLivePresentation();
+      return;
+    }
+
+    removePendingLivePresentationIds(pendingLivePresentationIds.filter((id) => !store.get(id)));
+    if (!pendingLivePresentationIds.length) {
+      clearLivePresentation();
+      return;
+    }
+
+    const now = performance.now();
+    const remainingWindow = getRemainingLivePresentationWindow(now);
+    const releaseCount = getLivePresentationReleaseCount(remainingWindow);
+    for (let index = 0; index < releaseCount; index += 1) {
+      const id = pendingLivePresentationIds.shift();
+      if (!id) break;
+      pendingLivePresentationIdSet.delete(id);
+    }
+
+    renderRecords(null, true);
+    pinScrollToBottom();
+    if (!pendingLivePresentationIds.length) {
+      clearLivePresentation();
+      return;
+    }
+    scheduleLivePresentation(
+      releaseCount > 1 ? LIVE_PRESENTATION_MIN_INTERVAL_MS : getNextLivePresentationDelay(now)
+    );
+  }
+
+  function removePendingLivePresentationIds(ids: readonly string[]): void {
+    if (!ids.length || !pendingLivePresentationIds.length) return;
+    const removedIds = new Set(ids);
+    for (const id of removedIds) pendingLivePresentationIdSet.delete(id);
+    const retainedIds = pendingLivePresentationIds.filter((id) => !removedIds.has(id));
+    pendingLivePresentationIds.length = 0;
+    pendingLivePresentationIds.push(...retainedIds);
+    if (!pendingLivePresentationIds.length) clearLivePresentation();
+  }
+
+  function ensureRetainedLivePresentationRow(): void {
+    if (
+      !followingLiveEdge ||
+      !pendingLivePresentationIds.length ||
+      store.getRecords().some((record) => !pendingLivePresentationIdSet.has(record.id))
+    ) {
+      return;
+    }
+
+    const id = pendingLivePresentationIds.shift();
+    if (id) pendingLivePresentationIdSet.delete(id);
+    if (!pendingLivePresentationIds.length) clearLivePresentation();
+  }
+
+  function clearLivePresentation(): void {
+    if (livePresentationTimer) window.clearTimeout(livePresentationTimer);
+    livePresentationTimer = 0;
+    pendingLivePresentationIds.length = 0;
+    pendingLivePresentationIdSet.clear();
   }
 
   function doesStoreChangeAffectFrozenWindow(change: LiteChatStoreChange): boolean {
@@ -296,7 +467,10 @@ export function createLiteChatRenderer(
     }
   }
 
-  function renderRecords(change: LiteChatStoreChange | null): void {
+  function renderRecords(
+    change: LiteChatStoreChange | null,
+    animateAddedRows = change !== null
+  ): void {
     const desired = getDesiredRecords();
     const desiredIds = new Set(desired.map((record) => record.id));
     emptyState.hidden = desired.length > 0;
@@ -332,7 +506,7 @@ export function createLiteChatRenderer(
       let rowSource: LiteChatRowSource | null = null;
       if (created || changed) {
         rowSource = created ? pendingRowSources.get(record.id) || 'existing' : 'changed';
-        if (created && change && rowSource === 'added') {
+        if (created && animateAddedRows && rowSource === 'added') {
           row.classList.add('ytcq-lite-message-enter');
         }
       }
@@ -354,7 +528,12 @@ export function createLiteChatRenderer(
 
   function getDesiredRecords(): readonly YouTubeChatMessageRecord[] {
     if (followingLiveEdge || !frozenEndId) {
-      const latest = store.getLatest(renderLimit);
+      const latest = pendingLivePresentationIdSet.size
+        ? store
+            .getRecords()
+            .filter((record) => !pendingLivePresentationIdSet.has(record.id))
+            .slice(-renderLimit)
+        : store.getLatest(renderLimit);
       frozenEndId = latest[latest.length - 1]?.id || '';
       return latest;
     }
@@ -538,6 +717,7 @@ export function createLiteChatRenderer(
     const endIndex = Math.min(records.length - 1, startIndex + renderLimit - 1);
 
     clearReturnIntent();
+    clearLivePresentation();
     setFollowingLiveEdge(false);
     frozenEndId = records[endIndex]?.id || id;
     pendingMessageCount = Math.min(
@@ -550,13 +730,17 @@ export function createLiteChatRenderer(
   }
 
   function leaveLiveEdge(): void {
+    clearLivePresentation();
     setFollowingLiveEdge(false);
     const rendered = Array.from(rowsById.keys());
     frozenEndId = rendered[rendered.length - 1] || '';
+    pendingMessageCount = getResetPendingMessageCount(store.getRecords(), frozenEndId);
+    refreshNewMessagesButton();
   }
 
   function scrollToLiveEdge(): void {
     clearReturnIntent();
+    clearLivePresentation();
     setFollowingLiveEdge(true);
     frozenEndId = '';
     pendingMessageCount = 0;
@@ -609,6 +793,7 @@ export function createLiteChatRenderer(
     scrollListeners.abort();
     resizeObserver?.disconnect();
     if (scrollFrame) window.cancelAnimationFrame(scrollFrame);
+    clearLivePresentation();
     clearReturnIntent();
     scrollFrame = 0;
     rowsById.clear();
@@ -616,6 +801,7 @@ export function createLiteChatRenderer(
     dispatchedRecordIds.clear();
     pendingRowSources.clear();
     stagedActionSources.clear();
+    stagedActionOrigin = null;
     root.remove();
   }
 }

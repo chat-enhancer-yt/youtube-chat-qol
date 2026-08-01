@@ -6,14 +6,13 @@ import {
   type YouTubeChatMessageRecord
 } from '../../youtube/chat-feed/protocol';
 
-const {
-  getYouTubeChatFeedRecordStateMock,
-  requestNativeChatRestoreMock
-} = vi.hoisted(() => ({
-  getYouTubeChatFeedRecordStateMock: vi.fn<() => {
-    ready: boolean;
-    records: YouTubeChatMessageRecord[];
-  }>(() => ({ ready: false, records: [] })),
+const { getYouTubeChatFeedRecordStateMock, requestNativeChatRestoreMock } = vi.hoisted(() => ({
+  getYouTubeChatFeedRecordStateMock: vi.fn<
+    () => {
+      ready: boolean;
+      records: YouTubeChatMessageRecord[];
+    }
+  >(() => ({ ready: false, records: [] })),
   requestNativeChatRestoreMock: vi.fn()
 }));
 
@@ -43,10 +42,7 @@ import {
   stopLiteMode
 } from './controller';
 import { parseYouTubeChatFeedBatchDetail } from '../../youtube/chat-feed/batch';
-import {
-  clearLiteModeSessionCooldown,
-  hasLiteModeSessionCooldown
-} from './bootstrap';
+import { clearLiteModeSessionCooldown, hasLiteModeSessionCooldown } from './bootstrap';
 
 describe('Lite mode controller', () => {
   beforeEach(() => {
@@ -104,10 +100,14 @@ describe('Lite mode controller', () => {
       'existing'
     );
 
-    dispatchBatch(createBatch(1, [{
-      type: 'upsert',
-      record: createRecord('first', 'First message')
-    }]));
+    dispatchBatch(
+      createBatch(1, [
+        {
+          type: 'upsert',
+          record: createRecord('first', 'First message')
+        }
+      ])
+    );
 
     expect(nativeList.isConnected).toBe(false);
     expect(document.querySelector('[data-message-id="first"]')).not.toBeNull();
@@ -145,9 +145,9 @@ describe('Lite mode controller', () => {
     expect(target?.isConnected).toBe(true);
     expect(target?.dataset.messageId).toBe('message-0');
     expect(getLiteModeMessageElement('message-0')).toBe(target);
-    expect(document.querySelector('.ytcq-lite-root')?.getAttribute(
-      'data-ytcq-following-live-edge'
-    )).toBe('false');
+    expect(
+      document.querySelector('.ytcq-lite-root')?.getAttribute('data-ytcq-following-live-edge')
+    ).toBe('false');
     expect(hasRetainedLiteModeMessage('missing')).toBe(false);
     expect(revealRetainedLiteModeMessage('missing')).toBeNull();
   });
@@ -198,29 +198,25 @@ describe('Lite mode controller', () => {
         enabled: true,
         requestInitial: true
       });
-      expect(controls).not.toContainEqual(
-        expect.objectContaining({ requestRendered: true })
-      );
+      expect(controls).not.toContainEqual(expect.objectContaining({ requestRendered: true }));
       expect(nativeList.isConnected).toBe(false);
       expect(nativeList.classList.contains('ytcq-lite-native-seed-pending')).toBe(false);
       expect(nativeList.getAttribute('aria-hidden')).toBe('true');
-      expect(document.documentElement.getAttribute(
-        'data-ytcq-lite-native-discarded'
-      )).toBe('true');
+      expect(document.documentElement.getAttribute('data-ytcq-lite-native-discarded')).toBe('true');
 
       dispatchBatch({
-        ...createBatch(1, [{
-          type: 'upsert',
-          record: createRecord('replay-bootstrap', 'Timed bootstrap row')
-        }]),
+        ...createBatch(1, [
+          {
+            type: 'upsert',
+            record: createRecord('replay-bootstrap', 'Timed bootstrap row')
+          }
+        ]),
         source: 'initial'
       });
 
       expect(document.querySelector('[data-message-id="replay-bootstrap"]')).not.toBeNull();
       expect(nativeList.isConnected).toBe(false);
-      expect(controls).not.toContainEqual(
-        expect.objectContaining({ requestRendered: true })
-      );
+      expect(controls).not.toContainEqual(expect.objectContaining({ requestRendered: true }));
     } finally {
       window.removeEventListener(YOUTUBE_CHAT_FEED_CONTROL_EVENT, onControl);
     }
@@ -259,20 +255,21 @@ describe('Lite mode controller', () => {
       consumer: 'lite',
       enabled: true
     });
-    expect(controls).not.toContainEqual(
-      expect.objectContaining({ requestInitial: true })
-    );
+    expect(controls).not.toContainEqual(expect.objectContaining({ requestInitial: true }));
     expect(root.dataset.ytcqConnectionState).toBe('connecting');
     expect(root.getAttribute('aria-busy')).toBe('true');
     expect(spinner.hidden).toBe(false);
-    expect(document.querySelector('.ytcq-lite-empty-state')?.textContent)
-      .toContain('Waiting for chat');
+    expect(document.querySelector('.ytcq-lite-empty-state')?.textContent).toContain(
+      'Waiting for chat'
+    );
 
     dispatchBatch({
-      ...createBatch(1, [{
-        type: 'upsert',
-        record: createRecord('hydrated-replay', 'Hydrated replay history')
-      }]),
+      ...createBatch(1, [
+        {
+          type: 'upsert',
+          record: createRecord('hydrated-replay', 'Hydrated replay history')
+        }
+      ]),
       source: 'initial'
     });
 
@@ -303,8 +300,9 @@ describe('Lite mode controller', () => {
     expect(root.dataset.ytcqConnectionState).toBe('connected');
     expect(root.getAttribute('aria-busy')).toBe('false');
     expect(spinner.hidden).toBe(true);
-    expect(document.querySelector('.ytcq-lite-empty-state')?.textContent)
-      .toContain('No messages yet');
+    expect(document.querySelector('.ytcq-lite-empty-state')?.textContent).toContain(
+      'No messages yet'
+    );
   });
 
   it('uses the reload handoff when disabled while Lite is still connecting', () => {
@@ -389,7 +387,7 @@ describe('Lite mode controller', () => {
     expect(requestNativeChatRestoreMock).toHaveBeenCalledOnce();
   });
 
-  it('applies busy live upserts immediately', () => {
+  it('stores a live response immediately and paces its rows', async () => {
     startLiteMode({ clearCooldown: true });
     dispatchBatch({
       ...createBatch(1, [
@@ -401,10 +399,15 @@ describe('Lite mode controller', () => {
       continuationTimeoutMs: 1_000
     });
 
+    const root = document.querySelector<HTMLElement>('.ytcq-lite-root')!;
+    expect(root.dataset.ytcqLiteStoreSize).toBe('4');
+    expect(document.querySelectorAll('.ytcq-lite-message')).toHaveLength(1);
+
+    await vi.advanceTimersByTimeAsync(3_000);
     expect(document.querySelectorAll('.ytcq-lite-message')).toHaveLength(4);
   });
 
-  it('does not delay a paid message through the continuation window', () => {
+  it('keeps a paid message behind earlier rows while pacing a live response', async () => {
     startLiteMode({ clearCooldown: true });
     const paidRecord = {
       ...createRecord('paid', 'Thank you'),
@@ -420,7 +423,14 @@ describe('Lite mode controller', () => {
       continuationTimeoutMs: 5_000
     });
 
-    expect(document.querySelectorAll('.ytcq-lite-message')).toHaveLength(3);
+    expect(document.querySelectorAll('.ytcq-lite-message')).toHaveLength(1);
+    expect(document.querySelector('[data-message-id="paid"]')).toBeNull();
+
+    await vi.advanceTimersByTimeAsync(1_000);
+    expect(document.querySelectorAll('.ytcq-lite-message')).toHaveLength(2);
+    expect(document.querySelector('[data-message-id="paid"]')).toBeNull();
+
+    await vi.advanceTimersByTimeAsync(1_000);
     expect(document.querySelector('[data-message-id="paid"]')).not.toBeNull();
   });
 
@@ -439,23 +449,36 @@ describe('Lite mode controller', () => {
     expect(document.querySelector('[data-message-id="two"]')).not.toBeNull();
   });
 
-  it('applies rich live batches without building a pending display backlog', () => {
+  it('stores rich live bursts immediately while their visual queue catches up', async () => {
     startLiteMode({ clearCooldown: true });
     const richText = 'x'.repeat(9_000);
     for (let sequence = 1; sequence <= 5; sequence += 1) {
       dispatchBatch({
-        ...createBatch(sequence, Array.from({ length: 100 }, (_value, index) => ({
-          type: 'upsert' as const,
-          record: createRecord(`rich-${sequence}-${index}`, richText)
-        }))),
+        ...createBatch(
+          sequence,
+          Array.from({ length: 100 }, (_value, index) => ({
+            type: 'upsert' as const,
+            record: createRecord(`rich-${sequence}-${index}`, richText)
+          }))
+        ),
         continuationTimeoutMs: 5_000
       });
     }
 
     const root = document.querySelector<HTMLElement>('.ytcq-lite-root')!;
     expect(isLiteModeActive()).toBe(true);
+    expect(Number(root.dataset.ytcqLiteStoreSize)).toBeGreaterThan(150);
     expect(root.dataset.ytcqLitePendingLiveActions).toBe('0');
     expect(root.dataset.ytcqLitePendingLiveActionBytes).toBe('0');
+    expect(document.querySelectorAll('.ytcq-lite-message')).toHaveLength(1);
+
+    await vi.advanceTimersByTimeAsync(1_200);
+
+    expect(document.querySelectorAll('.ytcq-lite-message').length).toBeGreaterThan(1);
+    expect(document.querySelectorAll('.ytcq-lite-message').length).toBeLessThan(150);
+
+    await vi.advanceTimersByTimeAsync(8_800);
+
     expect(document.querySelectorAll('.ytcq-lite-message')).toHaveLength(150);
     expect(requestNativeChatRestoreMock).not.toHaveBeenCalled();
   });
@@ -586,11 +609,13 @@ describe('Lite mode controller', () => {
     const root = document.querySelector('.ytcq-lite-root')!;
     const rootParent = root.parentNode!;
     root.remove();
-    handleLiteModeDomMutations([mutation({
-      removedNodes: [root],
-      target: rootParent,
-      type: 'childList'
-    })]);
+    handleLiteModeDomMutations([
+      mutation({
+        removedNodes: [root],
+        target: rootParent,
+        type: 'childList'
+      })
+    ]);
 
     expect(isLiteModeActive()).toBe(false);
     expect(nativeList.isConnected).toBe(false);
@@ -615,11 +640,13 @@ describe('Lite mode controller', () => {
     appendNativeMessage(replacement, 'one');
     const chatRenderer = document.querySelector('yt-live-chat-renderer')!;
     chatRenderer.append(replacement);
-    handleLiteModeDomMutations([mutation({
-      addedNodes: [replacement],
-      target: chatRenderer,
-      type: 'childList'
-    })]);
+    handleLiteModeDomMutations([
+      mutation({
+        addedNodes: [replacement],
+        target: chatRenderer,
+        type: 'childList'
+      })
+    ]);
 
     expect(isLiteModeActive()).toBe(true);
     expect(document.querySelectorAll('yt-live-chat-item-list-renderer')).toHaveLength(0);
@@ -642,10 +669,14 @@ describe('Lite mode controller', () => {
     nativeList.append(repopulated);
     expect(nativeList.querySelectorAll('*')).toHaveLength(2);
 
-    dispatchBatch(createBatch(1, [{
-      type: 'upsert',
-      record: createRecord('one', 'One')
-    }]));
+    dispatchBatch(
+      createBatch(1, [
+        {
+          type: 'upsert',
+          record: createRecord('one', 'One')
+        }
+      ])
+    );
 
     expect(nativeList.querySelectorAll('*')).toHaveLength(0);
     expect(root.dataset.ytcqLiteDetachedNativeRepopulations).toBe('1');
@@ -663,11 +694,13 @@ describe('Lite mode controller', () => {
 
     window.dispatchEvent(new Event('beforeunload'));
     root.remove();
-    handleLiteModeDomMutations([mutation({
-      removedNodes: [root],
-      target: rootParent,
-      type: 'childList'
-    })]);
+    handleLiteModeDomMutations([
+      mutation({
+        removedNodes: [root],
+        target: rootParent,
+        type: 'childList'
+      })
+    ]);
 
     expect(requestNativeChatRestoreMock).not.toHaveBeenCalled();
     expect(hasLiteModeSessionCooldown()).toBe(false);
@@ -756,10 +789,12 @@ describe('Lite mode controller', () => {
       source: 'replay'
     });
     dispatchBatch({
-      ...createBatch(3, [{
-        type: 'upsert',
-        record: createRecord('recovered-history', 'Recovered history')
-      }]),
+      ...createBatch(3, [
+        {
+          type: 'upsert',
+          record: createRecord('recovered-history', 'Recovered history')
+        }
+      ]),
       source: 'initial'
     });
     await vi.advanceTimersByTimeAsync(1);
@@ -961,7 +996,7 @@ describe('Lite mode controller', () => {
     expect(isLiteModeActive()).toBe(true);
   });
 
-  it('preserves initial and live row origins through immediate store updates', () => {
+  it('preserves initial and live row origins through paced store updates', async () => {
     const onRow = vi.fn();
     setLiteModeRowRenderedCallback(onRow);
     startLiteMode({ clearCooldown: true });
@@ -985,6 +1020,7 @@ describe('Lite mode controller', () => {
       ]),
       continuationTimeoutMs: 1_000
     });
+    await vi.advanceTimersByTimeAsync(1_000);
     expect(onRow.mock.calls.map(([, record, source]) => [record.id, source])).toEqual([
       ['initial', 'existing'],
       ['replay', 'added'],
@@ -1011,7 +1047,10 @@ describe('Lite mode controller', () => {
     onRow.mockClear();
 
     const refreshedRecords = [
-      ...initialRecords.map((record) => ({ ...record, plainText: `${record.plainText} refreshed` })),
+      ...initialRecords.map((record) => ({
+        ...record,
+        plainText: `${record.plainText} refreshed`
+      })),
       createRecord('new-after-reset', 'New after reset')
     ];
     dispatchBatch({
@@ -1115,10 +1154,12 @@ describe('Lite mode controller', () => {
     notifyLiteElementAdded(toggleRenderer, document.body);
     await flushMutations();
 
-    toggleRenderer.dispatchEvent(new MouseEvent('click', {
-      bubbles: true,
-      composed: true
-    }));
+    toggleRenderer.dispatchEvent(
+      new MouseEvent('click', {
+        bubbles: true,
+        composed: true
+      })
+    );
     document.querySelector('yt-live-chat-renderer')?.removeAttribute('hide-timestamps');
     await vi.advanceTimersByTimeAsync(0);
     expect(root.dataset.ytcqShowTimestamps).toBe('true');
@@ -1127,10 +1168,12 @@ describe('Lite mode controller', () => {
     toggle.setAttribute('active', '');
     toggle.setAttribute('aria-pressed', 'true');
     await flushMutations();
-    toggleRenderer.dispatchEvent(new MouseEvent('click', {
-      bubbles: true,
-      composed: true
-    }));
+    toggleRenderer.dispatchEvent(
+      new MouseEvent('click', {
+        bubbles: true,
+        composed: true
+      })
+    );
     document.querySelector('yt-live-chat-renderer')?.setAttribute('hide-timestamps', '');
     await vi.advanceTimersByTimeAsync(0);
     expect(root.dataset.ytcqShowTimestamps).toBe('false');
@@ -1189,91 +1232,151 @@ describe('Lite mode controller', () => {
       fatalErrors: ['response:invalid-json'],
       unreadableFeed: true
     };
-    expect(parseYouTubeChatFeedBatchDetail(JSON.stringify(diagnosticBatch))).toEqual(diagnosticBatch);
+    expect(parseYouTubeChatFeedBatchDetail(JSON.stringify(diagnosticBatch))).toEqual(
+      diagnosticBatch
+    );
     expect(parseYouTubeChatFeedBatchDetail(valid)).toBeNull();
-    expect(parseYouTubeChatFeedBatchDetail(JSON.stringify({
-      ...valid,
-      compatibilityWarnings: [false]
-    }))).toBeNull();
-    expect(parseYouTubeChatFeedBatchDetail(JSON.stringify({
-      ...valid,
-      unreadableFeed: 'yes'
-    }))).toBeNull();
-    expect(parseYouTubeChatFeedBatchDetail(JSON.stringify({
-      ...valid,
-      actions: [{ type: 'remove', id: '' }]
-    }))).toBeNull();
-    expect(parseYouTubeChatFeedBatchDetail(JSON.stringify({
-      ...valid,
-      actions: [{
-        type: 'upsert',
-        record: {
-          ...createRecord('unsafe-link', 'Unsafe'),
-          runs: [{ type: 'text', text: 'Unsafe', href: 'javascript:alert(1)' }]
-        }
-      }]
-    }))).toBeNull();
-    expect(parseYouTubeChatFeedBatchDetail(JSON.stringify({
-      ...valid,
-      actions: [{
-        type: 'upsert',
-        record: {
-          ...createRecord('unsafe-avatar', 'Unsafe'),
-          author: {
-            badges: [],
-            name: '@Unsafe',
-            avatarUrl: 'http://example.com/avatar.png'
-          }
-        }
-      }]
-    }))).toBeNull();
+    expect(
+      parseYouTubeChatFeedBatchDetail(
+        JSON.stringify({
+          ...valid,
+          compatibilityWarnings: [false]
+        })
+      )
+    ).toBeNull();
+    expect(
+      parseYouTubeChatFeedBatchDetail(
+        JSON.stringify({
+          ...valid,
+          unreadableFeed: 'yes'
+        })
+      )
+    ).toBeNull();
+    expect(
+      parseYouTubeChatFeedBatchDetail(
+        JSON.stringify({
+          ...valid,
+          actions: [{ type: 'remove', id: '' }]
+        })
+      )
+    ).toBeNull();
+    expect(
+      parseYouTubeChatFeedBatchDetail(
+        JSON.stringify({
+          ...valid,
+          actions: [
+            {
+              type: 'upsert',
+              record: {
+                ...createRecord('unsafe-link', 'Unsafe'),
+                runs: [{ type: 'text', text: 'Unsafe', href: 'javascript:alert(1)' }]
+              }
+            }
+          ]
+        })
+      )
+    ).toBeNull();
+    expect(
+      parseYouTubeChatFeedBatchDetail(
+        JSON.stringify({
+          ...valid,
+          actions: [
+            {
+              type: 'upsert',
+              record: {
+                ...createRecord('unsafe-avatar', 'Unsafe'),
+                author: {
+                  badges: [],
+                  name: '@Unsafe',
+                  avatarUrl: 'http://example.com/avatar.png'
+                }
+              }
+            }
+          ]
+        })
+      )
+    ).toBeNull();
     const moderatorRecord = createRecord('moderator', 'Safe');
     moderatorRecord.author!.badges = [{ kind: 'moderator', label: 'Moderator' }];
-    expect(parseYouTubeChatFeedBatchDetail(JSON.stringify(
-      createBatch(2, [{ type: 'upsert', record: moderatorRecord }])
-    ))).not.toBeNull();
+    expect(
+      parseYouTubeChatFeedBatchDetail(
+        JSON.stringify(createBatch(2, [{ type: 'upsert', record: moderatorRecord }]))
+      )
+    ).not.toBeNull();
     const ownerRecord = createRecord('owner', 'Safe owner');
     ownerRecord.author = {
       badges: [{ kind: 'verified', label: 'Verified' }],
       isOwner: true,
       name: '@Owner'
     };
-    expect(parseYouTubeChatFeedBatchDetail(JSON.stringify(
-      createBatch(3, [{ type: 'upsert', record: ownerRecord }])
-    ))).not.toBeNull();
-    expect(parseYouTubeChatFeedBatchDetail(JSON.stringify({
-      ...valid,
-      actions: [{
-        type: 'upsert',
-        record: {
-          ...moderatorRecord,
-          author: {
-            ...moderatorRecord.author,
-            badges: [{ kind: 'administrator', label: 'Administrator' }]
-          }
-        }
-      }]
-    }))).toBeNull();
-    expect(parseYouTubeChatFeedBatchDetail(JSON.stringify(createBatch(3, [{
-      replayOffsetMs: 5_000,
-      type: 'upsert',
-      record: createRecord('timed', 'Timed')
-    }])))).not.toBeNull();
-    expect(parseYouTubeChatFeedBatchDetail(JSON.stringify(createBatch(4, [{
-      replayOffsetMs: -1,
-      type: 'upsert',
-      record: createRecord('invalid-timing', 'Invalid timing')
-    }])))).toBeNull();
-    expect(parseYouTubeChatFeedBatchDetail(JSON.stringify({
-      ...createBatch(5, []),
-      replayPlayerOffsetMs: 5_000,
-      source: 'replay'
-    }))).not.toBeNull();
-    expect(parseYouTubeChatFeedBatchDetail(JSON.stringify({
-      ...createBatch(6, []),
-      replayPlayerOffsetMs: -1,
-      source: 'replay'
-    }))).toBeNull();
+    expect(
+      parseYouTubeChatFeedBatchDetail(
+        JSON.stringify(createBatch(3, [{ type: 'upsert', record: ownerRecord }]))
+      )
+    ).not.toBeNull();
+    expect(
+      parseYouTubeChatFeedBatchDetail(
+        JSON.stringify({
+          ...valid,
+          actions: [
+            {
+              type: 'upsert',
+              record: {
+                ...moderatorRecord,
+                author: {
+                  ...moderatorRecord.author,
+                  badges: [{ kind: 'administrator', label: 'Administrator' }]
+                }
+              }
+            }
+          ]
+        })
+      )
+    ).toBeNull();
+    expect(
+      parseYouTubeChatFeedBatchDetail(
+        JSON.stringify(
+          createBatch(3, [
+            {
+              replayOffsetMs: 5_000,
+              type: 'upsert',
+              record: createRecord('timed', 'Timed')
+            }
+          ])
+        )
+      )
+    ).not.toBeNull();
+    expect(
+      parseYouTubeChatFeedBatchDetail(
+        JSON.stringify(
+          createBatch(4, [
+            {
+              replayOffsetMs: -1,
+              type: 'upsert',
+              record: createRecord('invalid-timing', 'Invalid timing')
+            }
+          ])
+        )
+      )
+    ).toBeNull();
+    expect(
+      parseYouTubeChatFeedBatchDetail(
+        JSON.stringify({
+          ...createBatch(5, []),
+          replayPlayerOffsetMs: 5_000,
+          source: 'replay'
+        })
+      )
+    ).not.toBeNull();
+    expect(
+      parseYouTubeChatFeedBatchDetail(
+        JSON.stringify({
+          ...createBatch(6, []),
+          replayPlayerOffsetMs: -1,
+          source: 'replay'
+        })
+      )
+    ).toBeNull();
   });
 });
 
@@ -1289,7 +1392,10 @@ function createChatPage(): HTMLElement {
   return app;
 }
 
-function createBatch(sequence: number, actions: YouTubeChatFeedTransportBatch['actions']): YouTubeChatFeedTransportBatch {
+function createBatch(
+  sequence: number,
+  actions: YouTubeChatFeedTransportBatch['actions']
+): YouTubeChatFeedTransportBatch {
   return {
     actions,
     receivedAt: Date.now(),
@@ -1309,16 +1415,20 @@ function createRecord(id: string, text: string): YouTubeChatMessageRecord {
 }
 
 function dispatchBatch(batch: YouTubeChatFeedTransportBatch): void {
-  window.dispatchEvent(new CustomEvent(YOUTUBE_CHAT_FEED_BATCH_EVENT, {
-    detail: JSON.stringify(batch)
-  }));
+  window.dispatchEvent(
+    new CustomEvent(YOUTUBE_CHAT_FEED_BATCH_EVENT, {
+      detail: JSON.stringify(batch)
+    })
+  );
 }
 
 function dispatchPlayerProgress(seconds: number, source: MessageEventSource | null = null): void {
-  window.dispatchEvent(new MessageEvent('message', {
-    data: { 'yt-player-video-progress': seconds },
-    source
-  }));
+  window.dispatchEvent(
+    new MessageEvent('message', {
+      data: { 'yt-player-video-progress': seconds },
+      source
+    })
+  );
 }
 
 function appendNativeMessage(nativeList: HTMLElement, id: string): HTMLElement {
@@ -1329,11 +1439,13 @@ function appendNativeMessage(nativeList: HTMLElement, id: string): HTMLElement {
 }
 
 function notifyLiteElementAdded(element: Element, target: Node): void {
-  handleLiteModeDomMutations([mutation({
-    addedNodes: [element],
-    target,
-    type: 'childList'
-  })]);
+  handleLiteModeDomMutations([
+    mutation({
+      addedNodes: [element],
+      target,
+      type: 'childList'
+    })
+  ]);
 }
 
 function mutation({

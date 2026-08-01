@@ -7,6 +7,8 @@ import { createLiteChatStore } from './store';
 
 describe('Lite chat renderer', () => {
   afterEach(() => {
+    vi.restoreAllMocks();
+    vi.useRealTimers();
     vi.unstubAllGlobals();
   });
 
@@ -96,9 +98,9 @@ describe('Lite chat renderer', () => {
     const author = row.querySelector<HTMLElement>('#author-name')!;
     expect(author.classList.contains('owner')).toBe(true);
     expect(author.querySelector('#chip-badges')).not.toBeNull();
-    expect(author.querySelector('.ytcq-lite-verified-badge-icon path')?.getAttribute('d')).toContain(
-      'M9 16.2'
-    );
+    expect(
+      author.querySelector('.ytcq-lite-verified-badge-icon path')?.getAttribute('d')
+    ).toContain('M9 16.2');
     expect(row.querySelector('#chat-badges')?.childElementCount).toBe(0);
   });
 
@@ -118,15 +120,17 @@ describe('Lite chat renderer', () => {
       expect(badge.textContent).toBe(`#${rank}`);
       expect(badge.dataset.topFanRank).toBe(String(rank));
       expect(badge.getAttribute('aria-label')).toBe(`#${rank}`);
-      expect(badge.querySelector('.ytcq-lite-top-fan-badge-icon path')?.getAttribute('d'))
-        .toContain('M12 2');
+      expect(
+        badge.querySelector('.ytcq-lite-top-fan-badge-icon path')?.getAttribute('d')
+      ).toContain('M12 2');
       expect(badge.previousElementSibling?.classList).toContain('ytcq-lite-meta');
       expect(badge.nextElementSibling?.id).toBe('message-container');
     }
 
     expect(
-      createLiteChatMessageRow(createRecord('not-a-top-fan', 'Hello'))
-        .querySelector('.ytcq-lite-top-fan-badge')
+      createLiteChatMessageRow(createRecord('not-a-top-fan', 'Hello')).querySelector(
+        '.ytcq-lite-top-fan-badge'
+      )
     ).toBeNull();
   });
 
@@ -226,10 +230,12 @@ describe('Lite chat renderer', () => {
 
   it('reveals a retained message outside the mounted window', () => {
     const store = createLiteChatStore({ renderLimit: 4, storeLimit: 20 });
-    store.apply(Array.from({ length: 10 }, (_value, index) => ({
-      type: 'upsert' as const,
-      record: createRecord(`message-${index}`, `Message ${index}`)
-    })));
+    store.apply(
+      Array.from({ length: 10 }, (_value, index) => ({
+        type: 'upsert' as const,
+        record: createRecord(`message-${index}`, `Message ${index}`)
+      }))
+    );
     const renderer = createLiteChatRenderer(store, { renderLimit: 4 });
     document.body.append(renderer.root);
 
@@ -253,10 +259,12 @@ describe('Lite chat renderer', () => {
 
   it('pages backward through retained records while keeping the mounted window bounded', async () => {
     const store = createLiteChatStore({ renderLimit: 4, storeLimit: 20 });
-    store.apply(Array.from({ length: 10 }, (_value, index) => ({
-      type: 'upsert' as const,
-      record: createRecord(`message-${index}`, `Message ${index}`)
-    })));
+    store.apply(
+      Array.from({ length: 10 }, (_value, index) => ({
+        type: 'upsert' as const,
+        record: createRecord(`message-${index}`, `Message ${index}`)
+      }))
+    );
     const renderer = createLiteChatRenderer(store, { renderLimit: 4 });
     document.body.append(renderer.root);
     const scroller = renderer.root.querySelector<HTMLElement>('.ytcq-lite-scroller')!;
@@ -333,31 +341,38 @@ describe('Lite chat renderer', () => {
     store.apply([{ type: 'upsert', record: createRecord('existing', 'Existing') }]);
     const renderer = createLiteChatRenderer(store);
 
-    expect(renderer.getMessageElement('existing')?.classList.contains('ytcq-lite-message-enter'))
-      .toBe(false);
+    expect(
+      renderer.getMessageElement('existing')?.classList.contains('ytcq-lite-message-enter')
+    ).toBe(false);
 
-    const addedActions = [
-      { type: 'upsert' as const, record: createRecord('added', 'Added') }
-    ];
+    const addedActions = [{ type: 'upsert' as const, record: createRecord('added', 'Added') }];
     renderer.rememberActionSources(addedActions, 'live');
     store.apply(addedActions);
-    expect(renderer.getMessageElement('added')?.classList.contains('ytcq-lite-message-enter'))
-      .toBe(true);
+    expect(renderer.getMessageElement('added')?.classList.contains('ytcq-lite-message-enter')).toBe(
+      true
+    );
 
-    const changedActions = [
-      { type: 'upsert' as const, record: createRecord('added', 'Changed') }
-    ];
+    const changedActions = [{ type: 'upsert' as const, record: createRecord('added', 'Changed') }];
     renderer.rememberActionSources(changedActions, 'live');
     store.apply(changedActions);
-    expect(renderer.getMessageElement('added')?.classList.contains('ytcq-lite-message-enter'))
-      .toBe(false);
+    expect(renderer.getMessageElement('added')?.classList.contains('ytcq-lite-message-enter')).toBe(
+      false
+    );
     renderer.destroy();
   });
 
-  it('renders a busy live batch without translating the whole feed', () => {
+  it('paces a live response across the recently observed response interval', async () => {
+    vi.useFakeTimers();
+    vi.spyOn(Math, 'random').mockReturnValue(0.5);
     const store = createLiteChatStore();
-    const renderer = createLiteChatRenderer(store);
+    const onRowRendered = vi.fn();
+    const renderer = createLiteChatRenderer(store, { onRowRendered });
     document.body.append(renderer.root);
+    const seedActions = [{ type: 'upsert' as const, record: createRecord('seed', 'Seed') }];
+    renderer.rememberActionSources(seedActions, 'live');
+    store.apply(seedActions);
+    await vi.advanceTimersByTimeAsync(5_000);
+
     const actions = Array.from({ length: 22 }, (_value, index) => ({
       type: 'upsert' as const,
       record: createRecord(`busy-${index}`, `Busy ${index}`)
@@ -367,12 +382,160 @@ describe('Lite chat renderer', () => {
     store.apply(actions);
 
     const items = renderer.root.querySelector<HTMLElement>('.ytcq-lite-items')!;
+    expect(store.getSize()).toBe(23);
+    expect(getRenderedMessageIds(renderer.root)).toEqual(['seed', 'busy-0']);
+    expect(onRowRendered).toHaveBeenCalledTimes(2);
+
+    await vi.advanceTimersByTimeAsync(1_000);
+    const partlyRenderedIds = getRenderedMessageIds(renderer.root);
+    expect(partlyRenderedIds.length).toBeGreaterThan(2);
+    expect(partlyRenderedIds.length).toBeLessThan(23);
+    expect(partlyRenderedIds).toEqual([
+      'seed',
+      ...actions.slice(0, partlyRenderedIds.length - 1).map(({ record }) => record.id)
+    ]);
+
+    await vi.advanceTimersByTimeAsync(4_000);
+
     const rows = renderer.root.querySelectorAll('.ytcq-lite-message');
-    expect(rows).toHaveLength(22);
-    expect(Array.from(rows).every((row) => row.classList.contains('ytcq-lite-message-enter')))
-      .toBe(true);
+    expect(rows).toHaveLength(23);
+    expect(Array.from(rows).every((row) => row.classList.contains('ytcq-lite-message-enter'))).toBe(
+      true
+    );
+    expect(onRowRendered).toHaveBeenCalledTimes(23);
     expect(items.classList).not.toContain('ytcq-lite-items-flowing');
     expect(items.style.transform).toBe('');
+    renderer.destroy();
+  });
+
+  it('keeps paid messages in transport order while a live response is paced', async () => {
+    vi.useFakeTimers();
+    vi.spyOn(Math, 'random').mockReturnValue(0.5);
+    const store = createLiteChatStore();
+    const renderer = createLiteChatRenderer(store);
+    document.body.append(renderer.root);
+    const paidRecord = {
+      ...createRecord('paid', 'Thank you'),
+      kind: 'paid' as const,
+      paid: { amountText: '$10.00' }
+    };
+    const actions = [
+      { type: 'upsert' as const, record: createRecord('ordinary-0', 'Ordinary 0') },
+      { type: 'upsert' as const, record: createRecord('ordinary-1', 'Ordinary 1') },
+      { type: 'upsert' as const, record: paidRecord },
+      { type: 'upsert' as const, record: createRecord('ordinary-2', 'Ordinary 2') },
+      { type: 'upsert' as const, record: createRecord('ordinary-3', 'Ordinary 3') },
+      { type: 'upsert' as const, record: createRecord('ordinary-4', 'Ordinary 4') }
+    ];
+
+    renderer.rememberActionSources(actions, 'live');
+    store.apply(actions);
+
+    expect(store.getSize()).toBe(6);
+    expect(getRenderedMessageIds(renderer.root)).toEqual(['ordinary-0']);
+    expect(renderer.getMessageElement('paid')).toBeNull();
+
+    await vi.advanceTimersByTimeAsync(1_000);
+    expect(getRenderedMessageIds(renderer.root)).toEqual(['ordinary-0', 'ordinary-1']);
+    expect(renderer.getMessageElement('paid')).toBeNull();
+
+    await vi.advanceTimersByTimeAsync(1_000);
+    expect(getRenderedMessageIds(renderer.root)).toEqual(['ordinary-0', 'ordinary-1', 'paid']);
+    expect(
+      renderer.getMessageElement('paid')?.querySelector('.ytcq-lite-paid-amount')?.textContent
+    ).toBe('$10.00');
+
+    await vi.advanceTimersByTimeAsync(3_000);
+    expect(getRenderedMessageIds(renderer.root)).toEqual(actions.map(({ record }) => record.id));
+    renderer.destroy();
+  });
+
+  it('releases ordered groups every 80ms when one-at-a-time pacing cannot catch up', async () => {
+    vi.useFakeTimers();
+    vi.spyOn(Math, 'random').mockReturnValue(0.5);
+    const store = createLiteChatStore({ renderLimit: 120, storeLimit: 150 });
+    const renderer = createLiteChatRenderer(store, { renderLimit: 120 });
+    document.body.append(renderer.root);
+    const seedActions = [{ type: 'upsert' as const, record: createRecord('seed', 'Seed') }];
+    renderer.rememberActionSources(seedActions, 'live');
+    store.apply(seedActions);
+    await vi.advanceTimersByTimeAsync(5_000);
+
+    const actions = Array.from({ length: 100 }, (_value, index) => ({
+      type: 'upsert' as const,
+      record: createRecord(`fast-${index}`, `Fast ${index}`)
+    }));
+    renderer.rememberActionSources(actions, 'live');
+    store.apply(actions);
+
+    expect(getRenderedMessageIds(renderer.root)).toEqual(['seed', 'fast-0']);
+    await vi.advanceTimersByTimeAsync(80);
+    expect(getRenderedMessageIds(renderer.root)).toEqual(['seed', 'fast-0', 'fast-1', 'fast-2']);
+
+    await vi.advanceTimersByTimeAsync(5_000);
+    expect(getRenderedMessageIds(renderer.root)).toEqual([
+      'seed',
+      ...actions.map(({ record }) => record.id)
+    ]);
+    renderer.destroy();
+  });
+
+  it('drops visual catch-up when the reader leaves the live edge', () => {
+    vi.useFakeTimers();
+    const store = createLiteChatStore();
+    const renderer = createLiteChatRenderer(store);
+    document.body.append(renderer.root);
+    const scroller = renderer.root.querySelector<HTMLElement>('.ytcq-lite-scroller')!;
+    Object.defineProperties(scroller, {
+      clientHeight: { configurable: true, value: 100 },
+      scrollHeight: { configurable: true, value: 500 },
+      scrollTop: { configurable: true, value: 400, writable: true }
+    });
+    const actions = Array.from({ length: 6 }, (_value, index) => ({
+      type: 'upsert' as const,
+      record: createRecord(`leaving-${index}`, `Leaving ${index}`)
+    }));
+
+    renderer.rememberActionSources(actions, 'live');
+    store.apply(actions);
+    expect(getRenderedMessageIds(renderer.root)).toEqual(['leaving-0']);
+
+    scroller.dispatchEvent(new WheelEvent('wheel', { deltaY: -20 }));
+    vi.advanceTimersByTime(1_200);
+
+    expect(renderer.root.dataset.ytcqFollowingLiveEdge).toBe('false');
+    expect(getRenderedMessageIds(renderer.root)).toEqual(['leaving-0']);
+    expect(renderer.root.querySelector<HTMLButtonElement>('.ytcq-lite-new-messages')?.hidden).toBe(
+      false
+    );
+
+    renderer.scrollToLiveEdge();
+    expect(getRenderedMessageIds(renderer.root)).toEqual(actions.map(({ record }) => record.id));
+    renderer.destroy();
+  });
+
+  it('cancels stale visual catch-up when a reset snapshot arrives', () => {
+    vi.useFakeTimers();
+    const store = createLiteChatStore();
+    const renderer = createLiteChatRenderer(store);
+    const busyActions = Array.from({ length: 6 }, (_value, index) => ({
+      type: 'upsert' as const,
+      record: createRecord(`before-reset-${index}`, `Before reset ${index}`)
+    }));
+    renderer.rememberActionSources(busyActions, 'live');
+    store.apply(busyActions);
+    expect(getRenderedMessageIds(renderer.root)).toEqual(['before-reset-0']);
+
+    const resetActions = [
+      { type: 'reset' as const },
+      { type: 'upsert' as const, record: createRecord('after-reset-1', 'After reset 1') },
+      { type: 'upsert' as const, record: createRecord('after-reset-2', 'After reset 2') }
+    ];
+    renderer.rememberActionSources(resetActions, 'live');
+    store.apply(resetActions);
+    vi.advanceTimersByTime(1_200);
+
+    expect(getRenderedMessageIds(renderer.root)).toEqual(['after-reset-1', 'after-reset-2']);
     renderer.destroy();
   });
 
@@ -485,9 +648,9 @@ describe('Lite chat renderer', () => {
     const renderer = createLiteChatRenderer(createLiteChatStore());
     expect(renderer.root.querySelector('.ytcq-lite-toolbar')).toBeNull();
     expect(renderer.root.querySelector('.ytcq-lite-exit')).toBeNull();
-    expect(renderer.root.querySelector('.ytcq-lite-scroller')?.lastElementChild?.classList).toContain(
-      'ytcq-lite-scroll-anchor'
-    );
+    expect(
+      renderer.root.querySelector('.ytcq-lite-scroller')?.lastElementChild?.classList
+    ).toContain('ytcq-lite-scroll-anchor');
   });
 
   it('exposes connection and timestamp display state without changing feed markup', () => {
@@ -619,18 +782,22 @@ describe('Lite chat renderer', () => {
       scrollHeight: { configurable: true, value: 500 },
       scrollTop: { configurable: true, value: 400, writable: true }
     });
-    vi.spyOn(scroller, 'getBoundingClientRect').mockReturnValue(rect({
-      height: 100,
-      left: 0,
-      top: 0,
-      width: 300
-    }));
-    vi.spyOn(target, 'getBoundingClientRect').mockReturnValue(rect({
-      height: 20,
-      left: 0,
-      top: -200,
-      width: 300
-    }));
+    vi.spyOn(scroller, 'getBoundingClientRect').mockReturnValue(
+      rect({
+        height: 100,
+        left: 0,
+        top: 0,
+        width: 300
+      })
+    );
+    vi.spyOn(target, 'getBoundingClientRect').mockReturnValue(
+      rect({
+        height: 20,
+        left: 0,
+        top: -200,
+        width: 300
+      })
+    );
     scroller.dispatchEvent(new Event('scroll'));
     await waitForAnimationFrame();
 
@@ -671,17 +838,20 @@ describe('Lite chat renderer', () => {
 
   it('stays pinned when layout growth changes the live-edge distance without upward scrolling', async () => {
     let onResize: ResizeObserverCallback = () => undefined;
-    vi.stubGlobal('ResizeObserver', class ResizeObserverMock {
-      constructor(callback: ResizeObserverCallback) {
-        onResize = callback;
+    vi.stubGlobal(
+      'ResizeObserver',
+      class ResizeObserverMock {
+        constructor(callback: ResizeObserverCallback) {
+          onResize = callback;
+        }
+
+        disconnect(): void {}
+
+        observe(): void {}
+
+        unobserve(): void {}
       }
-
-      disconnect(): void {}
-
-      observe(): void {}
-
-      unobserve(): void {}
-    });
+    );
     const store = createLiteChatStore();
     store.apply([{ type: 'upsert', record: createRecord('first', 'First') }]);
     const renderer = createLiteChatRenderer(store);
@@ -713,17 +883,20 @@ describe('Lite chat renderer', () => {
 
   it('waits for a layout correction before leaving the live edge', async () => {
     let onResize: ResizeObserverCallback = () => undefined;
-    vi.stubGlobal('ResizeObserver', class ResizeObserverMock {
-      constructor(callback: ResizeObserverCallback) {
-        onResize = callback;
+    vi.stubGlobal(
+      'ResizeObserver',
+      class ResizeObserverMock {
+        constructor(callback: ResizeObserverCallback) {
+          onResize = callback;
+        }
+
+        disconnect(): void {}
+
+        observe(): void {}
+
+        unobserve(): void {}
       }
-
-      disconnect(): void {}
-
-      observe(): void {}
-
-      unobserve(): void {}
-    });
+    );
     const store = createLiteChatStore();
     store.apply([{ type: 'upsert', record: createRecord('first', 'First') }]);
     const renderer = createLiteChatRenderer(store);
@@ -781,11 +954,13 @@ describe('Lite chat renderer', () => {
 
     scroller.dispatchEvent(new Event('scroll'));
     await waitForAnimationFrame();
-    scroller.dispatchEvent(new PointerEvent('pointerdown', {
-      bubbles: true,
-      clientY: 100,
-      pointerId: 1
-    }));
+    scroller.dispatchEvent(
+      new PointerEvent('pointerdown', {
+        bubbles: true,
+        clientY: 100,
+        pointerId: 1
+      })
+    );
     scroller.scrollTop = 300;
     scroller.dispatchEvent(new Event('scroll'));
     await waitForAnimationFrame();
@@ -801,16 +976,20 @@ describe('Lite chat renderer', () => {
 
     scroller.dispatchEvent(new Event('scroll'));
     await waitForAnimationFrame();
-    scroller.dispatchEvent(new PointerEvent('pointerdown', {
-      bubbles: true,
-      clientY: 100,
-      pointerId: 2
-    }));
+    scroller.dispatchEvent(
+      new PointerEvent('pointerdown', {
+        bubbles: true,
+        clientY: 100,
+        pointerId: 2
+      })
+    );
     window.dispatchEvent(new PointerEvent('pointermove', { clientY: 80, pointerId: 2 }));
-    document.body.dispatchEvent(new PointerEvent('pointerup', {
-      bubbles: true,
-      pointerId: 2
-    }));
+    document.body.dispatchEvent(
+      new PointerEvent('pointerup', {
+        bubbles: true,
+        pointerId: 2
+      })
+    );
     scroller.scrollTop = 300;
     scroller.dispatchEvent(new Event('scroll'));
     await waitForAnimationFrame();
@@ -825,11 +1004,13 @@ describe('Lite chat renderer', () => {
 
     scroller.dispatchEvent(new Event('scroll'));
     await waitForAnimationFrame();
-    scroller.dispatchEvent(new PointerEvent('pointerdown', {
-      bubbles: true,
-      clientY: 100,
-      pointerId: 3
-    }));
+    scroller.dispatchEvent(
+      new PointerEvent('pointerdown', {
+        bubbles: true,
+        clientY: 100,
+        pointerId: 3
+      })
+    );
     window.dispatchEvent(new PointerEvent('pointermove', { clientY: 80, pointerId: 3 }));
     scroller.scrollTop = 300;
     scroller.dispatchEvent(new Event('scroll'));
@@ -890,8 +1071,9 @@ function scrollReaderTo(scroller: HTMLElement, scrollTop: number): void {
 }
 
 function getRenderedMessageIds(root: HTMLElement): string[] {
-  return Array.from(root.querySelectorAll<HTMLElement>('.ytcq-lite-message'))
-    .map((row) => row.dataset.messageId || '');
+  return Array.from(root.querySelectorAll<HTMLElement>('.ytcq-lite-message')).map(
+    (row) => row.dataset.messageId || ''
+  );
 }
 
 function rect({
