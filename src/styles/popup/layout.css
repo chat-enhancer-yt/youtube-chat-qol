@@ -158,7 +158,6 @@ main {
   gap: 8px;
   width: min(286px, 100%);
   padding: 14px;
-  border: 1px solid var(--ytcq-popup-control-border);
   border-radius: 8px;
   color: var(--ytcq-popup-text);
   background: var(--ytcq-popup-card-bg);
