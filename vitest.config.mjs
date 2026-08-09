@@ -18,17 +18,15 @@ export default defineConfig({
   }
 });
 
-function discoverUnitProjectRoots(): string[] {
-  const packageJson = JSON.parse(readFileSync(path.join(repoRoot, 'package.json'), 'utf8')) as {
-    workspaces?: string[];
-  };
+function discoverUnitProjectRoots() {
+  const packageJson = JSON.parse(readFileSync(path.join(repoRoot, 'package.json'), 'utf8'));
 
   return [...new Set((packageJson.workspaces ?? []).flatMap(expandWorkspacePattern))]
     .filter(hasUnitProjectConfig)
     .sort();
 }
 
-function expandWorkspacePattern(pattern: string): string[] {
+function expandWorkspacePattern(pattern) {
   const normalizedPattern = toPosixPath(pattern).replace(/\/$/, '');
   if (!normalizedPattern.endsWith('/*')) return [normalizedPattern];
 
@@ -41,16 +39,16 @@ function expandWorkspacePattern(pattern: string): string[] {
     .map((entry) => `${container}/${entry.name}`);
 }
 
-function hasUnitProjectConfig(projectRoot: string): boolean {
+function hasUnitProjectConfig(projectRoot) {
   return existsSync(path.join(repoRoot, projectRoot, 'vitest.unit.config.ts'));
 }
 
-function getProjectCoverageIncludes(projectRoot: string): string[] {
+function getProjectCoverageIncludes(projectRoot) {
   const sourceRoot = `${projectRoot}/src`;
   if (!existsSync(path.join(repoRoot, sourceRoot))) return [];
   return [`${sourceRoot}/**/*.ts`, `${sourceRoot}/**/*.tsx`];
 }
 
-function toPosixPath(filePath: string): string {
+function toPosixPath(filePath) {
   return filePath.split(path.sep).join('/');
 }

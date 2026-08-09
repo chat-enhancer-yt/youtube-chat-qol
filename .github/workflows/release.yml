@@ -37,8 +37,8 @@ jobs:
         run: npm run check -w @chatenhancer/extension
       - name: Check shared code and repository tools
         run: npm run check -w @chatenhancer/eslint-config -w @chatenhancer/playground-core -w @chatenhancer/repo-tools
-      - name: Check root configuration
-        run: npm exec -- tsc --noEmit -p tsconfig.json && npm exec -- eslint vitest.config.ts eslint.config.mjs
+      - name: Lint root configuration
+        run: npm exec -- eslint eslint.config.mjs vitest.config.mjs
 
   test:
     name: Test release

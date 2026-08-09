@@ -45,11 +45,11 @@
     "test:watch": "vitest",
     "version:bump": "npm run release:bump-version -w @chatenhancer/repo-tools",
     "release:tag": "npm run release:create-tag -w @chatenhancer/repo-tools",
-    "typecheck": "npm run typecheck --workspaces --if-present && tsc --noEmit -p tsconfig.json",
+    "typecheck": "npm run typecheck --workspaces --if-present",
     "format": "npm run format -w @chatenhancer/extension",
     "format:check": "npm run format:check -w @chatenhancer/extension",
-    "lint": "npm run lint --workspaces --if-present && eslint vitest.config.ts eslint.config.mjs",
-    "check": "npm run check --workspaces --if-present && tsc --noEmit -p tsconfig.json && eslint vitest.config.ts eslint.config.mjs",
+    "lint": "npm run lint --workspaces --if-present && eslint eslint.config.mjs vitest.config.mjs",
+    "check": "npm run check --workspaces --if-present && eslint eslint.config.mjs vitest.config.mjs",
     "verify": "npm run check && npm run test:coverage && npm run build && npm run cloudflare:test && npm run cloudflare:check && npm run test:e2e:ci -w @chatenhancer/extension"
   },
   "devDependencies": {
