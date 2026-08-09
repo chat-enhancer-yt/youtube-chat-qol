@@ -6,8 +6,11 @@
  */
 const COMBINED_REPORT_DIR = 'playwright-report/e2e';
 const PROJECT_REPORT_DIRS = new Map([
+  ['extension-pages', 'playwright-report/extension-pages'],
+  ['integrations', 'playwright-report/integrations'],
   ['youtube-mock', 'playwright-report/youtube-mock'],
-  ['youtube-live', 'playwright-report/youtube-live']
+  ['youtube-real-logged-in', 'playwright-report/youtube-real-logged-in'],
+  ['youtube-real-logged-out', 'playwright-report/youtube-real-logged-out']
 ]);
 
 export function createE2eTestPlan(args: string[]) {

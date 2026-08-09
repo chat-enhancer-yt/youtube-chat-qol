@@ -27,15 +27,15 @@ describe('end-to-end test command planner', () => {
   });
 
   it('preserves extra Playwright arguments after the npm command separator', () => {
-    expect(createE2eTestPlan(['--project=youtube-live', '-g', 'logged-in'])).toEqual({
+    expect(createE2eTestPlan(['--project=youtube-real-logged-in', '-g', 'logged-in'])).toEqual({
       playwrightArgs: [
         'test',
         '--config=apps/extension/playwright.config.ts',
-        '--project=youtube-live',
+        '--project=youtube-real-logged-in',
         '-g',
         'logged-in'
       ],
-      reportOutputFolder: 'playwright-report/youtube-live',
+      reportOutputFolder: 'playwright-report/youtube-real-logged-in',
       shouldBuild: true
     });
   });
@@ -52,14 +52,47 @@ describe('end-to-end test command planner', () => {
   });
 
   it('supports the spaced --project argument form', () => {
-    expect(createE2eTestPlan(['--project', 'youtube-live'])).toEqual({
+    expect(createE2eTestPlan(['--project', 'youtube-real-logged-out'])).toEqual({
       playwrightArgs: [
         'test',
         '--config=apps/extension/playwright.config.ts',
         '--project',
-        'youtube-live'
+        'youtube-real-logged-out'
       ],
-      reportOutputFolder: 'playwright-report/youtube-live',
+      reportOutputFolder: 'playwright-report/youtube-real-logged-out',
+      shouldBuild: true
+    });
+  });
+
+  it.each([
+    ['extension-pages', 'playwright-report/extension-pages'],
+    ['integrations', 'playwright-report/integrations']
+  ])('uses the dedicated report folder for the %s project', (project, reportOutputFolder) => {
+    expect(createE2eTestPlan([`--project=${project}`])).toEqual({
+      playwrightArgs: [
+        'test',
+        '--config=apps/extension/playwright.config.ts',
+        `--project=${project}`
+      ],
+      reportOutputFolder,
+      shouldBuild: true
+    });
+  });
+
+  it('uses the combined report folder for an explicit multi-project tier', () => {
+    expect(createE2eTestPlan([
+      '--project=youtube-mock',
+      '--project=extension-pages',
+      '--project=youtube-real-logged-out'
+    ])).toEqual({
+      playwrightArgs: [
+        'test',
+        '--config=apps/extension/playwright.config.ts',
+        '--project=youtube-mock',
+        '--project=extension-pages',
+        '--project=youtube-real-logged-out'
+      ],
+      reportOutputFolder: 'playwright-report/e2e',
       shouldBuild: true
     });
   });

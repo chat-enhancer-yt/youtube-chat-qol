@@ -3,12 +3,18 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "repoTools": {
+    "checks": [
+      "typecheck",
+      "lint"
+    ]
+  },
   "exports": {
     "./contact.json": "./src/contact.json",
     "./locales": "./src/locales.ts"
   },
   "scripts": {
-    "check": "npm run typecheck && npm run lint",
+    "check": "npm run checks -w @chatenhancer/repo-tools -- --concurrency=2 @chatenhancer/product-config",
     "lint": "eslint src eslint.config.mjs",
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },

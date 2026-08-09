@@ -18,7 +18,7 @@ const reportOutputFolder = resolveRepoPath(
 const jsonReportPath = resolveRepoPath(
   process.env.YTCQ_PLAYWRIGHT_JSON_REPORT ?? 'test-results/performance/playwright-report.json'
 );
-const includeLivePerformanceTests = process.env.YTCQ_PERF_INCLUDE_LIVE === '1';
+const includeRealYouTubePerformanceTests = process.env.YTCQ_PERF_INCLUDE_REAL_YOUTUBE === '1';
 
 export default defineConfig({
   expect: {
@@ -27,9 +27,9 @@ export default defineConfig({
   fullyParallel: false,
   outputDir: path.join(repoRoot, 'test-results', 'performance', 'e2e'),
   projects: [
-    createPerformanceProject('youtube-mock-perf', /specs\/yt-mock-perf-.*\.spec\.ts/),
-    ...(includeLivePerformanceTests
-      ? [createPerformanceProject('youtube-live-perf', /specs\/yt-live-perf-.*\.spec\.ts/)]
+    createPerformanceProject('youtube-mock-perf', /mock\/.*\.spec\.ts/),
+    ...(includeRealYouTubePerformanceTests
+      ? [createPerformanceProject('youtube-real-perf', /real\/.*\.spec\.ts/)]
       : [])
   ],
   reporter: [
@@ -37,7 +37,7 @@ export default defineConfig({
     ['html', { open: 'never', outputFolder: reportOutputFolder }],
     ['json', { outputFile: jsonReportPath }]
   ],
-  testDir: path.join(extensionRoot, 'e2e'),
+  testDir: path.join(extensionRoot, 'e2e', 'performance'),
   timeout: 120_000,
   use: {
     actionTimeout: 20_000,

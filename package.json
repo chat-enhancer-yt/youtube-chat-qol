@@ -11,6 +11,11 @@
     "apps/*",
     "packages/*"
   ],
+  "repoTools": {
+    "checks": [
+      "lint:config"
+    ]
+  },
   "scripts": {
     "build": "npm run build -w @chatenhancer/extension",
     "build:chrome": "npm run build:chrome -w @chatenhancer/extension",
@@ -38,18 +43,23 @@
     "test:all": "npm run test && npm run test:e2e && npm run test:e2e:perf",
     "test:coverage": "npm run test:unit -w @chatenhancer/repo-tools -- --coverage && npm run coverage:notice -w @chatenhancer/repo-tools",
     "test:e2e": "npm run test:e2e -w @chatenhancer/extension --",
+    "test:e2e:extension-pages": "npm run test:e2e:extension-pages -w @chatenhancer/extension --",
     "test:e2e:flake": "npm run test:e2e:flake -w @chatenhancer/extension --",
-    "test:e2e:live": "npm run test:e2e:live -w @chatenhancer/extension --",
-    "test:e2e:mock": "npm run test:e2e:mock -w @chatenhancer/extension --",
+    "test:e2e:integrations": "npm run test:e2e:integrations -w @chatenhancer/extension --",
     "test:e2e:perf": "npm run test:e2e:perf -w @chatenhancer/extension --",
+    "test:e2e:youtube:mock": "npm run test:e2e:youtube:mock -w @chatenhancer/extension --",
+    "test:e2e:youtube:real": "npm run test:e2e:youtube:real -w @chatenhancer/extension --",
+    "test:e2e:youtube:real:logged-in": "npm run test:e2e:youtube:real:logged-in -w @chatenhancer/extension --",
+    "test:e2e:youtube:real:logged-out": "npm run test:e2e:youtube:real:logged-out -w @chatenhancer/extension --",
     "test:watch": "vitest",
     "version:bump": "npm run release:bump-version -w @chatenhancer/repo-tools",
     "release:tag": "npm run release:create-tag -w @chatenhancer/repo-tools",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "format": "npm run format -w @chatenhancer/extension",
     "format:check": "npm run format:check -w @chatenhancer/extension",
-    "lint": "npm run lint --workspaces --if-present && eslint eslint.config.mjs vitest.config.mjs",
-    "check": "npm run check --workspaces --if-present && eslint eslint.config.mjs vitest.config.mjs",
+    "lint": "npm run lint --workspaces --if-present && npm run lint:config",
+    "lint:config": "eslint eslint.config.mjs vitest.config.mjs",
+    "check": "npm run checks -w @chatenhancer/repo-tools -- --all --concurrency=2",
     "verify": "npm run check && npm run test:coverage && npm run build && npm run cloudflare:test && npm run cloudflare:check && npm run test:e2e:ci -w @chatenhancer/extension"
   },
   "devDependencies": {

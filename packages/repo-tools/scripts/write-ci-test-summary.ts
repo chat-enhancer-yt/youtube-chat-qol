@@ -11,15 +11,16 @@ import { fileURLToPath } from 'node:url';
 const repoRoot = fileURLToPath(new URL('../../../', import.meta.url));
 const unitReportSetting = process.env.YTCQ_UNIT_REPORT_JSON
   || path.join('test-results', 'unit', 'vitest-report.json');
-const e2eReportSetting = process.env.YTCQ_PLAYWRIGHT_JSON_REPORT
-  || path.join('test-results', 'e2e', 'playwright-report.json');
+const e2eReportSettings = getE2eReportSettings();
 const unitReportPath = resolveRepoPath(unitReportSetting);
-const e2eReportPath = resolveRepoPath(e2eReportSetting);
 
 const unitReport = await readJsonFile(unitReportPath);
-const e2eReport = await readJsonFile(e2eReportPath);
+const e2eReports = await Promise.all(
+  e2eReportSettings.map((setting) => readJsonFile(resolveRepoPath(setting)))
+);
+const availableE2eReports = e2eReports.filter(Boolean);
 const markdown = buildSummary({
-  e2e: e2eReport ? summarizeE2eReport(e2eReport) : null,
+  e2e: availableE2eReports.length ? summarizeE2eReports(availableE2eReports) : null,
   unit: unitReport ? summarizeUnitReport(unitReport) : null
 });
 
@@ -57,7 +58,9 @@ function buildSummary({ e2e, unit }) {
 
   const missing: any[] = [];
   if (!unit) missing.push(`unit report: \`${unitReportSetting}\``);
-  if (!e2e) missing.push(`E2E report: \`${e2eReportSetting}\``);
+  for (let index = 0; index < e2eReports.length; index += 1) {
+    if (!e2eReports[index]) missing.push(`E2E report: \`${e2eReportSettings[index]}\``);
+  }
   if (missing.length) {
     lines.push('', `Missing reports: ${missing.join(', ')}.`);
   }
@@ -150,6 +153,12 @@ function summarizeE2eReport(report) {
   return summary;
 }
 
+function summarizeE2eReports(reports) {
+  return summarizeE2eReport({
+    suites: reports.flatMap((report) => report.suites || [])
+  });
+}
+
 function collectE2eTests(report) {
   const tests: any[] = [];
   for (const suite of report.suites || []) {
@@ -218,4 +227,20 @@ function escapeMarkdown(value) {
 
 function resolveRepoPath(value) {
   return path.isAbsolute(value) ? value : path.join(repoRoot, value);
+}
+
+function getE2eReportSettings() {
+  const combinedSettings = process.env.YTCQ_PLAYWRIGHT_JSON_REPORTS;
+  if (combinedSettings) {
+    const settings = combinedSettings
+      .split(',')
+      .map((setting) => setting.trim())
+      .filter(Boolean);
+    if (settings.length) return settings;
+  }
+
+  return [
+    process.env.YTCQ_PLAYWRIGHT_JSON_REPORT
+      || path.join('test-results', 'e2e', 'playwright-report.json')
+  ];
 }

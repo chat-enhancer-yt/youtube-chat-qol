@@ -3,11 +3,16 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "repoTools": {
+    "checks": [
+      "lint"
+    ]
+  },
   "exports": {
     ".": "./index.mjs"
   },
   "scripts": {
-    "check": "npm run lint",
+    "check": "npm run checks -w @chatenhancer/repo-tools -- @chatenhancer/eslint-config",
     "lint": "eslint ."
   },
   "dependencies": {

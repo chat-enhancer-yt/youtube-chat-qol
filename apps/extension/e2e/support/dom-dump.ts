@@ -3,7 +3,7 @@
  *
  * YouTube DOM breakages are easiest to diagnose when the failing run leaves
  * the full chat frame and watch page markup behind. These dumps are intentionally
- * not sanitized, so live YouTube dumps are kept local and skipped in public CI
+ * not sanitized, so real YouTube dumps are kept local and skipped in hosted CI
  * unless the CI run explicitly opts into capturing them.
  */
 import type { BrowserContext, Frame, Page, TestInfo } from '@playwright/test';

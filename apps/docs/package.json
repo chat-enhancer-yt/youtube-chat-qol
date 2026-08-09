@@ -3,11 +3,17 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "repoTools": {
+    "checks": [
+      "astro-check",
+      "lint"
+    ]
+  },
   "scripts": {
     "predev": "npm run build",
     "dev": "astro dev --force",
     "astro-check": "astro check",
-    "check": "npm run astro-check && npm run lint",
+    "check": "npm run checks -w @chatenhancer/repo-tools -- --concurrency=2 @chatenhancer/docs",
     "build": "npm run docs:validate-locales -w @chatenhancer/repo-tools && astro build --force && pagefind --site ../../dist/docs --silent",
     "preview": "npm run build && astro preview",
     "test": "vitest run",

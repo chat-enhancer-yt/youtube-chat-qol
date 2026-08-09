@@ -1,0 +1,174 @@
+/** Profile-card interactions and user-visible assertions. */
+import { expect, test, type BrowserContext, type Locator } from '@playwright/test';
+import { centerLocatorInViewport } from '../../support/locator';
+import { appendMockFixtureMessage, isMockPageSurface } from '../../support/mock-page';
+import type { ChatSurface } from '../types';
+import {
+  getProfileCardRecord,
+  getProfileSourceMessage,
+  type ProfileMessageSource
+} from './card-fixture';
+
+export async function expectProfileCardPositionedFromAnchor(
+  profileCard: Locator,
+  anchorRect: { left: number; right: number; top: number }
+): Promise<void> {
+  await expect
+    .poll(
+      async () =>
+        profileCard.evaluate((element, anchor) => {
+          const margin = 8;
+          const cardRect = element.getBoundingClientRect();
+          let expectedLeft = anchor.right + margin;
+          if (expectedLeft + cardRect.width + margin > window.innerWidth) {
+            expectedLeft = anchor.left - cardRect.width - margin;
+          }
+
+          let expectedTop = anchor.top;
+          if (expectedTop + cardRect.height + margin > window.innerHeight) {
+            expectedTop = window.innerHeight - cardRect.height - margin;
+          }
+
+          return {
+            x: Math.round(cardRect.left) - Math.max(margin, Math.round(expectedLeft)),
+            y: Math.round(cardRect.top) - Math.max(margin, Math.round(expectedTop))
+          };
+        }, anchorRect),
+      {
+        message: 'Nested profile card should settle at the clicked mention’s position.'
+      }
+    )
+    .toEqual({ x: 0, y: 0 });
+}
+
+export async function expectProfileCardHasRecentMessages(
+  chat: ChatSurface,
+  source: ProfileMessageSource
+): Promise<void> {
+  await test.step('Verify profile card shows recent messages for the clicked author', async () => {
+    const profileCard = chat.locator('.ytcq-profile-card:not(.ytcq-inbox-card)');
+    await expect(profileCard.locator('.ytcq-profile-card-title')).toContainText(source.authorName);
+    await expect(await getProfileCardRecord(chat, source)).toBeVisible();
+  });
+}
+
+export async function expectProfileAvatarRingToggle(
+  chat: ChatSurface,
+  source: ProfileMessageSource
+): Promise<void> {
+  await test.step('Add and remove an avatar ring from the profile header', async () => {
+    const profileCard = chat.locator('.ytcq-profile-card:not(.ytcq-inbox-card)');
+    const toggle = profileCard.locator('.ytcq-avatar-ring-toggle');
+    const sourceAvatar = getProfileSourceMessage(chat, source).locator('#author-photo').first();
+
+    await expect(toggle).toHaveAttribute('aria-pressed', 'false');
+    await toggle.click();
+    await expect(toggle).toHaveAttribute('aria-pressed', 'true');
+    await expect(toggle).toHaveAttribute('title', /Forget user\nUser remembered .+/);
+    await expect(sourceAvatar).toHaveClass(/ytcq-avatar-ring-active/);
+
+    await profileCard.locator('.ytcq-profile-card-title').hover();
+    await expect
+      .poll(() => toggle.evaluate((element) => getComputedStyle(element).backgroundColor))
+      .toBe('rgba(0, 0, 0, 0)');
+    await toggle.hover();
+    await expect
+      .poll(() => toggle.evaluate((element) => getComputedStyle(element).backgroundColor))
+      .not.toBe('rgba(0, 0, 0, 0)');
+
+    await toggle.click();
+    await expect(toggle).toHaveAttribute('aria-pressed', 'false');
+    await expect(sourceAvatar).not.toHaveClass(/ytcq-avatar-ring-active/);
+  });
+}
+
+export async function appendAuthorMessageAndVerifyProfileCardUpdates(
+  chat: ChatSurface,
+  source: ProfileMessageSource
+): Promise<void> {
+  await test.step('Append a new author message and verify the card updates', async () => {
+    const text = `Profile follow-up ${Date.now()}`;
+    await appendMockFixtureMessage(chat, {
+      author: source.authorName,
+      channel: source.channelId || undefined,
+      text
+    });
+
+    await expect(
+      chat
+        .locator('.ytcq-profile-card:not(.ytcq-inbox-card) .ytcq-profile-card-message')
+        .filter({ hasText: text })
+        .first()
+    ).toBeVisible({ timeout: 10_000 });
+  });
+}
+
+export async function expectProfileChannelButtonOpensChannel(
+  chat: ChatSurface,
+  context: BrowserContext
+): Promise<void> {
+  const youtubeProfileUrlPattern = '**://www.youtube.com/**';
+  await test.step('Click profile channel button and verify it opens YouTube', async () => {
+    if (isMockPageSurface(chat)) {
+      await context.route(youtubeProfileUrlPattern, (route) =>
+        route.fulfill({
+          body: '<!doctype html><title>Mock channel</title>',
+          contentType: 'text/html',
+          status: 200
+        })
+      );
+    }
+
+    try {
+      const popupPromise = context.waitForEvent('page');
+      await chat.locator('.ytcq-profile-card-channel').click();
+      const popup = await popupPromise;
+
+      try {
+        await expect
+          .poll(async () => getOpenedProfileUrl(popup.url()), {
+            message: 'Profile channel button should open the selected author channel.',
+            timeout: isMockPageSurface(chat) ? 5_000 : 15_000
+          })
+          .toMatch(/^https:\/\/www\.youtube\.com\/(?:@|channel\/)/);
+      } finally {
+        await popup.close().catch(() => undefined);
+      }
+    } finally {
+      if (isMockPageSurface(chat)) {
+        await context.unroute(youtubeProfileUrlPattern);
+      }
+    }
+  });
+}
+
+export async function expectProfileCardJumpToMessage(
+  chat: ChatSurface,
+  source: ProfileMessageSource
+): Promise<void> {
+  await test.step('Jump from profile card record back to the live message', async () => {
+    const sourceMessage = getProfileSourceMessage(chat, source);
+    const record = await getProfileCardRecord(chat, source);
+
+    await centerLocatorInViewport(record);
+    const jumpButton = record.locator('.ytcq-profile-card-jump');
+    await jumpButton.focus();
+    await expect(jumpButton).toHaveCSS('opacity', '1');
+    await jumpButton.press('Enter');
+    await expect(sourceMessage).toHaveClass(/ytcq-message-jump-target/, { timeout: 2_000 });
+  });
+}
+
+function getOpenedProfileUrl(value: string): string {
+  try {
+    const url = new URL(value);
+    if (url.hostname === 'consent.youtube.com') {
+      const continueUrl = url.searchParams.get('continue');
+      if (continueUrl) return continueUrl;
+    }
+  } catch {
+    return value;
+  }
+
+  return value;
+}

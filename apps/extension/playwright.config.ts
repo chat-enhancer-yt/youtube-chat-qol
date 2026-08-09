@@ -39,14 +39,33 @@ export default defineConfig({
   outputDir: path.join(repoRoot, 'test-results', 'e2e'),
   projects: [
     {
-      name: 'youtube-mock',
-      testMatch: /specs\/yt-mock-(?!perf-).*\.spec\.ts/,
+      name: 'extension-pages',
+      testMatch: /specs\/extension-pages\/.*\.spec\.ts/,
       use: failureArtifactUse
     },
     {
-      name: 'youtube-live',
-      testMatch: /specs\/yt-live-(?!perf-).*\.spec\.ts/,
-      use: shouldCaptureE2eFailureArtifacts('youtube-live') ? failureArtifactUse : disabledArtifactUse
+      name: 'youtube-mock',
+      testMatch: /specs\/youtube\/mock\/.*\.spec\.ts/,
+      use: failureArtifactUse
+    },
+    {
+      name: 'youtube-real-logged-out',
+      testMatch: /specs\/youtube\/real\/.*\/logged-out\/.*\.spec\.ts/,
+      use: shouldCaptureE2eFailureArtifacts('youtube-real-logged-out')
+        ? failureArtifactUse
+        : disabledArtifactUse
+    },
+    {
+      name: 'youtube-real-logged-in',
+      testMatch: /specs\/youtube\/real\/.*\/logged-in\/.*\.spec\.ts/,
+      use: shouldCaptureE2eFailureArtifacts('youtube-real-logged-in')
+        ? failureArtifactUse
+        : disabledArtifactUse
+    },
+    {
+      name: 'integrations',
+      testMatch: /specs\/integrations\/.*\.spec\.ts/,
+      use: failureArtifactUse
     }
   ],
   reporter: getReporters(),

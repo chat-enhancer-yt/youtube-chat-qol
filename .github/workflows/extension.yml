@@ -12,6 +12,7 @@ on:
 jobs:
   check:
     name: Check extension
+    if: github.event_name != 'schedule'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -26,12 +27,18 @@ jobs:
       - name: Check extension
         run: npm run check -w @chatenhancer/extension
       - name: Check shared code and repository tools
-        run: npm run check -w @chatenhancer/eslint-config -w @chatenhancer/playground-core -w @chatenhancer/repo-tools
+        run: |
+          npm run checks -w @chatenhancer/repo-tools -- \
+            --concurrency=3 \
+            @chatenhancer/eslint-config \
+            @chatenhancer/playground-core \
+            @chatenhancer/repo-tools
       - name: Lint root configuration
-        run: npm exec -- eslint eslint.config.mjs vitest.config.mjs
+        run: npm run lint:config
 
   test:
     name: Test extension
+    if: github.event_name != 'schedule'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -54,8 +61,9 @@ jobs:
           if-no-files-found: ignore
           retention-days: 1
 
-  build:
-    name: Build extension
+  build-and-e2e-deterministic:
+    name: Build extensions and run deterministic tests
+    if: github.event_name != 'schedule'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -67,11 +75,39 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci
+      - name: Cache Playwright browsers
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('package-lock.json') }}
+      - name: Install Playwright Chromium
+        run: npm run test:e2e:install -w @chatenhancer/extension
       - name: Build extensions
         run: npm run build
+      - name: Run deterministic E2E gate
+        run: npm run test:e2e:ci:deterministic -w @chatenhancer/extension
+      - name: Upload deterministic E2E test report
+        if: always()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: deterministic-e2e-test-report
+          path: test-results/e2e/playwright-report.json
+          if-no-files-found: ignore
+          retention-days: 1
+      - name: Collect deterministic E2E failure artifacts
+        if: failure()
+        run: npm run ci:e2e-artifacts -w @chatenhancer/repo-tools
+      - name: Upload deterministic E2E failure artifacts
+        if: failure()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: deterministic-e2e-failure-artifacts
+          path: test-results/e2e/deterministic-artifacts/
+          if-no-files-found: ignore
+          retention-days: 7
 
-  e2e:
-    name: Test extension end to end
+  e2e-compatibility:
+    name: Test real YouTube compatibility
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -92,36 +128,32 @@ jobs:
         run: npm run test:e2e:install -w @chatenhancer/extension
       - name: Build Chrome extension
         run: npm run build:chrome
-      - name: Run E2E gate
-        run: npm run test:e2e:ci -w @chatenhancer/extension
-      - name: Upload E2E test report
+      - name: Run logged-out YouTube compatibility gate
+        if: github.event_name == 'pull_request' || github.event_name == 'push'
+        run: npm run test:e2e:ci:compatibility -w @chatenhancer/extension
+      - name: Run manually requested compatibility tiers
+        if: github.event_name == 'workflow_dispatch'
+        run: npm run test:e2e:scheduled -w @chatenhancer/extension
+      - name: Run scheduled compatibility tiers
+        if: github.event_name == 'schedule'
+        run: npm run test:e2e:scheduled -w @chatenhancer/extension
+      - name: Upload compatibility E2E test report
         if: always()
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         with:
-          name: e2e-test-report
+          name: compatibility-e2e-test-report
           path: test-results/e2e/playwright-report.json
           if-no-files-found: ignore
           retention-days: 1
-      - name: Collect mock E2E failure artifacts
-        if: failure()
-        run: npm run ci:e2e-artifacts -w @chatenhancer/repo-tools
-      - name: Upload mock E2E failure artifacts
-        if: failure()
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
-        with:
-          name: mock-e2e-failure-artifacts
-          path: test-results/e2e/mock-artifacts/
-          if-no-files-found: ignore
-          retention-days: 7
 
   verify:
     name: Verify extension
     needs:
       - check
       - test
-      - build
-      - e2e
-    if: always()
+      - build-and-e2e-deterministic
+      - e2e-compatibility
+    if: always() && github.event_name != 'schedule'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -136,15 +168,23 @@ jobs:
         with:
           name: unit-test-report
           path: test-results/unit
-      - name: Download E2E test report
+      - name: Download deterministic E2E test report
         uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6
         continue-on-error: true
         with:
-          name: e2e-test-report
-          path: test-results/e2e
+          name: deterministic-e2e-test-report
+          path: test-results/e2e/deterministic
+      - name: Download compatibility E2E test report
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6
+        continue-on-error: true
+        with:
+          name: compatibility-e2e-test-report
+          path: test-results/e2e/compatibility
       - name: Write test summary
         if: always()
         run: npm run ci:test-summary -w @chatenhancer/repo-tools
+        env:
+          YTCQ_PLAYWRIGHT_JSON_REPORTS: test-results/e2e/deterministic/playwright-report.json,test-results/e2e/compatibility/playwright-report.json
       - name: Require successful jobs
         if: |
           always() && (

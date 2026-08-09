@@ -3,11 +3,17 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "repoTools": {
+    "checks": [
+      "typecheck",
+      "lint"
+    ]
+  },
   "exports": {
     "./*": "./src/*.ts"
   },
   "scripts": {
-    "check": "npm run typecheck && npm run lint",
+    "check": "npm run checks -w @chatenhancer/repo-tools -- --concurrency=2 @chatenhancer/playground-core",
     "lint": "eslint src eslint.config.mjs vitest.unit.config.ts",
     "test": "vitest run --config vitest.unit.config.ts",
     "typecheck": "tsc --noEmit -p tsconfig.json"

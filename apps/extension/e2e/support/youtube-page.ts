@@ -5,7 +5,7 @@
  * chat iframe access out of individual specs so new real-YouTube tests can
  * stay focused on extension behavior.
  */
-import { expect, type FrameLocator, type Page } from '@playwright/test';
+import { expect, type FrameLocator, type Locator, type Page } from '@playwright/test';
 import { defaultLiveUrl, defaultReplayUrl, getLiveProfileDir } from './paths';
 
 const CHAT_FRAME_SELECTOR = 'iframe#chatframe';
@@ -60,10 +60,7 @@ export async function openLiveChat(page: Page, liveUrl: string): Promise<FrameLo
     // One same-URL navigation gives both the watch page and chat a fresh document.
   }
 
-  const chat = page.frameLocator(CHAT_FRAME_SELECTOR);
-  await expect(page.locator(CHAT_FRAME_SELECTOR)).toBeVisible({ timeout: 1_000 });
-  await expect(chat.locator('yt-live-chat-renderer')).toBeVisible({ timeout: 1_000 });
-  return chat;
+  throw new Error(await describeLiveChatReadinessFailure(page, liveUrl));
 }
 
 async function ensureLiveChatReady(page: Page, timeout: number): Promise<boolean> {
@@ -78,28 +75,76 @@ async function ensureLiveChatReady(page: Page, timeout: number): Promise<boolean
 
 async function ensureLiveChatFrameVisible(page: Page, timeout: number): Promise<boolean> {
   const chatFrame = page.locator(CHAT_FRAME_SELECTOR);
-  if (await chatFrame.isVisible({ timeout: 1_500 }).catch(() => false)) return true;
-
   const openPanelButtons = [
     page.getByRole('button', { name: /^Open panel$/i }).first(),
     page.getByRole('button', { name: /^Live chat$/i }).first(),
     page.locator('button[aria-label*="live chat" i]').first()
   ];
+  const deadline = Date.now() + timeout;
 
-  for (let attempt = 0; attempt < 3; attempt += 1) {
+  while (Date.now() < deadline) {
+    if (await chatFrame.isVisible().catch(() => false)) return true;
+
     for (const button of openPanelButtons) {
-      if (!(await button.isVisible({ timeout: 500 }).catch(() => false))) continue;
+      if (!(await button.isVisible().catch(() => false))) continue;
       if (!(await button.isEnabled().catch(() => false))) continue;
       await button.click({ timeout: 3_000 }).catch(() => undefined);
-      if (await chatFrame.isVisible({ timeout: 10_000 }).catch(() => false)) return true;
+      const remainingTime = deadline - Date.now();
+      if (remainingTime <= 0) return false;
+      if (
+        await chatFrame
+          .waitFor({ state: 'visible', timeout: Math.min(remainingTime, 5_000) })
+          .then(() => true)
+          .catch(() => false)
+      ) {
+        return true;
+      }
     }
-    await page.waitForTimeout(500);
+
+    const remainingTime = deadline - Date.now();
+    if (remainingTime > 0) {
+      await page.waitForTimeout(Math.min(remainingTime, 500));
+    }
   }
 
-  return chatFrame
-    .waitFor({ state: 'visible', timeout })
-    .then(() => true)
-    .catch(() => false);
+  return false;
+}
+
+async function describeLiveChatReadinessFailure(page: Page, liveUrl: string): Promise<string> {
+  const chatFrameCount = await page.locator(CHAT_FRAME_SELECTOR).count().catch(() => 0);
+  const chatRendererCount = await page
+    .frameLocator(CHAT_FRAME_SELECTOR)
+    .locator('yt-live-chat-renderer')
+    .count()
+    .catch(() => 0);
+  const visiblePanelControls = (
+    await Promise.all([
+      describeVisibleControl(page.getByRole('button', { name: /^Open panel$/i }).first(), 'Open panel'),
+      describeVisibleControl(page.getByRole('button', { name: /^Live chat$/i }).first(), 'Live chat'),
+      describeVisibleControl(
+        page.locator('button[aria-label*="live chat" i]').first(),
+        'live-chat aria label'
+      )
+    ])
+  ).filter(Boolean);
+  const title = await page.title().catch(() => '');
+
+  return [
+    'YouTube live chat did not become ready after two page navigations.',
+    `Requested URL: ${liveUrl}`,
+    `Final URL: ${page.url()}`,
+    `Page title: ${title || '(empty)'}`,
+    `Chat iframe count: ${chatFrameCount}`,
+    `Chat renderer count: ${chatRendererCount}`,
+    `Visible chat-panel controls: ${visiblePanelControls.join(', ') || 'none'}`
+  ].join('\n');
+}
+
+async function describeVisibleControl(
+  control: Locator,
+  description: string
+): Promise<string> {
+  return (await control.isVisible().catch(() => false)) ? description : '';
 }
 
 async function gotoLiveChatPage(page: Page, liveUrl: string): Promise<void> {

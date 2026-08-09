@@ -3,9 +3,17 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "repoTools": {
+    "checks": [
+      "typecheck",
+      "lint",
+      "validate:version"
+    ]
+  },
   "scripts": {
-    "check": "npm run typecheck && npm run lint && node scripts/validate-version-alignment.ts",
-    "ci:e2e-artifacts": "node scripts/collect-mock-e2e-artifacts.ts",
+    "check": "npm run checks -- --concurrency=2 @chatenhancer/repo-tools",
+    "checks": "node scripts/run-checks.ts",
+    "ci:e2e-artifacts": "node scripts/collect-deterministic-e2e-artifacts.ts",
     "ci:test-summary": "node scripts/write-ci-test-summary.ts",
     "cloudflare:test": "node scripts/run-cloudflare-tests.ts",
     "coverage:notice": "node scripts/write-coverage-notice.ts",
@@ -32,6 +40,7 @@
     "test": "vitest run --config vitest.unit.config.ts",
     "test:unit": "node scripts/run-unit-tests.ts",
     "typecheck": "tsc --noEmit -p tsconfig.json",
+    "validate:version": "node scripts/validate-version-alignment.ts",
     "walkthrough:capture": "node scripts/capture-walkthrough-demo.ts",
     "walkthrough:capture-locales": "node scripts/capture-walkthrough-locales.ts",
     "walkthrough:publish": "node scripts/publish-walkthrough-videos.ts"

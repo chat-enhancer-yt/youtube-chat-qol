@@ -22,7 +22,11 @@ jobs:
       - name: Install dependencies
         run: npm ci
       - name: Check docs
-        run: npm run check -w @chatenhancer/docs -w @chatenhancer/product-config
+        run: |
+          npm run checks -w @chatenhancer/repo-tools -- \
+            --concurrency=2 \
+            @chatenhancer/docs \
+            @chatenhancer/product-config
       - name: Test docs
         run: npm run test -w @chatenhancer/docs
       - name: Build docs

@@ -30,9 +30,19 @@ export interface BrowserScenarioSession {
   page: Page;
 }
 
+export interface ExtensionScenarioSession {
+  /**
+   * The browser context that owns the loaded extension.
+   */
+  context: BrowserContext;
+}
+
 /**
  * Executes one browser-level behavior check.
  * Test titles and browser surfaces are defined by the plan-case spec files
  * under `e2e/specs/`, not on the scenario itself.
  */
 export type BrowserScenario = (..._args: [BrowserScenarioSession]) => Promise<void>;
+
+/** Executes a browser-level check that does not require a YouTube surface. */
+export type ExtensionScenario = (..._args: [ExtensionScenarioSession]) => Promise<void>;
