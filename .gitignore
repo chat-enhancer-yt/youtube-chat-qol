@@ -8,8 +8,6 @@ dist/
 coverage/
 .wrangler/
 .dev.vars*
-docs/*/index.html
-docs/sitemap.xml
 test-results/
 playwright-report/
 .chrome-test-profiles/

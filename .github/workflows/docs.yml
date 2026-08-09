@@ -21,8 +21,12 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci
+      - name: Check docs
+        run: npm run check -w @chatenhancer/docs -w @chatenhancer/product-config
+      - name: Test docs
+        run: npm run test -w @chatenhancer/docs
       - name: Build docs
-        run: npm run ci:pages-build
+        run: npm run build -w @chatenhancer/docs
         env:
           YTCQ_DOCS_BUILD_SHA: ${{ github.sha }}
           YTCQ_DOCS_STAMP_SOURCE: '1'

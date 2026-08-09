@@ -1,0 +1,17 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "lib": ["DOM", "DOM.Iterable", "ES2022"],
+    "types": ["chrome", "node"],
+    "erasableSyntaxOnly": true,
+    // These JavaScript-origin scripts are structurally checked now; implicit-any and null types can tighten incrementally.
+    "noImplicitAny": false,
+    "strictNullChecks": false,
+    "rewriteRelativeImportExtensions": true,
+    "verbatimModuleSyntax": true
+  },
+  "include": ["scripts/**/*.ts", "vitest.unit.config.ts"]
+}

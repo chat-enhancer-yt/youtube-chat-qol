@@ -4,13 +4,13 @@ on:
   pull_request:
     paths:
       - '.github/workflows/stockfish-container.yml'
-      - 'cloudflare/playground/src/durable-objects/stockfish-container/**'
+      - 'apps/playground/src/durable-objects/stockfish-container/**'
   push:
     branches:
       - main
     paths:
       - '.github/workflows/stockfish-container.yml'
-      - 'cloudflare/playground/src/durable-objects/stockfish-container/**'
+      - 'apps/playground/src/durable-objects/stockfish-container/**'
   workflow_dispatch:
 
 jobs:
@@ -26,11 +26,11 @@ jobs:
         with:
           python-version: '3.12'
       - name: Build Stockfish container
-        run: docker build --tag ytcq-stockfish-smoke cloudflare/playground/src/durable-objects/stockfish-container
+        run: docker build --tag ytcq-stockfish-smoke apps/playground/src/durable-objects/stockfish-container
       - name: Start Stockfish container
         run: docker run --detach --name ytcq-stockfish-smoke --publish 127.0.0.1:18080:8080 ytcq-stockfish-smoke
       - name: Test Stockfish container
-        run: python3 -B cloudflare/playground/src/durable-objects/stockfish-container/smoke.py
+        run: python3 -B apps/playground/src/durable-objects/stockfish-container/smoke.py
       - name: Show Stockfish container logs
         if: failure()
         continue-on-error: true

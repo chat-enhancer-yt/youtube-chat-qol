@@ -1,0 +1,54 @@
+{
+  "name": "@chatenhancer/extension",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "browser": {
+    "fs": false,
+    "path": false,
+    "readline": false,
+    "worker_threads": false
+  },
+  "scripts": {
+    "build": "npm run extension:build -w @chatenhancer/repo-tools -- --all",
+    "build:chrome": "npm run extension:build -w @chatenhancer/repo-tools -- --target=chrome",
+    "build:chrome:playground-local": "npm run extension:build -w @chatenhancer/repo-tools -- --target=chrome --playground-backend=http://127.0.0.1:8787",
+    "build:edge": "npm run extension:build -w @chatenhancer/repo-tools -- --target=edge",
+    "build:firefox": "npm run extension:build -w @chatenhancer/repo-tools -- --target=firefox",
+    "build:firefox:playground-local": "npm run extension:build -w @chatenhancer/repo-tools -- --target=firefox --playground-backend=http://127.0.0.1:8787",
+    "build:safari": "npm run extension:build -w @chatenhancer/repo-tools -- --target=safari",
+    "build:safari:xcode": "npm run build:safari && npm run safari:package -w @chatenhancer/repo-tools",
+    "build:safari:app": "npm run build:safari:xcode && npm run safari:build-app -w @chatenhancer/repo-tools",
+    "build:safari:archive": "npm run build:safari:xcode && npm run safari:distribute -w @chatenhancer/repo-tools -- --archive",
+    "build:playground-local": "npm run build:chrome:playground-local && npm run build:firefox:playground-local",
+    "check": "npm run typecheck && npm run lint && npm run format:check",
+    "test": "vitest run --config vitest.unit.config.ts",
+    "test:e2e": "npm run e2e:test -w @chatenhancer/repo-tools --",
+    "test:e2e:ci": "npm run e2e:test -w @chatenhancer/repo-tools -- --no-build apps/extension/e2e/specs/yt-mock-logged-in.spec.ts apps/extension/e2e/specs/yt-mock-logged-out.spec.ts apps/extension/e2e/specs/yt-mock-replay.spec.ts apps/extension/e2e/specs/yt-live-logged-out.spec.ts",
+    "test:e2e:flake": "npm run e2e:flake -w @chatenhancer/repo-tools --",
+    "test:e2e:install": "playwright install chromium",
+    "test:e2e:install-deps": "playwright install --with-deps chromium",
+    "test:e2e:live": "npm run e2e:test -w @chatenhancer/repo-tools -- --project=youtube-live",
+    "test:e2e:mock": "npm run e2e:test -w @chatenhancer/repo-tools -- --project=youtube-mock",
+    "test:e2e:perf": "npm run e2e:performance -w @chatenhancer/repo-tools --",
+    "test:e2e:perf:live": "cross-env YTCQ_PERF_INCLUDE_LIVE=1 npm run e2e:performance -w @chatenhancer/repo-tools -- --project=youtube-live-perf",
+    "test:e2e:youtube-login": "npm run e2e:open-profile -w @chatenhancer/repo-tools",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "lint": "eslint src e2e eslint.config.mjs playwright.config.ts playwright.perf.config.ts vitest.setup.ts vitest.unit.config.ts",
+    "format": "prettier --write \"src/**/*.tsx\"",
+    "format:check": "prettier --check \"src/**/*.tsx\""
+  },
+  "dependencies": {
+    "@chatenhancer/playground-core": "0.0.0",
+    "chess.js": "^1.4.0"
+  },
+  "devDependencies": {
+    "@chatenhancer/eslint-config": "0.0.0",
+    "@playwright/test": "^1.60.0",
+    "@types/chrome": "^0.0.315",
+    "@types/node": "^25.9.1",
+    "cross-env": "^7.0.3",
+    "jsdom": "^29.1.1",
+    "vitest": "^4.1.7"
+  }
+}

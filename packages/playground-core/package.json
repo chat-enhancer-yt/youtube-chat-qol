@@ -1,0 +1,19 @@
+{
+  "name": "@chatenhancer/playground-core",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./*": "./src/*.ts"
+  },
+  "scripts": {
+    "check": "npm run typecheck && npm run lint",
+    "lint": "eslint src eslint.config.mjs vitest.unit.config.ts",
+    "test": "vitest run --config vitest.unit.config.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "devDependencies": {
+    "@chatenhancer/eslint-config": "0.0.0",
+    "vitest": "^4.1.7"
+  }
+}

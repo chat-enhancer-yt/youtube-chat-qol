@@ -1,5 +1,5 @@
 <p>
-  <img src="src/assets/icons/icon-128.png" alt="Chat Enhancer for YouTube icon" width="96" height="96">
+  <img src="apps/extension/src/assets/icons/icon-128.png" alt="Chat Enhancer for YouTube icon" width="96" height="96">
 </p>
 
 # Chat Enhancer for YouTube
@@ -25,6 +25,8 @@ Not affiliated with YouTube or Google.
 
 ## Development
 
+Development requires Node.js 22.18 or newer so the private repository tooling can run TypeScript directly.
+
 Install dependencies and build the unpacked extensions:
 
 ```sh
@@ -46,6 +48,21 @@ For Firefox 140+ development, build the Firefox package, then choose **Load Temp
 ```sh
 npm run build:firefox
 ```
+
+### Repository structure
+
+This repository keeps every npm workspace under `apps/` or `packages/`. Deployable applications live under `apps/`; reusable code and private repository tooling live under `packages/`:
+
+- `apps/extension`: browser extension source, manifest, and Playwright E2E tests.
+- `apps/docs`: Astro documentation site.
+- `apps/playground`: Playground Worker, Durable Objects, and Stockfish container.
+- `apps/language-redirect`: documentation locale redirect Worker.
+- `packages/playground-core`: protocol, identity, and game logic shared by the extension and Playground Worker.
+- `packages/product-config`: locale and contact metadata shared by deployed applications.
+- `packages/eslint-config`: shared ESLint policy composed by each workspace's local config.
+- `packages/repo-tools`: private workspace for build, release, test, and store automation.
+
+The root `package.json` owns the release version and keeps the short, user-facing orchestration commands such as `npm run check`, `npm run test`, and `npm run verify`. Each workspace exposes its own implementation commands through npm scripts, owns its ESLint config, and opts into the aggregate Vitest suite with a colocated `vitest.unit.config.ts` when needed.
 
 ## License
 

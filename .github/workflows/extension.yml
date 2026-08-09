@@ -23,8 +23,12 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci
-      - name: Check project
-        run: npm run check:extension
+      - name: Check extension
+        run: npm run check -w @chatenhancer/extension
+      - name: Check shared code and repository tools
+        run: npm run check -w @chatenhancer/eslint-config -w @chatenhancer/playground-core -w @chatenhancer/repo-tools
+      - name: Check root configuration
+        run: tsc --noEmit -p tsconfig.json && eslint vitest.config.ts eslint.config.mjs
 
   test:
     name: Test extension
@@ -66,8 +70,8 @@ jobs:
       - name: Build extensions
         run: npm run build
 
-  browser:
-    name: Test extension in browser
+  e2e:
+    name: Test extension end to end
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -85,28 +89,28 @@ jobs:
           path: ~/.cache/ms-playwright
           key: ${{ runner.os }}-playwright-${{ hashFiles('package-lock.json') }}
       - name: Install Playwright Chromium
-        run: npm run ci:install-playwright
+        run: npm run test:e2e:install -w @chatenhancer/extension
       - name: Build Chrome extension
         run: npm run build:chrome
-      - name: Run browser gate
-        run: npm run ci:test-browser-gate
-      - name: Upload browser test report
+      - name: Run E2E gate
+        run: npm run test:e2e:ci -w @chatenhancer/extension
+      - name: Upload E2E test report
         if: always()
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         with:
-          name: browser-test-report
-          path: test-results/browser/playwright-report.json
+          name: e2e-test-report
+          path: test-results/e2e/playwright-report.json
           if-no-files-found: ignore
           retention-days: 1
-      - name: Collect mock browser failure artifacts
+      - name: Collect mock E2E failure artifacts
         if: failure()
-        run: npm run ci:browser-artifacts
-      - name: Upload mock browser failure artifacts
+        run: npm run ci:e2e-artifacts -w @chatenhancer/repo-tools
+      - name: Upload mock E2E failure artifacts
         if: failure()
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         with:
-          name: mock-browser-failure-artifacts
-          path: test-results/browser/mock-artifacts/
+          name: mock-e2e-failure-artifacts
+          path: test-results/e2e/mock-artifacts/
           if-no-files-found: ignore
           retention-days: 7
 
@@ -116,7 +120,7 @@ jobs:
       - check
       - test
       - build
-      - browser
+      - e2e
     if: always()
     runs-on: ubuntu-latest
     permissions:
@@ -132,15 +136,15 @@ jobs:
         with:
           name: unit-test-report
           path: test-results/unit
-      - name: Download browser test report
+      - name: Download E2E test report
         uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6
         continue-on-error: true
         with:
-          name: browser-test-report
-          path: test-results/browser
+          name: e2e-test-report
+          path: test-results/e2e
       - name: Write test summary
         if: always()
-        run: node scripts/write-ci-test-summary.mjs
+        run: npm run ci:test-summary -w @chatenhancer/repo-tools
       - name: Require successful jobs
         if: |
           always() && (

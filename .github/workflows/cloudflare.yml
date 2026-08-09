@@ -22,7 +22,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
       - name: Check Cloudflare source
-        run: npm run check:cloudflare
+        run: npm run check -w @chatenhancer/language-redirect -w @chatenhancer/playground -w @chatenhancer/playground-core -w @chatenhancer/product-config -w @chatenhancer/repo-tools
       - name: Check Cloudflare Workers
         run: npm run cloudflare:check
 
@@ -84,7 +84,7 @@ jobs:
         run: npm ci
       - name: Deploy language redirect Worker
         run: |
-          npm run cloudflare:language-redirect:deploy -- \
+          npm run deploy -w @chatenhancer/language-redirect -- \
             --tag "${GITHUB_SHA}" \
             --message "$(git log -1 --pretty=%s)"
         env:
@@ -111,7 +111,7 @@ jobs:
         run: npm ci
       - name: Deploy Playground Worker
         run: |
-          npm run cloudflare:playground:deploy -- \
+          npm run deploy -w @chatenhancer/playground -- \
             --tag "${GITHUB_SHA}" \
             --message "$(git log -1 --pretty=%s)"
         env:

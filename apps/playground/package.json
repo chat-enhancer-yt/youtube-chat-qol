@@ -1,0 +1,29 @@
+{
+  "name": "@chatenhancer/playground",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "npm run typecheck && npm run lint",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "lint": "eslint src eslint.config.mjs vitest.config.ts vitest.setup.ts",
+    "test": "vitest run",
+    "check:deploy": "cross-env WRANGLER_LOG_PATH=../../.wrangler/logs wrangler deploy --dry-run --containers-rollout=none",
+    "check:containers": "cross-env WRANGLER_LOG_PATH=../../.wrangler/logs wrangler deploy --dry-run",
+    "dev": "npm run playground:dev -w @chatenhancer/repo-tools",
+    "deploy": "cross-env WRANGLER_LOG_PATH=../../.wrangler/logs wrangler deploy"
+  },
+  "dependencies": {
+    "@chatenhancer/playground-core": "0.0.0",
+    "@cloudflare/containers": "^0.3.7",
+    "chess.js": "^1.4.0",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@chatenhancer/eslint-config": "0.0.0",
+    "@cloudflare/workers-types": "^5.20260722.1",
+    "cross-env": "^7.0.3",
+    "vitest": "^4.1.7",
+    "wrangler": "^4.120.0"
+  }
+}
