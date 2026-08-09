@@ -10,8 +10,7 @@ const bumpType = process.argv[2] || 'patch';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
 const packageJsonPath = path.join(root, 'package.json');
 const packageLockPath = path.join(root, 'package-lock.json');
-const manifestPath = path.join(root, 'apps', 'extension', 'manifest.json');
-const versionGitPaths = ['package.json', 'package-lock.json', 'apps/extension/manifest.json'];
+const versionGitPaths = ['package.json', 'package-lock.json'];
 
 if (!bumpTypes.has(bumpType)) {
   console.error('Usage: npm run version:bump [-- <major|minor|patch>]');
@@ -32,11 +31,10 @@ if (packageLock.packages?.['']) {
 
 await writeJson(packageJsonPath, packageJson);
 await writeJson(packageLockPath, packageLock);
-await updateManifestVersion(manifestPath, nextVersion);
 await commitVersionBump(nextVersion);
 
 console.log(`Bumped version ${formatVersion(currentVersion)} -> ${nextVersion}.`);
-console.log('Updated package.json, package-lock.json, and apps/extension/manifest.json.');
+console.log('Updated package.json and package-lock.json.');
 console.log(`Committed "${versionCommitMessage(nextVersion)}".`);
 
 async function readJson(filePath) {
@@ -45,18 +43,6 @@ async function readJson(filePath) {
 
 async function writeJson(filePath, value) {
   await writeFile(filePath, `${JSON.stringify(value, null, 2)}\n`);
-}
-
-async function updateManifestVersion(filePath, version) {
-  const manifest = await readFile(filePath, 'utf8');
-  const updated = manifest.replace(
-    /^(\s*"version"\s*:\s*")\d+\.\d+\.\d+(")/m,
-    `$1${version}$2`
-  );
-  if (updated === manifest) {
-    throw new Error('Could not find manifest.json version field.');
-  }
-  await writeFile(filePath, updated);
 }
 
 async function commitVersionBump(version) {

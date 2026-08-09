@@ -10,11 +10,11 @@ import { minify as minifyHtml } from 'html-minifier-terser';
 import { copyFile, cp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import packageJson from '../../../package.json' with { type: 'json' };
 import { generateIcons } from './generate-icons.ts';
 import { loadLocalEnv } from './lib/local-env.ts';
 import { syncExtensionLocales } from './sync-extension-locales.ts';
 import { validateExtensionLocales } from './validate-extension-locales.ts';
+import { validateVersionAlignment } from './validate-version-alignment.ts';
 
 await loadLocalEnv();
 
@@ -82,9 +82,8 @@ const targetOutputDirs = {
 const targets = getRequestedTargets();
 const playgroundBackendOrigin = getPlaygroundBackendOrigin();
 
-await generateIcons();
+const packageVersion = await validateVersionAlignment();
 await validateExtensionLocales();
-await syncVersionedSourceFiles();
 
 const manifestSource = await readFile(path.join(extensionRoot, 'manifest.json'), 'utf8');
 
@@ -196,6 +195,8 @@ async function buildTarget(target) {
     copyStaticDirectory(path.join(root, 'licenses'), path.join(extensionDir, 'licenses'))
   ]);
 
+  await generateIcons(path.join(extensionDir, 'icons'));
+
   await writeFile(
     path.join(extensionDir, 'manifest.json'),
     `${JSON.stringify(createManifest(target), null, 2)}\n`
@@ -277,7 +278,7 @@ function ensureTrailingNewline(value) {
 
 function createManifest(target) {
   const manifest = JSON.parse(manifestSource);
-  manifest.version = packageJson.version;
+  manifest.version = packageVersion;
   for (const size of Object.keys(manifest.icons || {})) {
     manifest.icons[size] = stripBuildPrefix(manifest.icons[size]);
   }
@@ -480,33 +481,4 @@ function getSocketOrigin(value) {
   const url = new URL(value);
   url.protocol = url.protocol === 'http:' ? 'ws:' : 'wss:';
   return url.toString().replace(/\/$/, '');
-}
-
-async function syncVersionedSourceFiles() {
-  await Promise.all([
-    syncManifestVersion(),
-    syncPackageLockVersion()
-  ]);
-}
-
-async function syncManifestVersion() {
-  const manifestPath = path.join(extensionRoot, 'manifest.json');
-  const original = await readFile(manifestPath, 'utf8');
-  const next = original.replace(
-    /("version":\s*")[^"]+(")/,
-    `$1${packageJson.version}$2`
-  );
-  if (next !== original) await writeFile(manifestPath, next);
-}
-
-async function syncPackageLockVersion() {
-  const packageLockPath = path.join(root, 'package-lock.json');
-  const original = await readFile(packageLockPath, 'utf8');
-  const next = original
-    .replace(/("version":\s*")[^"]+(")/, `$1${packageJson.version}$2`)
-    .replace(
-      /("packages":\s*\{\n\s+"":\s*\{\n\s+"name":\s*"[^"]+",\n\s+"version":\s*")[^"]+(")/,
-      `$1${packageJson.version}$2`
-    );
-  if (next !== original) await writeFile(packageLockPath, next);
 }

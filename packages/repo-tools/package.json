@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "check": "npm run typecheck && npm run lint",
+    "check": "npm run typecheck && npm run lint && node scripts/validate-version-alignment.ts",
     "ci:e2e-artifacts": "node scripts/collect-mock-e2e-artifacts.ts",
     "ci:test-summary": "node scripts/write-ci-test-summary.ts",
     "cloudflare:test": "node scripts/run-cloudflare-tests.ts",
