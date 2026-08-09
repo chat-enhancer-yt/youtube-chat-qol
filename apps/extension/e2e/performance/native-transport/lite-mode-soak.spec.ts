@@ -1,36 +1,32 @@
 /**
- * Long-run mock performance coverage for Lite mode.
+ * Long-run native YouTube performance coverage for Lite mode.
  *
  * This deliberately crosses the retained-history boundary at the live edge and
  * while reading older chat. Forced-GC heap samples verify that bounded record,
  * DOM, and action queues translate into a steady-state memory plateau.
  */
-import type { BrowserContext, CDPSession, Page } from '@playwright/test';
-import {
-  YOUTUBE_CHAT_FEED_BATCH_EVENT,
-  type YouTubeChatFeedAction,
-  type YouTubeChatFeedTransportBatch,
-  type YouTubeChatMessageRecord
-} from '../../../src/youtube/chat-feed/protocol';
+import type { BrowserContext, CDPSession, FrameLocator, Page } from '@playwright/test';
 import {
   DEFAULT_LITE_CHAT_RENDER_LIMIT,
   DEFAULT_LITE_CHAT_STORE_BYTE_LIMIT,
   DEFAULT_LITE_CHAT_STORE_LIMIT
 } from '../../../src/features/lite-mode/store';
-import { expect, youtubeMockTest as test } from '../../support/browser-fixtures';
+import { expect } from '@playwright/test';
+import { nativeYouTubePerformanceTest as test } from '../../support/fixtures/youtube-native-performance';
 import { withExtensionStorageValues } from '../../support/extension-storage';
-import { pauseMockFixtureMessages } from '../../support/mock-page';
 import {
   createPerformanceReport,
   delay,
   formatMb,
   formatMs,
   getPositiveIntegerEnv,
-  reloadMockChatPageForStoredSettings,
-  startBrowserPerfProbe,
-  stopBrowserPerfProbe,
   writePerformanceReport
-} from '../../support/mock-perf';
+} from '../../support/performance';
+import {
+  startNativeChatPerfProbe,
+  stopNativeChatPerfProbe
+} from '../../support/native-performance';
+import type { NativeChatTransport } from '../../support/native-chat-transport';
 
 const WARMUP_MESSAGES = getPositiveIntegerEnv('YTCQ_PERF_LITE_WARMUP_MESSAGES', 1_000);
 const LIVE_EDGE_MESSAGES = getPositiveIntegerEnv('YTCQ_PERF_LITE_LIVE_MESSAGES', 5_000);
@@ -59,11 +55,11 @@ interface LiteMemoryDiagnostics {
   storeSize: number;
 }
 
-test('youtube-mock performance: Lite mode heap plateaus across 11,000+ messages', async ({
-  mockLoggedInSession
+test('youtube-native performance: Lite mode heap plateaus across 11,000+ messages', async ({
+  nativePerformanceSession
 }, testInfo) => {
   test.setTimeout(120_000);
-  const { context, page } = mockLoggedInSession;
+  const { context, openChat, page, transport } = nativePerformanceSession;
 
   await withExtensionStorageValues(
     context,
@@ -73,30 +69,32 @@ test('youtube-mock performance: Lite mode heap plateaus across 11,000+ messages'
       targetLanguage: ''
     },
     async () => {
-      await reloadMockChatPageForStoredSettings(page);
-      await pauseMockFixtureMessages(page);
-      await installLiteSequenceProbe(page);
-      await page.locator('.ytcq-lite-mode-button').click();
-      await expect(page.locator(LITE_ROOT_SELECTOR)).toBeVisible();
+      const chat = await openChat();
+      await chat.locator('.ytcq-lite-mode-button').click();
+      await expect(chat.locator(LITE_ROOT_SELECTOR)).toBeVisible();
 
       const cdp = await createHeapSession(context, page);
       const ingressStartedAt = performance.now();
-      await appendLiteMessages(page, 0, WARMUP_MESSAGES);
-      await waitForLiteBacklogToDrain(page);
+      await deliverLiteMessages(transport, 0, WARMUP_MESSAGES);
+      await waitForLiteBacklogToDrain(chat);
       const warmHeapMb = await collectHeapMb(cdp);
 
-      await startBrowserPerfProbe(page);
-      await appendLiteMessages(page, WARMUP_MESSAGES, LIVE_EDGE_MESSAGES);
-      await waitForLiteBacklogToDrain(page);
+      await startNativeChatPerfProbe(chat);
+      await deliverLiteMessages(transport, WARMUP_MESSAGES, LIVE_EDGE_MESSAGES);
+      await waitForLiteBacklogToDrain(chat);
       const liveHeapMb = await collectHeapMb(cdp);
-      const liveDiagnostics = await getLiteMemoryDiagnostics(page);
+      const liveDiagnostics = await getLiteMemoryDiagnostics(chat);
 
-      await leaveLiteLiveEdge(page);
-      await appendLiteMessages(page, WARMUP_MESSAGES + LIVE_EDGE_MESSAGES, SCROLLED_MESSAGES);
-      await waitForLiteBacklogToDrain(page);
+      await leaveLiteLiveEdge(chat);
+      await deliverLiteMessages(
+        transport,
+        WARMUP_MESSAGES + LIVE_EDGE_MESSAGES,
+        SCROLLED_MESSAGES
+      );
+      await waitForLiteBacklogToDrain(chat);
       const scrolledHeapMb = await collectHeapMb(cdp);
-      const scrolledDiagnostics = await getLiteMemoryDiagnostics(page);
-      const probe = await stopBrowserPerfProbe(page);
+      const scrolledDiagnostics = await getLiteMemoryDiagnostics(chat);
+      const probe = await stopNativeChatPerfProbe(chat);
       const ingressMs = performance.now() - ingressStartedAt;
       await cdp.detach();
 
@@ -184,7 +182,7 @@ test('youtube-mock performance: Lite mode heap plateaus across 11,000+ messages'
         ]
       );
 
-      await writePerformanceReport(testInfo, 'youtube-mock-lite-mode-soak', report);
+      await writePerformanceReport(testInfo, 'youtube-native-lite-mode-soak', report);
       expect(TOTAL_MESSAGES).toBeGreaterThanOrEqual(10_000);
       expect(ingressMs).toBeLessThanOrEqual(BUDGETS.totalIngressMs);
       assertBoundedLiteDiagnostics(liveDiagnostics);
@@ -198,105 +196,35 @@ test('youtube-mock performance: Lite mode heap plateaus across 11,000+ messages'
   );
 });
 
-async function installLiteSequenceProbe(page: Page): Promise<void> {
-  await page.evaluate((eventName) => {
-    const state = { sequence: 0 };
-    (window as typeof window & { __ytcqLitePerfSequence?: typeof state }).__ytcqLitePerfSequence =
-      state;
-    window.addEventListener(eventName, (event) => {
-      if (!(event instanceof CustomEvent) || typeof event.detail !== 'string') return;
-      try {
-        const batch = JSON.parse(event.detail) as { sequence?: number };
-        if (Number.isSafeInteger(batch.sequence)) {
-          state.sequence = Math.max(state.sequence, Number(batch.sequence));
-        }
-      } catch {
-        // The production receiver validates malformed details separately.
-      }
-    });
-  }, YOUTUBE_CHAT_FEED_BATCH_EVENT);
-}
-
-async function appendLiteMessages(page: Page, startIndex: number, count: number): Promise<void> {
+async function deliverLiteMessages(
+  transport: NativeChatTransport,
+  startIndex: number,
+  count: number
+): Promise<void> {
   for (let offset = 0; offset < count; offset += BATCH_SIZE) {
     const batchCount = Math.min(BATCH_SIZE, count - offset);
-    const actions = Array.from({ length: batchCount }, (_value, index) => ({
-      record: createLiteRecord(startIndex + offset + index),
-      type: 'upsert' as const
-    }));
-    await dispatchLiteBatch(page, actions);
+    const messages = Array.from({ length: batchCount }, (_value, index) =>
+      createLiteMessage(startIndex + offset + index)
+    );
+    await transport.injectMessages(messages);
     await delay(BATCH_INTERVAL_MS);
   }
 }
 
-async function dispatchLiteBatch(page: Page, actions: YouTubeChatFeedAction[]): Promise<void> {
-  await page.evaluate(
-    ({ eventName, nextActions }) => {
-      const state = (
-        window as typeof window & {
-          __ytcqLitePerfSequence?: { sequence: number };
-        }
-      ).__ytcqLitePerfSequence;
-      if (!state) throw new Error('Lite performance sequence probe is unavailable.');
-      const transport = (
-        window as unknown as Record<PropertyKey, { sequence?: unknown } | undefined>
-      )[Symbol.for('ytcq:lite-chat-transport:v1')];
-      const transportSequence = typeof transport?.sequence === 'number' ? transport.sequence : 0;
-      const sequence = Math.max(state.sequence, transportSequence) + 1;
-      if (transport) transport.sequence = sequence;
-      const batch: YouTubeChatFeedTransportBatch = {
-        actions: nextActions,
-        continuationTimeoutMs: 1,
-        receivedAt: Date.now(),
-        sequence,
-        source: 'live'
-      };
-      window.dispatchEvent(
-        new CustomEvent(eventName, {
-          detail: JSON.stringify(batch)
-        })
-      );
-    },
-    {
-      eventName: YOUTUBE_CHAT_FEED_BATCH_EVENT,
-      nextActions: actions
-    }
-  );
-}
-
-function createLiteRecord(index: number): YouTubeChatMessageRecord {
+function createLiteMessage(index: number) {
   const authorIndex = index % 240;
-  const text = `Lite soak message ${index} from viewer ${authorIndex} with emoji :wave:`;
   return {
-    author: {
-      avatarUrl: 'https://www.youtube.com/favicon.ico',
-      badges: index % 19 === 0 ? [{ label: 'Member' }] : [],
-      channelId: `UCLitePerf${authorIndex}`,
-      name: `@LitePerfViewer${authorIndex}`
-    },
-    id: `lite-perf-${index}`,
-    kind: 'text',
-    plainText: text,
-    runs: [
-      { text: `${text.slice(0, -6)} `, type: 'text' },
-      {
-        alt: ':wave:',
-        emojiId: 'wave-emoji',
-        imageUrl: 'https://www.youtube.com/favicon.ico',
-        shortcuts: [':wave:'],
-        type: 'emoji'
-      }
-    ],
-    timestampText: '10:30 PM',
-    timestampUsec: String(1_782_000_000_000_000 + index)
+    author: `@LitePerfViewer${authorIndex}`,
+    channel: `UCLitePerf${authorIndex}`,
+    text: `Lite soak message ${index} from viewer ${authorIndex}`
   };
 }
 
-async function waitForLiteBacklogToDrain(page: Page): Promise<void> {
+async function waitForLiteBacklogToDrain(chat: FrameLocator): Promise<void> {
   await expect
     .poll(
       async () =>
-        page
+        chat
           .locator(LITE_ROOT_SELECTOR)
           .evaluate((root) =>
             Number((root as HTMLElement).dataset.ytcqLitePendingLiveActions || 0)
@@ -309,21 +237,21 @@ async function waitForLiteBacklogToDrain(page: Page): Promise<void> {
     .toBe(0);
 }
 
-async function leaveLiteLiveEdge(page: Page): Promise<void> {
-  const scroller = page.locator(`${LITE_ROOT_SELECTOR} .ytcq-lite-scroller`);
+async function leaveLiteLiveEdge(chat: FrameLocator): Promise<void> {
+  const scroller = chat.locator(`${LITE_ROOT_SELECTOR} .ytcq-lite-scroller`);
   await scroller.evaluate((element) => {
     element.dispatchEvent(new WheelEvent('wheel', { deltaY: -120 }));
     element.scrollTop = Math.max(0, element.scrollHeight - element.clientHeight - 120);
     element.dispatchEvent(new Event('scroll', { bubbles: true }));
   });
-  await expect(page.locator(LITE_ROOT_SELECTOR)).toHaveAttribute(
+  await expect(chat.locator(LITE_ROOT_SELECTOR)).toHaveAttribute(
     'data-ytcq-following-live-edge',
     'false'
   );
 }
 
-async function getLiteMemoryDiagnostics(page: Page): Promise<LiteMemoryDiagnostics> {
-  return page.locator(LITE_ROOT_SELECTOR).evaluate((root) => {
+async function getLiteMemoryDiagnostics(chat: FrameLocator): Promise<LiteMemoryDiagnostics> {
+  return chat.locator(LITE_ROOT_SELECTOR).evaluate((root) => {
     const element = root as HTMLElement;
     return {
       detachedNativeRepopulations: Number(element.dataset.ytcqLiteDetachedNativeRepopulations || 0),

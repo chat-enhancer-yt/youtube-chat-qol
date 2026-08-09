@@ -3,7 +3,6 @@ import {
   bookmarkMessageMenuScenario,
   bookmarkPopupRenderingScenario
 } from '../../../../../scenarios/bookmarks';
-import { focusPanelReceivesNewMessagesScenario } from '../../../../../scenarios/focus';
 import {
   inboxDirectMentionScenario,
   inboxKeywordOverlapPreservesProfileMentionScenario,
@@ -16,10 +15,7 @@ import {
   quoteMenuDraftScenario
 } from '../../../../../scenarios/message-actions';
 import { messageMenuScenario } from '../../../../../scenarios/menus';
-import {
-  profileCardReceivesNewMessagesScenario,
-  profileCardRecentMessagesScenario
-} from '../../../../../scenarios/profile/card';
+import { profileCardRecentMessagesScenario } from '../../../../../scenarios/profile/card';
 import { mockLiveLoggedInTest as test } from '../../../../../support/scenario-fixtures';
 
 test(
@@ -37,10 +33,6 @@ test(
 test('logged-in mock: mention menu action writes a draft only', mentionMenuDraftScenario);
 test('logged-in mock: quote menu action writes a draft only', quoteMenuDraftScenario);
 test(
-  'logged-in mock: focus panel receives new messages from the focused author',
-  focusPanelReceivesNewMessagesScenario
-);
-test(
   'logged-in mock: inbox saves keyword matches, highlights them, and jumps back to chat',
   inboxRecordCreationAndJumpScenario
 );
@@ -50,9 +42,5 @@ test(
   inboxKeywordOverlapPreservesProfileMentionScenario
 );
 test('logged-in mock: profile card opens from a chat avatar', profileCardRecentMessagesScenario);
-test(
-  'logged-in mock: profile card receives new messages from the selected author',
-  profileCardReceivesNewMessagesScenario
-);
 test('logged-in mock: author click writes a mention draft only', authorMentionDraftScenario);
 test('logged-in mock: author Alt-click writes a quote draft only', authorQuoteDraftScenario);

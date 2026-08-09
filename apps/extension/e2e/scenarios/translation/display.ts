@@ -1,11 +1,9 @@
 /** Browser scenarios for display translation behavior. */
 import { expect, test, type BrowserContext, type Locator } from '@playwright/test';
+import { requireNativeChatTransport } from '../../support/controlled-chat';
 import { closeFocusPromptIfPresent } from '../../support/focus-panel';
 import { centerLocatorInViewport } from '../../support/locator';
-import {
-  appendMockFixtureMessage,
-  pauseMockFixtureMessages
-} from '../../support/mock-page';
+import type { NativeChatTransport } from '../../support/native-chat-transport';
 import { cleanVisibleText } from '../../support/text';
 import { withMockedTranslationEndpoint } from '../../support/translation-endpoint';
 import {
@@ -33,8 +31,16 @@ export const translationDisplayScenario: BrowserScenario = async ({ chat, contex
   await expectTranslationDisplayModes({ chat, context });
 };
 
-export const replacedTranslationToggleSurfacesScenario: BrowserScenario = async ({ chat, context }) => {
-  await expectReplacedTranslationToggleSurfaces({ chat, context });
+export const replacedTranslationToggleSurfacesScenario: BrowserScenario = async ({
+  chat,
+  context,
+  transport
+}) => {
+  await expectReplacedTranslationToggleSurfaces({
+    chat,
+    context,
+    transport: requireNativeChatTransport(transport)
+  });
 };
 
 async function expectTranslationDisplayModes({
@@ -131,13 +137,14 @@ async function expectReplaceDisplayMode({
 
 async function expectReplacedTranslationToggleSurfaces({
   chat,
-  context
+  context,
+  transport
 }: {
   chat: ChatSurface;
   context: BrowserContext;
+  transport: NativeChatTransport;
 }): Promise<void> {
   await test.step('Use mocked translation endpoint for replaced toggle surfaces', async () => {
-    await pauseMockFixtureMessages(chat);
     await withMockedTranslationEndpoint(context, TOGGLE_TRANSLATED_TEXT, async () => {
       await withTranslationCleared({ chat, context, targetLanguage: TOGGLE_TARGET_LANGUAGE, callback: async () => {
         await withTranslationEnabled({
@@ -145,7 +152,7 @@ async function expectReplacedTranslationToggleSurfaces({
           targetLanguage: TOGGLE_TARGET_LANGUAGE,
           translationDisplay: 'replace',
           callback: async () => {
-            const source = await appendTranslatedToggleMessage(chat);
+            const source = await deliverTranslatedToggleMessage(chat, transport);
             await expectLiveMessageReplacementToggle(chat, source);
             await expectProfileCardReplacementToggle(chat, source);
             await expectFocusPanelReplacementToggle(chat, source);
@@ -156,18 +163,19 @@ async function expectReplacedTranslationToggleSurfaces({
   });
 }
 
-async function appendTranslatedToggleMessage(chat: ChatSurface): Promise<{
+async function deliverTranslatedToggleMessage(
+  chat: ChatSurface,
+  transport: NativeChatTransport
+): Promise<{
   authorName: string;
   messageId: string;
   sourceText: string;
 }> {
-  return test.step('Append a deterministic translatable mock message', async () => {
-    const messageId = await appendMockFixtureMessage(chat, {
+  return test.step('Deliver a deterministic translatable continuation message', async () => {
+    const messageId = await transport.injectMessage({
       author: '@ToggleViewer',
       text: 'Gracias por probar el cambio'
     });
-    if (!messageId) throw new Error('Could not append mock translation toggle message.');
-
     const source = {
       authorName: '@ToggleViewer',
       messageId,

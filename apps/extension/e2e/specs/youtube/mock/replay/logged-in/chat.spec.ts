@@ -12,7 +12,6 @@ import {
 import { liteModeToggleAndRestoreScenario } from '../../../../../scenarios/lite-mode/toggle';
 import { liteModeAeroBehaviorScenario } from '../../../../../scenarios/lite-mode/aero';
 import { bookmarkMessageMenuScenario } from '../../../../../scenarios/bookmarks';
-import { replacedTranslationToggleSurfacesScenario } from '../../../../../scenarios/translation/display';
 import { mockedMessageTranslationScenario } from '../../../../../scenarios/translation/incoming';
 import { messageMenuScenario, settingsMenuScenario } from '../../../../../scenarios/menus';
 import {
@@ -34,10 +33,6 @@ test(
 test(
   'logged-in mock replay: incoming chat messages are translated',
   mockedMessageTranslationScenario
-);
-test(
-  'logged-in mock replay: replaced translations toggle across chat surfaces',
-  replacedTranslationToggleSurfacesScenario
 );
 test(
   'logged-in mock replay: focus panel opens from an author and follows their messages',

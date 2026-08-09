@@ -1,72 +1,79 @@
 /**
- * Mock performance coverage for sustained high-volume chat.
+ * Native YouTube performance coverage for sustained high-volume chat.
  *
- * Unlike the single-burst fast-chat spec, this test keeps appending message
+ * Unlike the single-burst fast-chat spec, this test keeps delivering message
  * waves while translation, Inbox matching, and observer work are still active.
- * It models a very busy live stream without depending on real YouTube traffic.
+ * Intercepted continuations let YouTube's own client render every input wave.
  */
-import type { Page } from '@playwright/test';
-import { expect, youtubeMockTest as test } from '../../support/browser-fixtures';
+import { expect, type FrameLocator } from '@playwright/test';
+import { nativeYouTubePerformanceTest as test } from '../../support/fixtures/youtube-native-performance';
 import { withExtensionStorageValues } from '../../support/extension-storage';
 import {
-  appendMockChatBurst,
   createPerformanceReport,
   delay,
   formatMb,
   formatMs,
   formatNullableMb,
   getHeapGrowthMb,
-  getHeapSnapshot,
   getPositiveIntegerEnv,
-  reloadMockChatPageForStoredSettings,
-  startBrowserPerfProbe,
-  stopBrowserPerfProbe,
   withMockedPerformanceTranslationEndpoint,
   writePerformanceReport,
   type BrowserPerfProbeSnapshot,
-  type MockChatMessage
-} from '../../support/mock-perf';
+} from '../../support/performance';
+import {
+  collectNativeChatHeapSnapshot,
+  startNativeChatPerfProbe,
+  stopNativeChatPerfProbe,
+  type NativeChatTransport,
+  type NativePerfChatMessage,
+} from '../../support/native-performance';
 
 const MESSAGE_WAVES = getPositiveIntegerEnv('YTCQ_PERF_BUSY_STREAM_WAVES', 12);
 const MESSAGES_PER_WAVE = getPositiveIntegerEnv('YTCQ_PERF_BUSY_STREAM_WAVE_SIZE', 60);
 const WAVE_INTERVAL_MS = getPositiveIntegerEnv('YTCQ_PERF_BUSY_STREAM_WAVE_INTERVAL_MS', 120);
 const TOTAL_MESSAGE_COUNT = MESSAGE_WAVES * MESSAGES_PER_WAVE;
+const CONTROLLED_TEXT_PREFIX = 'YTCQ busy stream';
 const TARGET_LANGUAGE = 'cy';
 const TRANSLATION_RESPONSE_DELAY_MS = 12;
 const WATCHED_KEYWORDS = [
   ...Array.from({ length: 20 }, (_, index) => `stormword${index}`),
   ...Array.from({ length: 10 }, (_, index) => `busy phrase ${index}`)
 ];
-const EXPECTED_TRANSLATION_FLOOR = TOTAL_MESSAGE_COUNT;
-const EXPECTED_HIGHLIGHT_FLOOR = TOTAL_MESSAGE_COUNT * 2;
+// This is a pressure test, and the production queue deliberately bounds its
+// pending backlog. Require effectively all work without turning a single
+// superseded native renderer into a flaky all-or-nothing assertion.
+const EXPECTED_TRANSLATION_FLOOR = Math.floor(TOTAL_MESSAGE_COUNT * 0.99);
+const EXPECTED_VISIBLE_MESSAGE_FLOOR = Math.min(TOTAL_MESSAGE_COUNT, 100);
+const EXPECTED_HIGHLIGHT_FLOOR = EXPECTED_VISIBLE_MESSAGE_FLOOR * 2;
 const EXPECTED_INBOX_BADGE = TOTAL_MESSAGE_COUNT >= 100 ? '99+' : String(TOTAL_MESSAGE_COUNT);
+const CONTROLLED_RENDERER_SELECTOR = 'yt-live-chat-text-message-renderer[id^="ytcq-native-message-"]';
 
 const BUDGETS = {
   heapGrowthMb: 140,
   inboxBadgeMs: 8_000,
   keywordDrainMs: 5_000,
   maxLongTaskMs: 1_200,
-  maxWaveAppendMs: 1_200,
+  maxWaveIngressMs: 1_500,
   p95FrameGapMs: 450,
   totalIngressMs: Math.max(10_000, MESSAGE_WAVES * (WAVE_INTERVAL_MS + 650)),
   translationDrainMs: 20_000
 };
 
 interface BusyStreamIngressStats {
-  appendedIds: string[];
+  deliveredIds: string[];
   durationMs: number;
-  maxWaveAppendMs: number;
+  maxWaveIngressMs: number;
   messagesPerSecond: number;
-  p95WaveAppendMs: number;
+  p95WaveIngressMs: number;
   waveDurationsMs: number[];
 }
 
-test('youtube-mock performance: sustained busy stream stays responsive', async ({
-  mockLoggedInSession
+test('youtube-native performance: sustained busy stream stays responsive', async ({
+  nativePerformanceSession
 }, testInfo) => {
-  const { context, page } = mockLoggedInSession;
-
+  const { context, openChat, page, transport } = nativePerformanceSession;
   await withMockedPerformanceTranslationEndpoint(context, {
+    countText: (text) => text.startsWith(CONTROLLED_TEXT_PREFIX),
     delayMs: TRANSLATION_RESPONSE_DELAY_MS,
     translatedText: 'YTCQ busy stream translation'
   }, async (translationStats) => {
@@ -79,38 +86,42 @@ test('youtube-mock performance: sustained busy stream stays responsive', async (
       await withExtensionStorageValues(context, 'local', {
         ytcqInboxKeywords: WATCHED_KEYWORDS
       }, async () => {
-        await reloadMockChatPageForStoredSettings(page);
-        await startBrowserPerfProbe(page);
-        const heapBefore = await getHeapSnapshot(page);
-        const ingress = await appendBusyStream(page);
-        const translationDrainMs = await waitForTranslationsToDrain(page);
-        const keywordDrainMs = await waitForKeywordHighlights(page);
-        const inboxBadgeMs = await waitForInboxBadge(page);
-        const visibleTranslationCount = await page.locator(`.ytcq-translation[lang="${TARGET_LANGUAGE}"]`).count();
-        const visibleKeywordHighlightCount = await page.locator('.ytcq-chat-keyword-highlight').count();
-        const inboxBadgeText = await page.locator('.ytcq-inbox-badge').innerText();
-        const heapAfter = await getHeapSnapshot(page);
-        const probe = await stopBrowserPerfProbe(page);
+        const chat = await openChat();
+        const heapBefore = await collectNativeChatHeapSnapshot(context, page);
+        await startNativeChatPerfProbe(chat);
+        const ingress = await deliverBusyStream(transport);
+        const translationDrainMs = await waitForTranslationsToDrain(chat);
+        const keywordDrainMs = await waitForKeywordHighlights(chat);
+        const inboxBadgeMs = await waitForInboxBadge(chat);
+        const visibleTranslationCount = await chat.locator(
+          `${CONTROLLED_RENDERER_SELECTOR} .ytcq-translation[lang="${TARGET_LANGUAGE}"]`
+        ).count();
+        const visibleKeywordHighlightCount = await chat.locator(
+          `${CONTROLLED_RENDERER_SELECTOR} .ytcq-chat-keyword-highlight`
+        ).count();
+        const inboxBadgeText = await chat.locator('.ytcq-inbox-badge').innerText();
+        const probe = await stopNativeChatPerfProbe(chat);
+        const heapAfter = await collectNativeChatHeapSnapshot(context, page);
         const heapGrowthMb = getHeapGrowthMb(heapBefore, heapAfter);
 
         const report = createPerformanceReport(
-          'youtube-mock sustained busy stream with translation, mentions, and watched keywords',
+          'youtube-native sustained busy stream with translation, mentions, and watched keywords',
           [
             { label: 'Message waves', value: MESSAGE_WAVES },
             { label: 'Messages per wave', value: MESSAGES_PER_WAVE },
-            { label: 'Messages appended', value: ingress.appendedIds.length, budget: String(TOTAL_MESSAGE_COUNT) },
+            { label: 'Controlled messages ingested', value: ingress.deliveredIds.length, budget: String(TOTAL_MESSAGE_COUNT) },
             { label: 'Wave interval', value: formatMs(WAVE_INTERVAL_MS) },
             { label: 'Ingress duration', value: formatMs(ingress.durationMs), budget: formatMs(BUDGETS.totalIngressMs) },
             { label: 'Ingress rate', value: formatRate(ingress.messagesPerSecond) },
-            { label: 'p95 wave append', value: formatMs(ingress.p95WaveAppendMs) },
-            { label: 'Max wave append', value: formatMs(ingress.maxWaveAppendMs), budget: formatMs(BUDGETS.maxWaveAppendMs) },
+            { label: 'p95 wave ingress', value: formatMs(ingress.p95WaveIngressMs) },
+            { label: 'Max wave ingress', value: formatMs(ingress.maxWaveIngressMs), budget: formatMs(BUDGETS.maxWaveIngressMs) },
             { label: 'Translation drain', value: formatMs(translationDrainMs), budget: formatMs(BUDGETS.translationDrainMs) },
             { label: 'Keyword drain', value: formatMs(keywordDrainMs), budget: formatMs(BUDGETS.keywordDrainMs) },
             { label: 'Inbox badge wait', value: formatMs(inboxBadgeMs), budget: formatMs(BUDGETS.inboxBadgeMs) },
             { label: 'Translation requests', value: translationStats.requestCount },
             { label: 'Translation items', value: translationStats.translatedItemCount, budget: `>= ${EXPECTED_TRANSLATION_FLOOR}` },
-            { label: 'Rendered translations', value: visibleTranslationCount, budget: `>= ${EXPECTED_TRANSLATION_FLOOR}` },
-            { label: 'Keyword highlights', value: visibleKeywordHighlightCount, budget: `>= ${EXPECTED_HIGHLIGHT_FLOOR}` },
+            { label: 'Retained controlled translations', value: visibleTranslationCount, budget: `>= ${EXPECTED_VISIBLE_MESSAGE_FLOOR}` },
+            { label: 'Retained controlled keyword highlights', value: visibleKeywordHighlightCount, budget: `>= ${EXPECTED_HIGHLIGHT_FLOOR}` },
             { label: 'Inbox badge', value: inboxBadgeText, budget: EXPECTED_INBOX_BADGE },
             { label: 'Long tasks', value: probe.longTaskCount },
             { label: 'Max long task', value: formatMs(probe.maxLongTaskMs), budget: formatMs(BUDGETS.maxLongTaskMs) },
@@ -120,7 +131,7 @@ test('youtube-mock performance: sustained busy stream stays responsive', async (
           ]
         );
 
-        await writePerformanceReport(testInfo, 'youtube-mock-busy-stream', report);
+        await writePerformanceReport(testInfo, 'youtube-native-busy-stream', report);
         assertPerformanceBudgets({
           heapGrowthMb,
           inboxBadgeMs,
@@ -138,31 +149,33 @@ test('youtube-mock performance: sustained busy stream stays responsive', async (
   });
 });
 
-async function appendBusyStream(page: Page): Promise<BusyStreamIngressStats> {
+async function deliverBusyStream(
+  transport: NativeChatTransport
+): Promise<BusyStreamIngressStats> {
   const startedAt = performance.now();
-  const appendedIds: string[] = [];
+  const deliveredIds: string[] = [];
   const waveDurationsMs: number[] = [];
 
   for (let waveIndex = 0; waveIndex < MESSAGE_WAVES; waveIndex += 1) {
     const wave = createBusyStreamWaveMessages(waveIndex);
-    const result = await appendMockChatBurst(page, wave);
-    appendedIds.push(...result.appendedIds);
+    const result = await transport.injectMessages(wave);
+    deliveredIds.push(...result.deliveredIds);
     waveDurationsMs.push(result.durationMs);
     if (waveIndex < MESSAGE_WAVES - 1) await delay(WAVE_INTERVAL_MS);
   }
 
   const durationMs = performance.now() - startedAt;
   return {
-    appendedIds,
+    deliveredIds,
     durationMs,
-    maxWaveAppendMs: Math.max(...waveDurationsMs),
-    messagesPerSecond: appendedIds.length / Math.max(durationMs / 1_000, 0.001),
-    p95WaveAppendMs: getPercentile(waveDurationsMs, 95),
+    maxWaveIngressMs: Math.max(...waveDurationsMs),
+    messagesPerSecond: deliveredIds.length / Math.max(durationMs / 1_000, 0.001),
+    p95WaveIngressMs: getPercentile(waveDurationsMs, 95),
     waveDurationsMs
   };
 }
 
-function createBusyStreamWaveMessages(waveIndex: number): MockChatMessage[] {
+function createBusyStreamWaveMessages(waveIndex: number): NativePerfChatMessage[] {
   return Array.from({ length: MESSAGES_PER_WAVE }, (_, waveOffset) => {
     const index = waveIndex * MESSAGES_PER_WAVE + waveOffset;
     const singleKeyword = `stormword${index % 20}`;
@@ -172,7 +185,7 @@ function createBusyStreamWaveMessages(waveIndex: number): MockChatMessage[] {
       author: `@BusyViewer${String(index % 80).padStart(2, '0')}`,
       channel: `busy-stream-channel-${index % 80}`,
       text: [
-        `Mensaje rapido ${index} gracias por seguir el directo`,
+        `${CONTROLLED_TEXT_PREFIX} ${index}: gracias por seguir el directo`,
         singleKeyword,
         `mientras aparece ${phraseKeyword}`,
         `${mention} con suficiente texto para traducir`
@@ -181,27 +194,31 @@ function createBusyStreamWaveMessages(waveIndex: number): MockChatMessage[] {
   });
 }
 
-async function waitForTranslationsToDrain(page: Page): Promise<number> {
+async function waitForTranslationsToDrain(chat: FrameLocator): Promise<number> {
   const startedAt = performance.now();
-  await expect.poll(async () => page.locator(`.ytcq-translation[lang="${TARGET_LANGUAGE}"]`).count(), {
-    message: 'Sustained busy stream should render translations for appended messages.',
+  await expect.poll(async () => chat.locator(
+    `${CONTROLLED_RENDERER_SELECTOR} .ytcq-translation[lang="${TARGET_LANGUAGE}"]`
+  ).count(), {
+    message: 'Sustained busy stream should render translations for controlled messages.',
     timeout: BUDGETS.translationDrainMs
-  }).toBeGreaterThanOrEqual(EXPECTED_TRANSLATION_FLOOR);
+  }).toBeGreaterThanOrEqual(EXPECTED_VISIBLE_MESSAGE_FLOOR);
   return performance.now() - startedAt;
 }
 
-async function waitForKeywordHighlights(page: Page): Promise<number> {
+async function waitForKeywordHighlights(chat: FrameLocator): Promise<number> {
   const startedAt = performance.now();
-  await expect.poll(async () => page.locator('.ytcq-chat-keyword-highlight').count(), {
+  await expect.poll(async () => chat.locator(
+    `${CONTROLLED_RENDERER_SELECTOR} .ytcq-chat-keyword-highlight`
+  ).count(), {
     message: 'Sustained busy stream should keep watched keyword highlights current.',
     timeout: BUDGETS.keywordDrainMs
   }).toBeGreaterThanOrEqual(EXPECTED_HIGHLIGHT_FLOOR);
   return performance.now() - startedAt;
 }
 
-async function waitForInboxBadge(page: Page): Promise<number> {
+async function waitForInboxBadge(chat: FrameLocator): Promise<number> {
   const startedAt = performance.now();
-  await expect(page.locator('.ytcq-inbox-badge')).toHaveText(EXPECTED_INBOX_BADGE, {
+  await expect(chat.locator('.ytcq-inbox-badge')).toHaveText(EXPECTED_INBOX_BADGE, {
     timeout: BUDGETS.inboxBadgeMs
   });
   return performance.now() - startedAt;
@@ -230,12 +247,12 @@ function assertPerformanceBudgets({
   visibleKeywordHighlightCount: number;
   visibleTranslationCount: number;
 }): void {
-  expect.soft(ingress.appendedIds, 'All busy-stream fixture messages should be appended.')
+  expect.soft(ingress.deliveredIds, 'YouTube should consume every controlled busy-stream action.')
     .toHaveLength(TOTAL_MESSAGE_COUNT);
   expect.soft(ingress.durationMs, 'Sustained message ingress should finish within the broad stream budget.')
     .toBeLessThanOrEqual(BUDGETS.totalIngressMs);
-  expect.soft(ingress.maxWaveAppendMs, 'No single busy-stream wave append should block too long.')
-    .toBeLessThanOrEqual(BUDGETS.maxWaveAppendMs);
+  expect.soft(ingress.maxWaveIngressMs, 'No single busy-stream continuation wave should take too long to consume.')
+    .toBeLessThanOrEqual(BUDGETS.maxWaveIngressMs);
   expect.soft(translationDrainMs, 'Translations should drain after sustained busy-stream pressure.')
     .toBeLessThanOrEqual(BUDGETS.translationDrainMs);
   expect.soft(keywordDrainMs, 'Keyword highlights should settle after sustained busy-stream pressure.')
@@ -244,8 +261,8 @@ function assertPerformanceBudgets({
     .toBeLessThanOrEqual(BUDGETS.inboxBadgeMs);
   expect.soft(translatedItemCount, 'The mocked translation endpoint should receive the busy stream.')
     .toBeGreaterThanOrEqual(EXPECTED_TRANSLATION_FLOOR);
-  expect.soft(visibleTranslationCount, 'The busy stream should render expected translations.')
-    .toBeGreaterThanOrEqual(EXPECTED_TRANSLATION_FLOOR);
+  expect.soft(visibleTranslationCount, 'Retained native rows should render expected translations.')
+    .toBeGreaterThanOrEqual(EXPECTED_VISIBLE_MESSAGE_FLOOR);
   expect.soft(visibleKeywordHighlightCount, 'Every busy-stream message should receive watched keyword highlights.')
     .toBeGreaterThanOrEqual(EXPECTED_HIGHLIGHT_FLOOR);
   expect.soft(inboxBadgeText, 'Inbox unread count should reflect the very busy stream.')

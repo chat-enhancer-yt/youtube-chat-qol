@@ -2,6 +2,7 @@
 import type { BrowserContext, FrameLocator, Page, WorkerInfo } from '@playwright/test';
 import path from 'node:path';
 import { clearExtensionStorageArea } from '../extension-storage';
+import type { NativeChatTransport } from '../native-chat-transport';
 
 const DEFAULT_MOCK_HEADLESS = true;
 const DEFAULT_REAL_YOUTUBE_HEADLESS = true;
@@ -23,6 +24,10 @@ export interface RealYouTubeSession {
   page: Page;
   chat: FrameLocator;
   unavailableReason?: string;
+}
+
+export interface ControlledRealYouTubeSession extends RealYouTubeSession {
+  transport: NativeChatTransport;
 }
 
 export function getDisposableWorkerProfileDir(prefix: string, workerInfo: WorkerInfo): string {

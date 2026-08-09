@@ -5,6 +5,7 @@
  * should be available whenever the extension is attached to YouTube live chat.
  */
 import { expect, test } from '@playwright/test';
+import { requireNativeChatTransport } from '../support/controlled-chat';
 import {
   withExtensionStorageSnapshot,
   withExtensionStorageValues
@@ -26,6 +27,93 @@ const REPLAY_PREFETCH_KEYWORD = 'browser-replay-prefetch-keyword';
 export const inboxOpensFromHeaderScenario: BrowserScenario = async ({ chat }) => {
   await expectInboxButtonAttached(chat);
   await openInboxPanel(chat);
+  await closeInboxPanel(chat);
+};
+
+export const inboxNativeRecordCreationAndJumpScenario: BrowserScenario = async ({
+  chat,
+  transport
+}) => {
+  const controlledChat = requireNativeChatTransport(transport);
+  await withNativeInboxKeyword(chat, INBOX_KEYWORD, async () => {
+    const messageId = await controlledChat.injectMessage({
+      author: '@NativeInboxViewer',
+      channel: 'UCNativeInboxViewer',
+      text: `Please save this ${INBOX_KEYWORD} message`
+    });
+    const sourceMessage = chat.locator(`#${messageId}`);
+    await expectLiveChatKeywordHighlight(sourceMessage);
+    await openInboxPanel(chat);
+    await expectInboxRecordAndHighlight(chat);
+    await jumpToInboxRecord(chat, sourceMessage);
+  });
+};
+
+export const inboxNativeKeywordOverlapPreservesProfileMentionScenario: BrowserScenario = async ({
+  chat,
+  transport
+}) => {
+  const controlledChat = requireNativeChatTransport(transport);
+  await withNativeInboxKeyword(chat, PROFILE_MENTION_OVERLAP_KEYWORD, async () => {
+    const mentionedAuthor = '@InboxHandlePartTarget';
+    const mentionText = mentionedAuthor.toLowerCase();
+    const mentionMessageId = await controlledChat.injectMessage({
+      author: '@InboxOverlapSource',
+      channel: 'UCInboxOverlapSource',
+      text: `Please ask ${mentionText} next`
+    });
+    const mentionMessage = chat.locator(`#${mentionMessageId}`);
+    await expect(mentionMessage.locator('.ytcq-chat-keyword-highlight')).toHaveText(
+      PROFILE_MENTION_OVERLAP_KEYWORD
+    );
+    await expect(mentionMessage.locator('.ytcq-profile-mention')).toHaveCount(0);
+
+    await controlledChat.injectMessage({
+      author: mentionedAuthor,
+      channel: 'UCInboxHandlePartTarget',
+      text: 'Target profile history'
+    });
+
+    const mention = mentionMessage.locator('.ytcq-profile-mention');
+    await expect(mention).toHaveText(mentionText);
+    await expect(mention).toHaveAttribute('role', 'button');
+    await expect(mention.locator('.ytcq-chat-keyword-highlight')).toHaveText(
+      PROFILE_MENTION_OVERLAP_KEYWORD
+    );
+    await mention.click();
+
+    const profileCard = chat.locator('.ytcq-profile-card:not(.ytcq-inbox-card)');
+    await expect(profileCard.locator('.ytcq-profile-card-title')).toHaveText(mentionedAuthor);
+    await profileCard.locator('.ytcq-profile-card-close').click();
+    await expect(profileCard).toHaveCount(0);
+  });
+};
+
+export const inboxNativeDirectMentionScenario: BrowserScenario = async ({
+  chat,
+  transport
+}) => {
+  const controlledChat = requireNativeChatTransport(transport);
+  const viewerName = (
+    await chat
+      .locator('yt-live-chat-message-input-renderer #author-name')
+      .first()
+      .innerText()
+  ).trim();
+  expect(viewerName).toMatch(/^@\S+/);
+  const text = `Controlled direct mention for ${viewerName}`;
+  await controlledChat.injectMessage({
+    author: '@NativeDirectMentionSource',
+    channel: 'UCNativeDirectMentionSource',
+    text
+  });
+
+  await openInboxPanel(chat);
+  const record = chat.locator('.ytcq-inbox-card .ytcq-inbox-message').filter({
+    hasText: text
+  }).first();
+  await expect(record).toBeVisible({ timeout: 10_000 });
+  await expect(record.locator('.ytcq-inbox-mention-highlight')).toContainText(viewerName);
   await closeInboxPanel(chat);
 };
 
@@ -167,6 +255,44 @@ async function closeInboxPanel(chat: ChatSurface): Promise<void> {
     await chat.locator('.ytcq-inbox-card .ytcq-profile-card-close').click();
     await expect(chat.locator('.ytcq-inbox-card')).toHaveCount(0);
   });
+}
+
+async function withNativeInboxKeyword(
+  chat: ChatSurface,
+  keyword: string,
+  callback: () => Promise<void>
+): Promise<void> {
+  await openInboxPanel(chat);
+  const card = chat.locator('.ytcq-inbox-card');
+  const keywordPanel = card.locator('.ytcq-inbox-keyword-panel');
+  await card.locator('.ytcq-inbox-keyword-toggle').click();
+  await expect(keywordPanel).toBeVisible();
+  await keywordPanel.locator('.ytcq-inbox-keyword-input').fill(keyword);
+  await keywordPanel.locator('.ytcq-inbox-keyword-add').click();
+  const keywordChip = keywordPanel.locator('.ytcq-inbox-keyword-chip').filter({
+    hasText: keyword
+  });
+  await expect(keywordChip).toBeVisible();
+  await closeInboxPanel(chat);
+
+  try {
+    await callback();
+  } finally {
+    await openInboxPanel(chat);
+    const cleanupCard = chat.locator('.ytcq-inbox-card');
+    const cleanupPanel = cleanupCard.locator('.ytcq-inbox-keyword-panel');
+    if (!(await cleanupPanel.isVisible())) {
+      await cleanupCard.locator('.ytcq-inbox-keyword-toggle').click();
+    }
+    const cleanupChip = cleanupPanel.locator('.ytcq-inbox-keyword-chip').filter({
+      hasText: keyword
+    });
+    if (await cleanupChip.isVisible()) {
+      await cleanupChip.locator('.ytcq-inbox-keyword-remove').click();
+    }
+    await expect(cleanupChip).toHaveCount(0);
+    await closeInboxPanel(chat);
+  }
 }
 
 async function reloadMockChat(chat: ChatSurface, stepName: string): Promise<void> {

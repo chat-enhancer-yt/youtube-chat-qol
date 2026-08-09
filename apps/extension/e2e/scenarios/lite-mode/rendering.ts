@@ -1,6 +1,7 @@
 /** Browser scenarios for Lite mode rendering behavior. */
 import { expect, test } from '@playwright/test';
 import { clearChatComposerIfVisible, getChatComposerText } from '../../support/composer';
+import { closeFocusPromptIfPresent } from '../../support/focus-panel';
 import {
   setExtensionStorageValues,
   withExtensionStorageValues
@@ -179,6 +180,7 @@ export const liteModeMockRenderingAndFallbackScenario: BrowserScenario = async (
       await test.step('Keep existing author actions working on Lite rows', async () => {
         await liteRow.locator('#author-name').click();
         await expect.poll(() => getChatComposerText(chat)).toContain('@LiteViewer');
+        await closeFocusPromptIfPresent(chat);
         await clearChatComposerIfVisible(chat);
       });
 

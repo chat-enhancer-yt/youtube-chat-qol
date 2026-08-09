@@ -21,6 +21,19 @@ export async function resetRealYouTubeScenarioState(session: RealYouTubeSession)
   await closeChatNativeMenus(session.chat);
 }
 
+export async function restoreRealYouTubeChatLiveEdge(
+  session: RealYouTubeSession
+): Promise<void> {
+  await session.chat
+    .locator('yt-live-chat-item-list-renderer #item-scroller')
+    .first()
+    .evaluate((element) => {
+      element.scrollTop = element.scrollHeight;
+      element.dispatchEvent(new Event('scroll', { bubbles: true }));
+    })
+    .catch(() => undefined);
+}
+
 async function closeChatNativeMenus(chat: FrameLocator): Promise<void> {
   for (let attempt = 0; attempt < 3; attempt += 1) {
     const menu = await findOpenChatNativeMenu(chat);

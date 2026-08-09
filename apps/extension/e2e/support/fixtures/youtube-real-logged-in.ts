@@ -6,6 +6,7 @@ import path from 'node:path';
 import { launchNormalChromeExtensionContext } from '../chrome';
 import { dumpDomOnFailure } from '../dom-dump';
 import { getInstalledProfileExtensionId } from '../extension';
+import { NativeChatTransport } from '../native-chat-transport';
 import {
   defaultLiveUrl,
   extensionDir,
@@ -21,10 +22,14 @@ import {
   openLiveChat,
   startVideoPlaybackIfPaused
 } from '../youtube-page';
-import { resetRealYouTubeScenarioState } from './youtube-real-state';
+import {
+  resetRealYouTubeScenarioState,
+  restoreRealYouTubeChatLiveEdge
+} from './youtube-real-state';
 import {
   getRealYouTubeBrowserUserAgent,
   shouldRunRealYouTubeHeadlessBrowserTest,
+  type ControlledRealYouTubeSession,
   type RealYouTubeSession
 } from './browser-session';
 
@@ -40,11 +45,13 @@ const RUNTIME_CHROME_PROFILE_FILE_NAMES = new Set([
 ]);
 
 interface RealYouTubeLoggedInTestFixtures {
+  nativeTransportLiveLoggedInSession: ControlledRealYouTubeSession | null;
   realLiveLoggedInSession: RealYouTubeSession | null;
   realReplayLoggedInSession: RealYouTubeSession | null;
 }
 
 interface RealYouTubeLoggedInWorkerFixtures {
+  nativeTransportLiveLoggedInWorkerSession: ControlledRealYouTubeSession | null;
   realLiveLoggedInWorkerSession: RealYouTubeSession | null;
   realReplayLoggedInWorkerSession: RealYouTubeSession | null;
 }
@@ -53,6 +60,20 @@ export const realYouTubeLoggedInTest = base.extend<
   RealYouTubeLoggedInTestFixtures,
   RealYouTubeLoggedInWorkerFixtures
 >({
+  nativeTransportLiveLoggedInWorkerSession: [
+    async ({ browserName }, use) => {
+      void browserName;
+      const session = await createLoggedInNativeTransportLiveSession();
+
+      try {
+        await use(session?.session || null);
+      } finally {
+        await session?.close();
+      }
+    },
+    { scope: 'worker' }
+  ],
+
   realLiveLoggedInWorkerSession: [
     async ({ browserName }, use) => {
       void browserName;
@@ -94,6 +115,24 @@ export const realYouTubeLoggedInTest = base.extend<
     }
   },
 
+  nativeTransportLiveLoggedInSession: async (
+    { nativeTransportLiveLoggedInWorkerSession },
+    use,
+    testInfo
+  ) => {
+    if (nativeTransportLiveLoggedInWorkerSession) {
+      await resetRealYouTubeScenarioState(nativeTransportLiveLoggedInWorkerSession);
+      await restoreRealYouTubeChatLiveEdge(nativeTransportLiveLoggedInWorkerSession);
+    }
+    try {
+      await use(nativeTransportLiveLoggedInWorkerSession);
+    } finally {
+      if (nativeTransportLiveLoggedInWorkerSession) {
+        await dumpDomOnFailure(nativeTransportLiveLoggedInWorkerSession.context, testInfo);
+      }
+    }
+  },
+
   realReplayLoggedInSession: async ({ realReplayLoggedInWorkerSession }, use, testInfo) => {
     if (realReplayLoggedInWorkerSession) {
       await resetRealYouTubeScenarioState(realReplayLoggedInWorkerSession);
@@ -128,6 +167,24 @@ async function createLoggedInLiveSession(): Promise<{
   });
 }
 
+async function createLoggedInNativeTransportLiveSession(): Promise<{
+  close: () => Promise<void>;
+  session: ControlledRealYouTubeSession;
+} | null> {
+  const created = await createLoggedInYouTubeSession({
+    label: 'live stream with controlled transport',
+    nativeTransport: true,
+    profileName: 'youtube-native-transport-live-logged-in',
+    requireComposer: true,
+    url: getLiveUrl()
+  });
+  if (!created || !('transport' in created.session)) return null;
+  return {
+    close: created.close,
+    session: created.session
+  };
+}
+
 async function createLoggedInReplaySession(): Promise<{
   close: () => Promise<void>;
   session: RealYouTubeSession;
@@ -144,15 +201,17 @@ async function createLoggedInYouTubeSession({
   label,
   profileName,
   requireComposer,
+  nativeTransport = false,
   url
 }: {
   label: string;
+  nativeTransport?: boolean;
   profileName: string;
   requireComposer: boolean;
   url: string;
 }): Promise<{
   close: () => Promise<void>;
-  session: RealYouTubeSession;
+  session: ControlledRealYouTubeSession | RealYouTubeSession;
 } | null> {
   const sourceProfileDir = getLiveProfileDir();
   console.log(`Using logged-in Chrome source profile: ${sourceProfileDir}`);
@@ -178,7 +237,14 @@ async function createLoggedInYouTubeSession({
   });
   const { context } = chrome;
   const page = context.pages()[0] || (await context.newPage());
+  if (nativeTransport) {
+    await page.goto('about:blank', { timeout: 15_000, waitUntil: 'commit' });
+  }
+  const transport = nativeTransport
+    ? await NativeChatTransport.install(page)
+    : null;
   const chat = await openLiveChat(page, url);
+  if (transport) await transport.waitUntilReady();
   if (!requireComposer) {
     await startVideoPlaybackIfPaused(page);
   }
@@ -187,12 +253,16 @@ async function createLoggedInYouTubeSession({
     : await getUnavailableSignedInReason(page);
 
   return {
-    close: chrome.close,
+    close: async () => {
+      await transport?.dispose();
+      await chrome.close();
+    },
     session: {
       context,
       page,
       chat,
-      unavailableReason
+      unavailableReason,
+      ...(transport ? { transport } : {})
     }
   };
 }

@@ -1,5 +1,5 @@
 /**
- * Shared instrumentation for mock end-to-end performance tests.
+ * Shared instrumentation for end-to-end performance tests.
  *
  * These helpers keep performance specs focused on the stressed behavior while
  * producing comparable JSON/Markdown reports for every run.
@@ -7,6 +7,7 @@
 import { expect, type BrowserContext, type Page, type Route, type TestInfo } from '@playwright/test';
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
+import type { ChatSurface } from './chat-surface';
 import { repoRoot } from './paths';
 
 const REPORT_DIR = path.join(repoRoot, 'test-results', 'performance');
@@ -37,12 +38,6 @@ export interface PerformanceReport {
   scenario: string;
 }
 
-export interface MockChatMessage {
-  author: string;
-  channel?: string;
-  text: string;
-}
-
 export interface MockTranslationStats {
   failureCount: number;
   requestCount: number;
@@ -56,38 +51,8 @@ export async function reloadMockChatPageForStoredSettings(page: Page): Promise<v
   await expect(page.locator('.ytcq-inbox-button')).toBeVisible({ timeout: 15_000 });
 }
 
-export async function appendMockChatBurst(page: Page, messages: MockChatMessage[]): Promise<{
-  appendedIds: string[];
-  durationMs: number;
-}> {
-  const startedAt = performance.now();
-  const appendedIds = await page.evaluate((nextMessages) => {
-    const appendMessage = (window as typeof window & {
-      ytcqAppendFixtureMessage?: (_message: {
-        author: string;
-        channel?: string;
-        text: string;
-      }) => string | null;
-    }).ytcqAppendFixtureMessage;
-
-    if (!appendMessage) {
-      throw new Error('The mock chat fixture did not expose ytcqAppendFixtureMessage.');
-    }
-
-    return nextMessages
-      .map((message) => appendMessage(message))
-      .filter((id): id is string => Boolean(id));
-  }, messages);
-
-  expect(appendedIds).toHaveLength(messages.length);
-  return {
-    appendedIds,
-    durationMs: performance.now() - startedAt
-  };
-}
-
-export async function startBrowserPerfProbe(page: Page): Promise<void> {
-  await page.evaluate(() => {
+export async function startBrowserPerfProbe(surface: ChatSurface): Promise<void> {
+  await surface.locator('body').evaluate(() => {
     const state = {
       frameGaps: [] as number[],
       longTasks: [] as number[],
@@ -121,8 +86,10 @@ export async function startBrowserPerfProbe(page: Page): Promise<void> {
   });
 }
 
-export async function stopBrowserPerfProbe(page: Page): Promise<BrowserPerfProbeSnapshot> {
-  return page.evaluate(() => {
+export async function stopBrowserPerfProbe(
+  surface: ChatSurface
+): Promise<BrowserPerfProbeSnapshot> {
+  return surface.locator('body').evaluate(() => {
     const state = (window as typeof window & {
       __ytcqPerfProbe?: {
         frameGaps: number[];
@@ -162,28 +129,6 @@ export async function stopBrowserPerfProbe(page: Page): Promise<BrowserPerfProbe
   });
 }
 
-export async function getHeapSnapshot(page: Page): Promise<HeapSnapshot | null> {
-  return page.evaluate(() => {
-    const memory = (performance as Performance & {
-      memory?: {
-        totalJSHeapSize: number;
-        usedJSHeapSize: number;
-      };
-    }).memory;
-
-    if (!memory) return null;
-
-    return {
-      totalMb: bytesToMb(memory.totalJSHeapSize),
-      usedMb: bytesToMb(memory.usedJSHeapSize)
-    };
-
-    function bytesToMb(value: number): number {
-      return value / (1024 * 1024);
-    }
-  });
-}
-
 export async function writePerformanceReport(
   testInfo: TestInfo,
   slug: string,
@@ -208,11 +153,13 @@ export async function writePerformanceReport(
 export async function withMockedPerformanceTranslationEndpoint<T>(
   context: BrowserContext,
   {
+    countText,
     delayMs = 0,
     failEvery = 0,
     sourceLanguage = 'es',
     translatedText
   }: {
+    countText?: (_text: string) => boolean;
     delayMs?: number;
     failEvery?: number;
     sourceLanguage?: string;
@@ -230,7 +177,11 @@ export async function withMockedPerformanceTranslationEndpoint<T>(
   const handler = async (route: Route) => {
     const url = new URL(route.request().url());
     const isBatchRequest = url.pathname.endsWith('/t');
-    const itemCount = isBatchRequest ? Math.max(1, url.searchParams.getAll('q').length) : 1;
+    const requestTexts = url.searchParams.getAll('q');
+    const responseItemCount = isBatchRequest ? Math.max(1, requestTexts.length) : 1;
+    const countedItemCount = countText
+      ? requestTexts.filter((text) => countText(text)).length
+      : responseItemCount;
     stats.requestCount += 1;
     if (delayMs) await delay(delayMs);
 
@@ -245,13 +196,13 @@ export async function withMockedPerformanceTranslationEndpoint<T>(
     }
 
     stats.successCount += 1;
-    stats.translatedItemCount += itemCount;
+    stats.translatedItemCount += countedItemCount;
     const text = typeof translatedText === 'function'
       ? translatedText(stats.requestCount)
       : translatedText;
     if (isBatchRequest) {
       await route.fulfill({
-        body: JSON.stringify(Array.from({ length: itemCount }, () => [text, sourceLanguage])),
+        body: JSON.stringify(Array.from({ length: responseItemCount }, () => [text, sourceLanguage])),
         contentType: 'application/json'
       });
       return;

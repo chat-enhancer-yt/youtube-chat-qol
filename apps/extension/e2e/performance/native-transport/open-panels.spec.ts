@@ -1,39 +1,41 @@
 /**
- * Mock performance coverage for live-updating extension panels.
+ * Native YouTube performance coverage for live-updating extension panels.
  *
  * Focus mode, recent-message cards, and the Inbox all listen for new messages.
  * This test keeps those surfaces open during a burst so panel updates,
  * translation rendering, and keyword records are stressed together.
  */
-import { expect, youtubeMockTest as test } from '../../support/browser-fixtures';
+import { expect } from '@playwright/test';
+import { nativeYouTubePerformanceTest as test } from '../../support/fixtures/youtube-native-performance';
 import { withExtensionStorageValues } from '../../support/extension-storage';
-import { cleanVisibleText } from '../../support/text';
-import type { Page } from '@playwright/test';
+import type { FrameLocator } from '@playwright/test';
 import {
-  appendMockChatBurst,
   createPerformanceReport,
   formatMb,
   formatMs,
   formatNullableMb,
   getHeapGrowthMb,
-  getHeapSnapshot,
   getPositiveIntegerEnv,
-  reloadMockChatPageForStoredSettings,
-  startBrowserPerfProbe,
-  stopBrowserPerfProbe,
   withMockedPerformanceTranslationEndpoint,
   writePerformanceReport,
   type BrowserPerfProbeSnapshot
-} from '../../support/mock-perf';
+} from '../../support/performance';
+import {
+  collectNativeChatHeapSnapshot,
+  startNativeChatPerfProbe,
+  stopNativeChatPerfProbe
+} from '../../support/native-performance';
+import type { NativeChatTransport } from '../../support/native-chat-transport';
 
 const FOCUS_INBOX_MESSAGE_COUNT = getPositiveIntegerEnv('YTCQ_PERF_PANEL_MESSAGE_COUNT', 60);
 const PROFILE_MESSAGE_COUNT = getPositiveIntegerEnv('YTCQ_PERF_PROFILE_PANEL_MESSAGE_COUNT', 30);
 const TOTAL_MESSAGE_COUNT = FOCUS_INBOX_MESSAGE_COUNT + PROFILE_MESSAGE_COUNT;
+const CONTROLLED_TEXT_PREFIX = 'YTCQ open panels';
 const TARGET_LANGUAGE = 'cy';
 const PANEL_KEYWORD = 'panelwatch';
 
 const BUDGETS = {
-  appendBurstMs: 2_000,
+  continuationIngressMs: 2_500,
   heapGrowthMb: 80,
   maxLongTaskMs: 1_200,
   panelUpdateMs: 5_000,
@@ -42,14 +44,16 @@ const BUDGETS = {
 
 interface SourceAuthor {
   author: string;
+  channel: string;
+  messageId: string;
 }
 
-test('youtube-mock performance: open panels keep up with incoming messages', async ({
-  mockLoggedInSession
+test('youtube-native performance: open panels keep up with incoming messages', async ({
+  nativePerformanceSession
 }, testInfo) => {
-  const { context, page } = mockLoggedInSession;
-
+  const { context, openChat, page, transport } = nativePerformanceSession;
   await withMockedPerformanceTranslationEndpoint(context, {
+    countText: (text) => text.startsWith(CONTROLLED_TEXT_PREFIX),
     delayMs: 8,
     translatedText: 'YTCQ panel translation'
   }, async (translationStats) => {
@@ -62,40 +66,40 @@ test('youtube-mock performance: open panels keep up with incoming messages', asy
       await withExtensionStorageValues(context, 'local', {
         ytcqInboxKeywords: [PANEL_KEYWORD]
       }, async () => {
-        await reloadMockChatPageForStoredSettings(page);
-        const source = await getSourceAuthor(page);
-        await openProfileCard(page);
+        const chat = await openChat();
+        const source = await createSourceAuthor(chat, transport);
+        await openProfileCard(chat, source.messageId);
 
-        await startBrowserPerfProbe(page);
-        const heapBefore = await getHeapSnapshot(page);
+        const heapBefore = await collectNativeChatHeapSnapshot(context, page);
+        await startNativeChatPerfProbe(chat);
         const profileMessages = createPanelMessages(source, PROFILE_MESSAGE_COUNT, 'profile');
         const profileLastText = profileMessages.at(-1)?.text || '';
-        const profileAppend = await appendMockChatBurst(page, profileMessages);
-        const profileUpdateMs = await waitForProfilePanelToReceiveMessage(page, profileLastText);
-        await closeProfileCard(page);
+        const profileDelivery = await transport.injectMessages(profileMessages);
+        const profileUpdateMs = await waitForProfilePanelToReceiveMessage(chat, profileLastText);
+        await closeProfileCard(chat);
 
-        await openFocusPanel(page);
-        await openInboxPanel(page);
+        await openFocusPanel(chat, source.messageId);
+        await openInboxPanel(chat);
         const focusInboxMessages = createPanelMessages(source, FOCUS_INBOX_MESSAGE_COUNT, 'focus-inbox');
         const focusInboxLastText = focusInboxMessages.at(-1)?.text || '';
-        const focusInboxAppend = await appendMockChatBurst(page, focusInboxMessages);
-        const focusInboxUpdateMs = await waitForFocusAndInboxToReceiveMessage(page, focusInboxLastText);
-        const appendBurstMs = profileAppend.durationMs + focusInboxAppend.durationMs;
+        const focusInboxDelivery = await transport.injectMessages(focusInboxMessages);
+        const focusInboxUpdateMs = await waitForFocusAndInboxToReceiveMessage(chat, focusInboxLastText);
+        const continuationIngressMs = profileDelivery.durationMs + focusInboxDelivery.durationMs;
         const panelUpdateMs = profileUpdateMs + focusInboxUpdateMs;
-        const panelTranslationCount = await page.locator([
+        const panelTranslationCount = await chat.locator([
           '.ytcq-focus-card-expanded .ytcq-translation',
           '.ytcq-profile-card:not(.ytcq-inbox-card) .ytcq-translation',
           '.ytcq-inbox-card .ytcq-translation'
         ].join(',')).count();
-        const heapAfter = await getHeapSnapshot(page);
-        const probe = await stopBrowserPerfProbe(page);
+        const probe = await stopNativeChatPerfProbe(chat);
+        const heapAfter = await collectNativeChatHeapSnapshot(context, page);
         const heapGrowthMb = getHeapGrowthMb(heapBefore, heapAfter);
 
         const report = createPerformanceReport(
-          'youtube-mock open Focus/Profile/Inbox panels during fast chat',
+          'youtube-native open Focus/Profile/Inbox panels during fast chat',
           [
-            { label: 'Messages appended', value: TOTAL_MESSAGE_COUNT },
-            { label: 'Append burst', value: formatMs(appendBurstMs), budget: formatMs(BUDGETS.appendBurstMs) },
+            { label: 'Controlled messages', value: TOTAL_MESSAGE_COUNT },
+            { label: 'Continuation ingress', value: formatMs(continuationIngressMs), budget: formatMs(BUDGETS.continuationIngressMs) },
             { label: 'Profile update', value: formatMs(profileUpdateMs), budget: formatMs(BUDGETS.panelUpdateMs) },
             { label: 'Focus/Inbox update', value: formatMs(focusInboxUpdateMs), budget: formatMs(BUDGETS.panelUpdateMs) },
             { label: 'Combined panel update', value: formatMs(panelUpdateMs) },
@@ -109,9 +113,9 @@ test('youtube-mock performance: open panels keep up with incoming messages', asy
           ]
         );
 
-        await writePerformanceReport(testInfo, 'youtube-mock-open-panels', report);
+        await writePerformanceReport(testInfo, 'youtube-native-open-panels', report);
         assertPerformanceBudgets({
-          appendBurstMs,
+          continuationIngressMs,
           heapGrowthMb,
           panelUpdateMs,
           panelTranslationCount,
@@ -122,75 +126,80 @@ test('youtube-mock performance: open panels keep up with incoming messages', asy
   });
 });
 
-async function getSourceAuthor(page: Page): Promise<SourceAuthor> {
-  const sourceMessage = page.locator('yt-live-chat-text-message-renderer').first();
-  await expect(sourceMessage).toBeVisible({ timeout: 15_000 });
-  const author = cleanVisibleText(await sourceMessage.locator('#author-name').innerText());
-  if (!author) throw new Error('Mock source message did not expose an author.');
-  return { author };
+async function createSourceAuthor(
+  chat: FrameLocator,
+  transport: NativeChatTransport
+): Promise<SourceAuthor> {
+  const author = '@NativePanelPerfViewer';
+  const channel = 'UCNativePanelPerfViewer';
+  const text = 'Native panel performance source';
+  const messageId = await transport.injectMessage({ author, channel, text });
+  await expect(chat.locator(`#${messageId}`)).toBeVisible({ timeout: 15_000 });
+  return { author, channel, messageId };
 }
 
-async function openProfileCard(page: Page): Promise<void> {
-  const sourceMessage = page.locator('yt-live-chat-text-message-renderer').first();
+async function openProfileCard(chat: FrameLocator, messageId: string): Promise<void> {
+  const sourceMessage = chat.locator(`#${messageId}`);
   await sourceMessage.locator('#author-photo').click();
-  await expect(page.locator('.ytcq-profile-card:not(.ytcq-inbox-card)')).toBeVisible({ timeout: 10_000 });
+  await expect(chat.locator('.ytcq-profile-card:not(.ytcq-inbox-card)')).toBeVisible({ timeout: 10_000 });
 }
 
-async function openFocusPanel(page: Page): Promise<void> {
-  const sourceMessage = page.locator('yt-live-chat-text-message-renderer').first();
+async function openFocusPanel(chat: FrameLocator, messageId: string): Promise<void> {
+  const sourceMessage = chat.locator(`#${messageId}`);
   await sourceMessage.locator('#author-name').click();
-  await page.locator('.ytcq-focus-card-collapsed').click();
-  await expect(page.locator('.ytcq-focus-card-expanded')).toBeVisible({ timeout: 10_000 });
+  await chat.locator('.ytcq-focus-card-collapsed').click();
+  await expect(chat.locator('.ytcq-focus-card-expanded')).toBeVisible({ timeout: 10_000 });
 }
 
-async function openInboxPanel(page: Page): Promise<void> {
-  await page.locator('.ytcq-inbox-button').click();
-  await expect(page.locator('.ytcq-inbox-card')).toBeVisible({ timeout: 10_000 });
+async function openInboxPanel(chat: FrameLocator): Promise<void> {
+  await chat.locator('.ytcq-inbox-button').click();
+  await expect(chat.locator('.ytcq-inbox-card')).toBeVisible({ timeout: 10_000 });
 }
 
-async function closeProfileCard(page: Page): Promise<void> {
-  await page.locator('.ytcq-profile-card:not(.ytcq-inbox-card) .ytcq-profile-card-close').click();
-  await expect(page.locator('.ytcq-profile-card:not(.ytcq-inbox-card)')).toHaveCount(0);
+async function closeProfileCard(chat: FrameLocator): Promise<void> {
+  await chat.locator('.ytcq-profile-card:not(.ytcq-inbox-card) .ytcq-profile-card-close').click();
+  await expect(chat.locator('.ytcq-profile-card:not(.ytcq-inbox-card)')).toHaveCount(0);
 }
 
 function createPanelMessages(source: SourceAuthor, count: number, label: string) {
   return Array.from({ length: count }, (_, index) => ({
     author: source.author,
-    text: `Panel performance ${PANEL_KEYWORD} ${label} message ${index} gracias por mirar`
+    channel: source.channel,
+    text: `${CONTROLLED_TEXT_PREFIX} ${PANEL_KEYWORD} ${label} message ${index} gracias por mirar`
   }));
 }
 
-async function waitForProfilePanelToReceiveMessage(page: Page, lastText: string): Promise<number> {
+async function waitForProfilePanelToReceiveMessage(chat: FrameLocator, lastText: string): Promise<number> {
   const startedAt = performance.now();
-  await expect(page.locator('.ytcq-profile-card:not(.ytcq-inbox-card) .ytcq-profile-card-message').filter({ hasText: lastText }).first())
+  await expect(chat.locator('.ytcq-profile-card:not(.ytcq-inbox-card) .ytcq-profile-card-message').filter({ hasText: lastText }).first())
     .toBeVisible({ timeout: BUDGETS.panelUpdateMs });
   return performance.now() - startedAt;
 }
 
-async function waitForFocusAndInboxToReceiveMessage(page: Page, lastText: string): Promise<number> {
+async function waitForFocusAndInboxToReceiveMessage(chat: FrameLocator, lastText: string): Promise<number> {
   const startedAt = performance.now();
-  await expect(page.locator('.ytcq-focus-card-expanded .ytcq-focus-bubble').filter({ hasText: lastText }).first())
+  await expect(chat.locator('.ytcq-focus-card-expanded .ytcq-focus-bubble').filter({ hasText: lastText }).first())
     .toBeVisible({ timeout: BUDGETS.panelUpdateMs });
-  await expect(page.locator('.ytcq-inbox-card .ytcq-inbox-message').filter({ hasText: lastText }).first())
+  await expect(chat.locator('.ytcq-inbox-card .ytcq-inbox-message').filter({ hasText: lastText }).first())
     .toBeVisible({ timeout: BUDGETS.panelUpdateMs });
   return performance.now() - startedAt;
 }
 
 function assertPerformanceBudgets({
-  appendBurstMs,
+  continuationIngressMs,
   heapGrowthMb,
   panelTranslationCount,
   panelUpdateMs,
   probe
 }: {
-  appendBurstMs: number;
+  continuationIngressMs: number;
   heapGrowthMb: number | null;
   panelTranslationCount: number;
   panelUpdateMs: number;
   probe: BrowserPerfProbeSnapshot;
 }): void {
-  expect.soft(appendBurstMs, 'Appending while panels are open should not block too long.')
-    .toBeLessThanOrEqual(BUDGETS.appendBurstMs);
+  expect.soft(continuationIngressMs, 'YouTube should consume panel continuations promptly.')
+    .toBeLessThanOrEqual(BUDGETS.continuationIngressMs);
   expect.soft(panelUpdateMs, 'Open panels should receive the latest message within budget.')
     .toBeLessThanOrEqual(BUDGETS.panelUpdateMs);
   expect.soft(panelTranslationCount, 'Open panels should receive prioritized translations.')

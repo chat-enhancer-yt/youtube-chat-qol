@@ -1,10 +1,12 @@
 /**
  * Shared browser scenario types.
  *
- * A scenario is one feature-level browser check that can run against either
- * the deterministic YouTube fixture or a real YouTube live chat frame.
+ * A scenario is one feature-level browser check that can run against the
+ * deterministic fixture, an uncontrolled real chat, or a real chat whose
+ * continuation transport is locally controlled.
  */
 import type { BrowserContext, Page } from '@playwright/test';
+import type { NativeChatTransport } from '../support/native-chat-transport';
 import {
   NORMAL_CHAT_MESSAGE_SELECTOR,
   type ChatSurface
@@ -28,6 +30,8 @@ export interface BrowserScenarioSession {
    * The top-level YouTube tab that owns the chat surface.
    */
   page: Page;
+  /** Controlled network ingress when the scenario requires synthetic chat traffic. */
+  transport?: NativeChatTransport;
 }
 
 export interface ExtensionScenarioSession {

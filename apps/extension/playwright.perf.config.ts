@@ -2,13 +2,14 @@
  * Playwright performance-test configuration.
  *
  * Performance checks are intentionally separate from the normal end-to-end
- * suite. They run against the deterministic mock YouTube chat surface and
- * report timing/heap/long-task metrics without making ordinary correctness
- * verification slower or more environment-sensitive.
+ * suite. Incoming-chat benchmarks run against YouTube's native client with a
+ * locally controlled continuation transport; composer-only work keeps the
+ * deterministic fixture. Both report timing, heap, and long-task metrics.
  */
 import { defineConfig } from '@playwright/test';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { shouldCaptureE2eFailureArtifacts } from './e2e/support/artifact-policy';
 
 const extensionRoot = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(extensionRoot, '..', '..');
@@ -18,7 +19,6 @@ const reportOutputFolder = resolveRepoPath(
 const jsonReportPath = resolveRepoPath(
   process.env.YTCQ_PLAYWRIGHT_JSON_REPORT ?? 'test-results/performance/playwright-report.json'
 );
-const includeRealYouTubePerformanceTests = process.env.YTCQ_PERF_INCLUDE_REAL_YOUTUBE === '1';
 
 export default defineConfig({
   expect: {
@@ -28,9 +28,10 @@ export default defineConfig({
   outputDir: path.join(repoRoot, 'test-results', 'performance', 'e2e'),
   projects: [
     createPerformanceProject('youtube-mock-perf', /mock\/.*\.spec\.ts/),
-    ...(includeRealYouTubePerformanceTests
-      ? [createPerformanceProject('youtube-real-perf', /real\/.*\.spec\.ts/)]
-      : [])
+    createPerformanceProject(
+      'youtube-native-transport-perf',
+      /native-transport\/.*\.spec\.ts/
+    )
   ],
   reporter: [
     ['list'],
@@ -51,12 +52,13 @@ function resolveRepoPath(value: string): string {
 }
 
 function createPerformanceProject(name: string, testMatch: RegExp) {
+  const captureFailureArtifacts = shouldCaptureE2eFailureArtifacts(name);
   return {
     name,
     testMatch,
     use: {
-      screenshot: 'only-on-failure' as const,
-      trace: 'retain-on-failure' as const,
+      screenshot: captureFailureArtifacts ? 'only-on-failure' as const : 'off' as const,
+      trace: captureFailureArtifacts ? 'retain-on-failure' as const : 'off' as const,
       video: 'off' as const
     }
   };

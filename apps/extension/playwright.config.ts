@@ -56,6 +56,20 @@ export default defineConfig({
         : disabledArtifactUse
     },
     {
+      name: 'youtube-native-transport-logged-out',
+      testMatch: /specs\/youtube\/native-transport\/.*\/logged-out\/.*\.spec\.ts/,
+      use: shouldCaptureE2eFailureArtifacts('youtube-native-transport-logged-out')
+        ? failureArtifactUse
+        : disabledArtifactUse
+    },
+    {
+      name: 'youtube-native-transport-logged-in',
+      testMatch: /specs\/youtube\/native-transport\/.*\/logged-in\/.*\.spec\.ts/,
+      use: shouldCaptureE2eFailureArtifacts('youtube-native-transport-logged-in')
+        ? failureArtifactUse
+        : disabledArtifactUse
+    },
+    {
       name: 'youtube-real-logged-in',
       testMatch: /specs\/youtube\/real\/.*\/logged-in\/.*\.spec\.ts/,
       use: shouldCaptureE2eFailureArtifacts('youtube-real-logged-in')

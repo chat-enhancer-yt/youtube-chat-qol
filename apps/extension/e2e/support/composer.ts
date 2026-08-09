@@ -17,18 +17,9 @@ const CHAT_COMPOSER_INPUT_SELECTOR = [
 export async function clearChatComposer(chat: ChatSurface): Promise<void> {
   const input = getChatComposerInput(chat);
   await input.waitFor({ state: 'visible', timeout: 10_000 });
-  await input.evaluate((element) => {
-    if (element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement) {
-      element.value = '';
-    } else {
-      element.replaceChildren();
-    }
-
-    element.dispatchEvent(new InputEvent('input', {
-      bubbles: true,
-      inputType: 'deleteContentBackward'
-    }));
-  });
+  await input.click();
+  await input.press('ControlOrMeta+A');
+  await input.press('Backspace');
 
   await expect.poll(async () => cleanVisibleText(await getChatComposerText(chat)), {
     message: 'Chat composer should be empty after cleanup.',
@@ -76,28 +67,12 @@ export async function getChatComposerText(chat: ChatSurface): Promise<string> {
 }
 
 export async function setChatComposerText(chat: ChatSurface, text: string): Promise<void> {
+  await clearChatComposer(chat);
+  await appendChatComposerText(chat, text);
+}
+
+export async function appendChatComposerText(chat: ChatSurface, text: string): Promise<void> {
   const input = getChatComposerInput(chat);
   await input.waitFor({ state: 'visible', timeout: 10_000 });
-  await input.evaluate((element, nextText) => {
-    element.focus();
-
-    if (element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement) {
-      element.value = nextText;
-      element.setSelectionRange(nextText.length, nextText.length);
-    } else {
-      element.replaceChildren(document.createTextNode(nextText));
-      const range = document.createRange();
-      range.selectNodeContents(element);
-      range.collapse(false);
-      const selection = window.getSelection();
-      selection?.removeAllRanges();
-      selection?.addRange(range);
-    }
-
-    element.dispatchEvent(new InputEvent('input', {
-      bubbles: true,
-      data: nextText,
-      inputType: 'insertText'
-    }));
-  }, text);
+  await input.pressSequentially(text);
 }

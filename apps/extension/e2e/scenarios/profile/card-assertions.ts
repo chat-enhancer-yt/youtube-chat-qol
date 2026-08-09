@@ -1,7 +1,8 @@
 /** Profile-card interactions and user-visible assertions. */
 import { expect, test, type BrowserContext, type Locator } from '@playwright/test';
 import { centerLocatorInViewport } from '../../support/locator';
-import { appendMockFixtureMessage, isMockPageSurface } from '../../support/mock-page';
+import { isMockPageSurface } from '../../support/mock-page';
+import type { NativeChatTransport } from '../../support/native-chat-transport';
 import type { ChatSurface } from '../types';
 import {
   getProfileCardRecord,
@@ -82,13 +83,14 @@ export async function expectProfileAvatarRingToggle(
   });
 }
 
-export async function appendAuthorMessageAndVerifyProfileCardUpdates(
+export async function deliverAuthorMessageAndVerifyProfileCardUpdates(
   chat: ChatSurface,
+  transport: NativeChatTransport,
   source: ProfileMessageSource
 ): Promise<void> {
-  await test.step('Append a new author message and verify the card updates', async () => {
+  await test.step('Deliver a new author message and verify the card updates', async () => {
     const text = `Profile follow-up ${Date.now()}`;
-    await appendMockFixtureMessage(chat, {
+    await transport.injectMessage({
       author: source.authorName,
       channel: source.channelId || undefined,
       text

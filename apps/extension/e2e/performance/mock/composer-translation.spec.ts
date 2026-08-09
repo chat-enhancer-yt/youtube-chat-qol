@@ -20,7 +20,7 @@ import {
   withMockedPerformanceTranslationEndpoint,
   writePerformanceReport,
   type BrowserPerfProbeSnapshot
-} from '../../support/mock-perf';
+} from '../../support/performance';
 
 const INPUT_EVENT_COUNT = getPositiveIntegerEnv('YTCQ_PERF_COMPOSER_INPUT_EVENTS', 36);
 const INPUT_EVENT_DELAY_MS = 18;

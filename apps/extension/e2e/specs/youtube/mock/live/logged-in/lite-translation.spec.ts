@@ -4,10 +4,7 @@ import { liteModeStoredPreferenceReloadScenario } from '../../../../../scenarios
 import { liteModeToggleAndRestoreScenario } from '../../../../../scenarios/lite-mode/toggle';
 import { liteModeTranslationContinuityScenario } from '../../../../../scenarios/lite-mode/translation';
 import { liteModeTimestampsScenario } from '../../../../../scenarios/lite-mode/timestamps';
-import {
-  replacedTranslationToggleSurfacesScenario,
-  translationDisplayScenario
-} from '../../../../../scenarios/translation/display';
+import { translationDisplayScenario } from '../../../../../scenarios/translation/display';
 import { translationSettingsReactScenario } from '../../../../../scenarios/translation/settings';
 import { mockLiveLoggedInTest as test } from '../../../../../support/scenario-fixtures';
 
@@ -29,8 +26,4 @@ test(
   liteModeTranslationContinuityScenario
 );
 test('logged-in mock: translation display modes render correctly', translationDisplayScenario);
-test(
-  'logged-in mock: replaced translations toggle across chat surfaces',
-  replacedTranslationToggleSurfacesScenario
-);
 test('logged-in mock: translate chat setting reacts live', translationSettingsReactScenario);

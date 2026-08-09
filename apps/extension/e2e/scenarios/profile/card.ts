@@ -1,10 +1,10 @@
 /** Browser scenarios for profile card behavior. */
 import { expect, test } from '@playwright/test';
-import { appendMockFixtureMessage, isMockPageSurface } from '../../support/mock-page';
+import { requireNativeChatTransport } from '../../support/controlled-chat';
 import { centerLocatorInViewport } from '../../support/locator';
 import { NORMAL_CHAT_MESSAGE_SELECTOR, type BrowserScenario } from '../types';
 import {
-  appendAuthorMessageAndVerifyProfileCardUpdates,
+  deliverAuthorMessageAndVerifyProfileCardUpdates,
   expectProfileAvatarRingToggle,
   expectProfileCardHasRecentMessages,
   expectProfileCardJumpToMessage,
@@ -25,30 +25,36 @@ export const profileCardRecentMessagesScenario: BrowserScenario = async ({ chat,
   await closeProfileCard(chat);
 };
 
-export const profileCardReceivesNewMessagesScenario: BrowserScenario = async ({ chat }) => {
+export const profileCardReceivesNewMessagesScenario: BrowserScenario = async ({
+  chat,
+  transport
+}) => {
+  const controlledChat = requireNativeChatTransport(transport);
+  const channelId = 'UCNativeProfileViewer';
+  await controlledChat.injectMessage({
+    author: '@NativeProfileViewer',
+    channel: channelId,
+    text: 'Controlled profile source message'
+  });
   const source = await openStableProfileCardFromRecentMessage(chat);
+  source.channelId = channelId;
   await expectProfileCardHasRecentMessages(chat, source);
-  await appendAuthorMessageAndVerifyProfileCardUpdates(chat, source);
+  await deliverAuthorMessageAndVerifyProfileCardUpdates(chat, controlledChat, source);
   await closeProfileCard(chat);
 };
 
-export const profileCardHistoryPagingScenario: BrowserScenario = async ({ chat }) => {
+export const profileCardHistoryPagingScenario: BrowserScenario = async ({ chat, transport }) => {
   await test.step('Page through retained profile history around an older feed message', async () => {
-    if (!isMockPageSurface(chat)) {
-      throw new Error('Profile history paging requires the deterministic mock chat page.');
-    }
+    const controlledChat = requireNativeChatTransport(transport);
 
     const author = '@ProfileHistoryViewer';
     const channel = 'profile-history-channel';
-    const messageIds: string[] = [];
-    for (let index = 0; index < 30; index += 1) {
-      const messageId = await appendMockFixtureMessage(chat, {
-        author,
-        channel,
-        text: `Profile history ${index}`
-      });
-      if (messageId) messageIds.push(messageId);
-    }
+    const messages = Array.from({ length: 30 }, (_value, index) => ({
+      author,
+      channel,
+      text: `Profile history ${index}`
+    }));
+    const { deliveredIds: messageIds } = await controlledChat.injectMessages(messages);
     expect(messageIds).toHaveLength(30);
 
     const originMessageId = messageIds[15];

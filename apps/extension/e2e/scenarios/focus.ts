@@ -7,9 +7,10 @@
  */
 import { expect, test, type Locator } from '@playwright/test';
 import { clearChatComposerIfVisible } from '../support/composer';
+import { requireNativeChatTransport } from '../support/controlled-chat';
 import { closeFocusPromptIfPresent } from '../support/focus-panel';
 import { centerLocatorInViewport } from '../support/locator';
-import { appendMockFixtureMessage } from '../support/mock-page';
+import type { NativeChatTransport } from '../support/native-chat-transport';
 import { cleanVisibleText } from '../support/text';
 import {
   NORMAL_CHAT_MESSAGE_SELECTOR,
@@ -24,11 +25,25 @@ export const focusPanelOpensFromAuthorScenario: BrowserScenario = async ({ chat 
   await cleanUpFocusPanel(chat);
 };
 
-export const focusPanelReceivesNewMessagesScenario: BrowserScenario = async ({ chat }) => {
-  const source = await openCollapsedFocusPromptFromRecentMessage(chat);
+export const focusPanelReceivesNewMessagesScenario: BrowserScenario = async ({
+  chat,
+  transport
+}) => {
+  const controlledChat = requireNativeChatTransport(transport);
+  const channelId = 'UCNativeFocusViewer';
+  const messageId = await controlledChat.injectMessage({
+    author: '@NativeFocusViewer',
+    channel: channelId,
+    text: 'Controlled focus source message'
+  });
+  const source = await openCollapsedFocusPromptFromRecentMessage(
+    chat,
+    chat.locator(`#${messageId}`)
+  );
+  source.channelId = channelId;
   await expandFocusPanel(chat);
   await expectFocusPanelContainsSourceMessage(chat, source);
-  await appendFocusedAuthorMessageAndVerifyItAppears(chat, source);
+  await deliverFocusedAuthorMessageAndVerifyItAppears(chat, controlledChat, source);
   await cleanUpFocusPanel(chat);
 };
 
@@ -42,15 +57,25 @@ interface MessageSource {
 const FOCUS_TARGET_ATTRIBUTE = 'data-ytcq-browser-focus-target';
 let nextFocusTargetId = 0;
 
-async function openCollapsedFocusPromptFromRecentMessage(chat: ChatSurface): Promise<MessageSource> {
+async function openCollapsedFocusPromptFromRecentMessage(
+  chat: ChatSurface,
+  preferredMessage?: Locator
+): Promise<MessageSource> {
   return test.step('Click a recent author handle to open collapsed focus prompt', async () => {
     const messages = chat.locator(NORMAL_CHAT_MESSAGE_SELECTOR);
     await messages.last().waitFor({ state: 'visible', timeout: 45_000 });
 
     const count = await messages.count();
     const firstCandidate = Math.max(0, count - 20);
-    for (let index = count - 1; index >= firstCandidate; index -= 1) {
-      const message = await freezeFocusMessageTarget(chat, messages.nth(index));
+    const candidates = [
+      ...(preferredMessage ? [preferredMessage] : []),
+      ...Array.from(
+        { length: count - firstCandidate },
+        (_value, offset) => messages.nth(count - 1 - offset)
+      )
+    ];
+    for (const candidate of candidates) {
+      const message = await freezeFocusMessageTarget(chat, candidate);
       if (!message) continue;
 
       await centerLocatorInViewport(message);
@@ -144,10 +169,14 @@ async function expectFocusPanelContainsSourceMessage(chat: ChatSurface, source: 
   });
 }
 
-async function appendFocusedAuthorMessageAndVerifyItAppears(chat: ChatSurface, source: MessageSource): Promise<void> {
-  await test.step('Append a new focused-author message and verify it appears', async () => {
+async function deliverFocusedAuthorMessageAndVerifyItAppears(
+  chat: ChatSurface,
+  transport: NativeChatTransport,
+  source: MessageSource
+): Promise<void> {
+  await test.step('Deliver a new focused-author message and verify it appears', async () => {
     const text = `Focus follow-up ${Date.now()}`;
-    await appendMockFixtureMessage(chat, {
+    await transport.injectMessage({
       author: source.authorName,
       channel: source.channelId || undefined,
       text

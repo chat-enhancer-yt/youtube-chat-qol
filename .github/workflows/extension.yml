@@ -128,7 +128,7 @@ jobs:
         run: npm run test:e2e:install -w @chatenhancer/extension
       - name: Build Chrome extension
         run: npm run build:chrome
-      - name: Run logged-out YouTube compatibility gate
+      - name: Run logged-out YouTube compatibility and native transport gate
         if: github.event_name == 'pull_request' || github.event_name == 'push'
         run: npm run test:e2e:ci:compatibility -w @chatenhancer/extension
       - name: Run manually requested compatibility tiers
