@@ -29,7 +29,6 @@ jobs:
         run: npm run build -w @chatenhancer/docs
         env:
           YTCQ_DOCS_BUILD_SHA: ${{ github.sha }}
-          YTCQ_DOCS_STAMP_SOURCE: '1'
       - name: Configure GitHub Pages
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6

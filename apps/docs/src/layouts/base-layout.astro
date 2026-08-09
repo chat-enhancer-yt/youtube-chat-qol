@@ -1,6 +1,7 @@
 ---
 import '../styles/site.css';
 import WalkthroughClipModal from '../components/common/walkthrough-clip-modal.astro';
+import { generatedDocsComment } from '../data/build-metadata';
 import type { Locale } from '../data/locales';
 import { canonicalUrlFor, htmlLangFor, localeMeta, locales } from '../data/locales';
 import { site, supportEmail } from '../data/site';
@@ -100,6 +101,7 @@ const structuredDataJson = resolvedStructuredData
 ---
 
 <!doctype html>
+<Fragment set:html={generatedDocsComment} />
 <html lang={htmlLang} dir={textDirection}>
   <head>
     <meta charset="utf-8">
