@@ -21,7 +21,7 @@ Not affiliated with YouTube or Google.
 
 ## Preview
 
-![Chat Enhancer for YouTube promo previews](assets/readme/promo-grid.png)
+![Chat Enhancer for YouTube promo previews](screenshots/promo-grid.png)
 
 ## Development
 

@@ -13,7 +13,7 @@ import {
 
 const scriptPath = fileURLToPath(import.meta.url);
 const repoRoot = path.resolve(path.dirname(scriptPath), '..', '..', '..');
-const defaultInputDir = path.join(repoRoot, 'assets', 'demo', 'walkthrough');
+const defaultInputDir = path.join(repoRoot, 'dist', 'walkthrough');
 const defaultManifestPath = path.join(
   repoRoot,
   'apps',

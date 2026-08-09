@@ -4,7 +4,7 @@ This project includes third-party visual assets and fonts under their own licens
 
 ## Google Material Symbols / Material Design Icons
 
-Some SVG icons and SVG path data used in the extension UI, documentation site, and README icons are from Google's Material Symbols / Material Design Icons.
+Some SVG icons and SVG path data used in the extension UI and documentation site are from Google's Material Symbols / Material Design Icons.
 
 - Source: https://github.com/google/material-design-icons
 - License: Apache License 2.0
