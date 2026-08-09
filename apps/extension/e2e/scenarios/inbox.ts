@@ -5,13 +5,12 @@
  * should be available whenever the extension is attached to YouTube live chat.
  */
 import { expect, test } from '@playwright/test';
-import { requireNativeChatTransport } from '../support/controlled-chat';
+import { requireControlledChat } from '../support/controlled-chat';
 import {
   withExtensionStorageSnapshot,
   withExtensionStorageValues
 } from '../support/extension-storage';
 import {
-  appendMockFixtureMessage,
   isMockPageSurface,
   prefetchMockReplayFixtureMessage,
   setMockReplayPlayerProgress
@@ -19,8 +18,6 @@ import {
 import type { BrowserScenario, ChatSurface } from './types';
 
 const INBOX_KEYWORD = 'browser-inbox-keyword';
-const CURRENT_VIEWER_MENTION = '@CurrentViewer';
-const DIRECT_MENTION_TEXT = `Direct browser mention for ${CURRENT_VIEWER_MENTION}`;
 const PROFILE_MENTION_OVERLAP_KEYWORD = 'handlepart';
 const REPLAY_PREFETCH_KEYWORD = 'browser-replay-prefetch-keyword';
 
@@ -30,15 +27,15 @@ export const inboxOpensFromHeaderScenario: BrowserScenario = async ({ chat }) =>
   await closeInboxPanel(chat);
 };
 
-export const inboxNativeRecordCreationAndJumpScenario: BrowserScenario = async ({
+export const inboxRecordCreationAndJumpScenario: BrowserScenario = async ({
   chat,
-  transport
+  controlledChat
 }) => {
-  const controlledChat = requireNativeChatTransport(transport);
-  await withNativeInboxKeyword(chat, INBOX_KEYWORD, async () => {
-    const messageId = await controlledChat.injectMessage({
-      author: '@NativeInboxViewer',
-      channel: 'UCNativeInboxViewer',
+  const incoming = requireControlledChat(controlledChat);
+  await withInboxKeyword(chat, INBOX_KEYWORD, async () => {
+    const messageId = await incoming.injectMessage({
+      author: '@InboxParityViewer',
+      channel: 'UCInboxParityViewer',
       text: `Please save this ${INBOX_KEYWORD} message`
     });
     const sourceMessage = chat.locator(`#${messageId}`);
@@ -49,15 +46,15 @@ export const inboxNativeRecordCreationAndJumpScenario: BrowserScenario = async (
   });
 };
 
-export const inboxNativeKeywordOverlapPreservesProfileMentionScenario: BrowserScenario = async ({
+export const inboxKeywordOverlapPreservesProfileMentionScenario: BrowserScenario = async ({
   chat,
-  transport
+  controlledChat
 }) => {
-  const controlledChat = requireNativeChatTransport(transport);
-  await withNativeInboxKeyword(chat, PROFILE_MENTION_OVERLAP_KEYWORD, async () => {
+  const incoming = requireControlledChat(controlledChat);
+  await withInboxKeyword(chat, PROFILE_MENTION_OVERLAP_KEYWORD, async () => {
     const mentionedAuthor = '@InboxHandlePartTarget';
     const mentionText = mentionedAuthor.toLowerCase();
-    const mentionMessageId = await controlledChat.injectMessage({
+    const mentionMessageId = await incoming.injectMessage({
       author: '@InboxOverlapSource',
       channel: 'UCInboxOverlapSource',
       text: `Please ask ${mentionText} next`
@@ -68,7 +65,7 @@ export const inboxNativeKeywordOverlapPreservesProfileMentionScenario: BrowserSc
     );
     await expect(mentionMessage.locator('.ytcq-profile-mention')).toHaveCount(0);
 
-    await controlledChat.injectMessage({
+    await incoming.injectMessage({
       author: mentionedAuthor,
       channel: 'UCInboxHandlePartTarget',
       text: 'Target profile history'
@@ -89,11 +86,11 @@ export const inboxNativeKeywordOverlapPreservesProfileMentionScenario: BrowserSc
   });
 };
 
-export const inboxNativeDirectMentionScenario: BrowserScenario = async ({
+export const inboxDirectMentionScenario: BrowserScenario = async ({
   chat,
-  transport
+  controlledChat
 }) => {
-  const controlledChat = requireNativeChatTransport(transport);
+  const incoming = requireControlledChat(controlledChat);
   const viewerName = (
     await chat
       .locator('yt-live-chat-message-input-renderer #author-name')
@@ -102,9 +99,9 @@ export const inboxNativeDirectMentionScenario: BrowserScenario = async ({
   ).trim();
   expect(viewerName).toMatch(/^@\S+/);
   const text = `Controlled direct mention for ${viewerName}`;
-  await controlledChat.injectMessage({
-    author: '@NativeDirectMentionSource',
-    channel: 'UCNativeDirectMentionSource',
+  await incoming.injectMessage({
+    author: '@DirectMentionParitySource',
+    channel: 'UCDirectMentionParitySource',
     text
   });
 
@@ -115,95 +112,6 @@ export const inboxNativeDirectMentionScenario: BrowserScenario = async ({
   await expect(record).toBeVisible({ timeout: 10_000 });
   await expect(record.locator('.ytcq-inbox-mention-highlight')).toContainText(viewerName);
   await closeInboxPanel(chat);
-};
-
-export const inboxRecordCreationAndJumpScenario: BrowserScenario = async ({ chat, context }) => {
-  if (!isMockPageSurface(chat)) {
-    throw new Error('inboxRecordCreationAndJumpScenario requires the deterministic mock chat page.');
-  }
-
-  await withExtensionStorageSnapshot(context, 'local', async () => {
-    await withExtensionStorageValues(context, 'local', {
-      ytcqInboxKeywords: [INBOX_KEYWORD]
-    }, async () => {
-      await reloadMockChat(chat, 'Reload mock chat with watched keyword storage');
-      const messageId = await appendMockInboxMatch(chat);
-      const sourceMessage = chat.locator(`#${messageId}`);
-      await expectLiveChatKeywordHighlight(sourceMessage);
-      await openInboxPanel(chat);
-      await expectInboxRecordAndHighlight(chat);
-      await jumpToInboxRecord(chat, sourceMessage);
-    });
-  });
-};
-
-export const inboxDirectMentionScenario: BrowserScenario = async ({ chat, context }) => {
-  if (!isMockPageSurface(chat)) {
-    throw new Error('inboxDirectMentionScenario requires the deterministic mock chat page.');
-  }
-
-  await withExtensionStorageSnapshot(context, 'local', async () => {
-    await withExtensionStorageValues(context, 'local', {
-      ytcqInboxKeywords: []
-    }, async () => {
-      await reloadMockChat(chat, 'Reload mock chat with current viewer identity');
-      await appendMockDirectMention(chat);
-      await openInboxPanel(chat);
-      await expectDirectMentionInboxRecord(chat);
-      await closeInboxPanel(chat);
-    });
-  });
-};
-
-export const inboxKeywordOverlapPreservesProfileMentionScenario: BrowserScenario = async ({
-  chat,
-  context
-}) => {
-  if (!isMockPageSurface(chat)) {
-    throw new Error(
-      'inboxKeywordOverlapPreservesProfileMentionScenario requires the deterministic mock chat page.'
-    );
-  }
-
-  await withExtensionStorageSnapshot(context, 'local', async () => {
-    await withExtensionStorageValues(context, 'local', {
-      ytcqInboxKeywords: [PROFILE_MENTION_OVERLAP_KEYWORD]
-    }, async () => {
-      await reloadMockChat(chat, 'Reload mock chat with a handle-overlapping watched keyword');
-
-      const mentionedAuthor = '@InboxHandlePartTarget';
-      const mentionText = mentionedAuthor.toLowerCase();
-      const mentionMessageId = await appendMockFixtureMessage(chat, {
-        author: '@InboxOverlapSource',
-        text: `Please ask ${mentionText} next`
-      });
-      if (!mentionMessageId) throw new Error('Mock page did not append the mention message.');
-
-      const mentionMessage = chat.locator(`#${mentionMessageId}`);
-      await expect(
-        mentionMessage.locator('.ytcq-chat-keyword-highlight')
-      ).toHaveText(PROFILE_MENTION_OVERLAP_KEYWORD);
-      await expect(mentionMessage.locator('.ytcq-profile-mention')).toHaveCount(0);
-
-      await appendMockFixtureMessage(chat, {
-        author: mentionedAuthor,
-        channel: 'inbox-handle-part-target-channel',
-        text: 'Target profile history'
-      });
-
-      const mention = mentionMessage.locator('.ytcq-profile-mention');
-      await expect(mention).toHaveText(mentionText);
-      await expect(mention).toHaveAttribute('role', 'button');
-      await expect(mention.locator('.ytcq-chat-keyword-highlight'))
-        .toHaveText(PROFILE_MENTION_OVERLAP_KEYWORD);
-      await mention.click();
-
-      const profileCard = chat.locator('.ytcq-profile-card:not(.ytcq-inbox-card)');
-      await expect(profileCard.locator('.ytcq-profile-card-title')).toHaveText(mentionedAuthor);
-      await profileCard.locator('.ytcq-profile-card-close').click();
-      await expect(profileCard).toHaveCount(0);
-    });
-  });
 };
 
 export const inboxReplayPrefetchTimingScenario: BrowserScenario = async ({ chat, context }) => {
@@ -257,7 +165,7 @@ async function closeInboxPanel(chat: ChatSurface): Promise<void> {
   });
 }
 
-async function withNativeInboxKeyword(
+async function withInboxKeyword(
   chat: ChatSurface,
   keyword: string,
   callback: () => Promise<void>
@@ -303,28 +211,6 @@ async function reloadMockChat(chat: ChatSurface, stepName: string): Promise<void
   });
 }
 
-async function appendMockInboxMatch(chat: ChatSurface): Promise<string> {
-  return test.step('Append keyword-matching chat message', async () => {
-    const messageId = await appendMockFixtureMessage(chat, {
-      author: '@InboxBrowserTest',
-      text: `Please save this ${INBOX_KEYWORD} message`
-    });
-    if (!messageId) throw new Error('Mock page did not return an appended message id.');
-    return messageId;
-  });
-}
-
-async function appendMockDirectMention(chat: ChatSurface): Promise<string> {
-  return test.step('Append direct mention chat message', async () => {
-    const messageId = await appendMockFixtureMessage(chat, {
-      author: '@DirectMentionBrowserTest',
-      text: DIRECT_MENTION_TEXT
-    });
-    if (!messageId) throw new Error('Mock page did not return an appended message id.');
-    return messageId;
-  });
-}
-
 async function expectLiveChatKeywordHighlight(sourceMessage: ReturnType<ChatSurface['locator']>): Promise<void> {
   await test.step('Verify live chat keyword highlight appears', async () => {
     await expect(sourceMessage.locator('.ytcq-chat-keyword-highlight').filter({
@@ -341,18 +227,6 @@ async function expectInboxRecordAndHighlight(chat: ChatSurface): Promise<void> {
     await expect(record).toBeVisible({ timeout: 10_000 });
     await expect(record.locator('.ytcq-inbox-keyword-highlight').filter({
       hasText: INBOX_KEYWORD
-    }).first()).toBeVisible();
-  });
-}
-
-async function expectDirectMentionInboxRecord(chat: ChatSurface): Promise<void> {
-  await test.step('Verify Inbox contains and highlights the direct mention', async () => {
-    const record = chat.locator('.ytcq-inbox-card .ytcq-inbox-message').filter({
-      hasText: DIRECT_MENTION_TEXT
-    }).first();
-    await expect(record).toBeVisible({ timeout: 10_000 });
-    await expect(record.locator('.ytcq-inbox-mention-highlight').filter({
-      hasText: CURRENT_VIEWER_MENTION
     }).first()).toBeVisible();
   });
 }

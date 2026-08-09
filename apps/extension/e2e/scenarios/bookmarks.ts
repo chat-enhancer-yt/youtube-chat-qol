@@ -14,6 +14,7 @@ import {
 } from '../support/extension-storage';
 import { openMessageMenu, type OpenedMessageMenu } from '../support/menu-openers';
 import { isMockPageSurface } from '../support/mock-page';
+import { getRichVisibleText } from '../support/text';
 import type { BrowserScenario } from './types';
 
 interface StoredBookmarkRecord {
@@ -386,7 +387,10 @@ async function expectBookmarkListedInPopupAndRemove(
       await expect(popup.locator('#bookmarksTab')).toHaveAttribute('aria-selected', 'true');
       const row = popup.locator('.bookmark-row').filter({ hasText: authorName }).first();
       await expect(row).toBeVisible({ timeout: 10_000 });
-      await expect(row.locator('.bookmark-message')).not.toHaveText('');
+      await expect.poll(
+        async () => getRichVisibleText(row.locator('.bookmark-message')),
+        { timeout: 15_000 }
+      ).not.toBe('');
       const postedTime = row.locator('.bookmark-message-header .bookmark-message-time');
       await expect(postedTime).toBeVisible();
       await expect(postedTime).not.toHaveText('');

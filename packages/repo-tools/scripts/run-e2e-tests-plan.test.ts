@@ -27,15 +27,15 @@ describe('end-to-end test command planner', () => {
   });
 
   it('preserves extra Playwright arguments after the npm command separator', () => {
-    expect(createE2eTestPlan(['--project=youtube-real-logged-in', '-g', 'logged-in'])).toEqual({
+    expect(createE2eTestPlan(['--project=youtube-live-logged-in', '-g', 'logged-in'])).toEqual({
       playwrightArgs: [
         'test',
         '--config=apps/extension/playwright.config.ts',
-        '--project=youtube-real-logged-in',
+        '--project=youtube-live-logged-in',
         '-g',
         'logged-in'
       ],
-      reportOutputFolder: 'playwright-report/youtube-real-logged-in',
+      reportOutputFolder: 'playwright-report/youtube-live-logged-in',
       shouldBuild: true
     });
   });
@@ -52,14 +52,14 @@ describe('end-to-end test command planner', () => {
   });
 
   it('supports the spaced --project argument form', () => {
-    expect(createE2eTestPlan(['--project', 'youtube-real-logged-out'])).toEqual({
+    expect(createE2eTestPlan(['--project', 'youtube-live-logged-out'])).toEqual({
       playwrightArgs: [
         'test',
         '--config=apps/extension/playwright.config.ts',
         '--project',
-        'youtube-real-logged-out'
+        'youtube-live-logged-out'
       ],
-      reportOutputFolder: 'playwright-report/youtube-real-logged-out',
+      reportOutputFolder: 'playwright-report/youtube-live-logged-out',
       shouldBuild: true
     });
   });
@@ -83,14 +83,14 @@ describe('end-to-end test command planner', () => {
     expect(createE2eTestPlan([
       '--project=youtube-mock',
       '--project=extension-pages',
-      '--project=youtube-real-logged-out'
+      '--project=youtube-live-logged-out'
     ])).toEqual({
       playwrightArgs: [
         'test',
         '--config=apps/extension/playwright.config.ts',
         '--project=youtube-mock',
         '--project=extension-pages',
-        '--project=youtube-real-logged-out'
+        '--project=youtube-live-logged-out'
       ],
       reportOutputFolder: 'playwright-report/e2e',
       shouldBuild: true

@@ -1,8 +1,9 @@
 /** Regression coverage for delayed real-YouTube chat-panel rendering. */
-import { expect, test } from '@playwright/test';
-import { openLiveChat } from '../../../../support/youtube-page';
+import { expect } from '@playwright/test';
+import { openLiveChat } from '../support/youtube-page';
+import type { BrowserScenario } from './types';
 
-test('opens a collapsed live chat panel that renders after page navigation', async ({ page }) => {
+export const delayedChatPanelNavigationScenario: BrowserScenario = async ({ page }) => {
   const liveUrl = 'https://www.youtube.com/watch?v=delayed-chat';
   await page.route(liveUrl, (route) =>
     route.fulfill({
@@ -31,4 +32,4 @@ test('opens a collapsed live chat panel that renders after page navigation', asy
 
   await expect(page.locator('iframe#chatframe')).toBeVisible();
   await expect(chat.locator('yt-live-chat-renderer')).toBeVisible();
-});
+};

@@ -9,6 +9,7 @@ export { realYouTubeLoggedOutTest } from './fixtures/youtube-real-logged-out';
 export { youtubeMockTest } from './fixtures/youtube-mock';
 export type {
   ExtensionSession,
+  LiveYouTubeSession,
   MockYouTubeSession,
   RealYouTubeSession
 } from './fixtures/browser-session';

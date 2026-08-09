@@ -1,8 +1,8 @@
 /** Profile-card interactions and user-visible assertions. */
 import { expect, test, type BrowserContext, type Locator } from '@playwright/test';
+import type { ControlledChat } from '../../support/controlled-chat';
 import { centerLocatorInViewport } from '../../support/locator';
 import { isMockPageSurface } from '../../support/mock-page';
-import type { NativeChatTransport } from '../../support/native-chat-transport';
 import type { ChatSurface } from '../types';
 import {
   getProfileCardRecord,
@@ -85,12 +85,12 @@ export async function expectProfileAvatarRingToggle(
 
 export async function deliverAuthorMessageAndVerifyProfileCardUpdates(
   chat: ChatSurface,
-  transport: NativeChatTransport,
+  controlledChat: ControlledChat,
   source: ProfileMessageSource
 ): Promise<void> {
   await test.step('Deliver a new author message and verify the card updates', async () => {
     const text = `Profile follow-up ${Date.now()}`;
-    await transport.injectMessage({
+    await controlledChat.injectMessage({
       author: source.authorName,
       channel: source.channelId || undefined,
       text

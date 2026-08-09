@@ -1,5 +1,6 @@
 /** Browser scenarios for settings translation behavior. */
 import { expect, test, type BrowserContext } from '@playwright/test';
+import { requireControlledChat } from '../../support/controlled-chat';
 import { openSettingsMenu } from '../../support/menu-openers';
 import { withMockedTranslationEndpoint } from '../../support/translation-endpoint';
 import type { BrowserScenario, ChatSurface } from '../types';
@@ -11,7 +12,17 @@ import {
 import { withTranslationCleared } from './storage';
 import { MOCKED_TARGET_LANGUAGE, SETTINGS_TRANSLATED_TEXT } from './test-data';
 
-export const translationSettingsReactScenario: BrowserScenario = async ({ chat, context }) => {
+export const translationSettingsReactScenario: BrowserScenario = async ({
+  chat,
+  context,
+  controlledChat
+}) => {
+  const incoming = requireControlledChat(controlledChat);
+  await incoming.injectMessage({
+    author: '@TranslationSettingViewer',
+    channel: 'UCTranslationSettingViewer',
+    text: 'Gracias por probar la configuración de traducción'
+  });
   await waitForSourceChatMessage(chat);
   await expectTranslateSettingReactsLive({ chat, context });
 };

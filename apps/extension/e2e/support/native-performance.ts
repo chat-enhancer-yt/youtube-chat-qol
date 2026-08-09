@@ -2,10 +2,8 @@
 import type { BrowserContext, Page } from '@playwright/test';
 import type { HeapSnapshot } from './performance';
 
-export type {
-  ControlledChatMessage as NativePerfChatMessage,
-  NativeChatTransport
-} from './native-chat-transport';
+export type { ControlledChatMessage as NativePerfChatMessage } from './controlled-chat';
+export type { NativeChatTransport } from './native-chat-transport';
 
 export {
   startBrowserPerfProbe as startNativeChatPerfProbe,

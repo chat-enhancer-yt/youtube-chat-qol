@@ -26,7 +26,7 @@ export interface RealYouTubeSession {
   unavailableReason?: string;
 }
 
-export interface ControlledRealYouTubeSession extends RealYouTubeSession {
+export interface LiveYouTubeSession extends RealYouTubeSession {
   transport: NativeChatTransport;
 }
 

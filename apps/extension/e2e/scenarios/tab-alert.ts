@@ -1,30 +1,35 @@
 /**
  * Browser scenario for background-tab Inbox alerts.
  *
- * This is mock-only so the test can deterministically append a keyword-matching
- * message while the content script sees a hidden document. Headless Chromium
- * keeps pages visible even when another page is foregrounded, so this scenario
- * sets visibility in the extension's isolated world and fails if that exact
- * extension context cannot be found.
+ * This is mock-only because it forces document visibility inside the
+ * extension's isolated world and asserts fixture-owned title/favicon state.
+ * Headless Chromium otherwise keeps pages visible when another page is
+ * foregrounded.
  */
 import { expect, test, type CDPSession, type Page } from '@playwright/test';
+import {
+  requireControlledChat,
+  type ControlledChat
+} from '../support/controlled-chat';
 import {
   withExtensionStorageSnapshot,
   withExtensionStorageValues
 } from '../support/extension-storage';
 import { getExtensionId } from '../support/extension';
-import {
-  appendMockFixtureMessage,
-  isMockPageSurface
-} from '../support/mock-page';
+import { isMockPageSurface } from '../support/mock-page';
 import type { BrowserScenario } from './types';
 
 const ALERT_KEYWORD = 'ytcq-alert-browser-test';
 
-export const tabAlertScenario: BrowserScenario = async ({ chat, context }) => {
+export const tabAlertScenario: BrowserScenario = async ({
+  chat,
+  context,
+  controlledChat
+}) => {
   if (!isMockPageSurface(chat)) {
     throw new Error('tabAlertScenario requires the deterministic mock chat page.');
   }
+  const incoming = requireControlledChat(controlledChat);
 
   await withExtensionStorageSnapshot(context, 'local', async () => {
     await withExtensionStorageValues(context, 'local', {
@@ -33,7 +38,7 @@ export const tabAlertScenario: BrowserScenario = async ({ chat, context }) => {
       await reloadMockChat(chat);
       await setContentScriptVisibility(chat, 'hidden');
       try {
-        await appendKeywordMessage(chat);
+        await appendKeywordMessage(incoming);
         await expectAlertShown(chat);
       } finally {
         await setContentScriptVisibility(chat, 'visible');
@@ -50,9 +55,9 @@ async function reloadMockChat(page: Page): Promise<void> {
   });
 }
 
-async function appendKeywordMessage(page: Page): Promise<void> {
+async function appendKeywordMessage(controlledChat: ControlledChat): Promise<void> {
   await test.step('Append keyword-matching chat message', async () => {
-    await appendMockFixtureMessage(page, {
+    await controlledChat.injectMessage({
       author: '@AlertBrowserTest',
       text: `This message contains ${ALERT_KEYWORD}`
     });

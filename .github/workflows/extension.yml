@@ -106,8 +106,8 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
-  e2e-compatibility:
-    name: Test real YouTube compatibility
+  e2e-youtube:
+    name: Test YouTube integration
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -128,20 +128,20 @@ jobs:
         run: npm run test:e2e:install -w @chatenhancer/extension
       - name: Build Chrome extension
         run: npm run build:chrome
-      - name: Run logged-out YouTube compatibility and native transport gate
+      - name: Run logged-out YouTube scenarios
         if: github.event_name == 'pull_request' || github.event_name == 'push'
-        run: npm run test:e2e:ci:compatibility -w @chatenhancer/extension
-      - name: Run manually requested compatibility tiers
+        run: npm run test:e2e:ci:youtube -w @chatenhancer/extension
+      - name: Run manually requested integration tiers
         if: github.event_name == 'workflow_dispatch'
         run: npm run test:e2e:scheduled -w @chatenhancer/extension
-      - name: Run scheduled compatibility tiers
+      - name: Run scheduled integration tiers
         if: github.event_name == 'schedule'
         run: npm run test:e2e:scheduled -w @chatenhancer/extension
-      - name: Upload compatibility E2E test report
+      - name: Upload YouTube E2E test report
         if: always()
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         with:
-          name: compatibility-e2e-test-report
+          name: youtube-e2e-test-report
           path: test-results/e2e/playwright-report.json
           if-no-files-found: ignore
           retention-days: 1
@@ -152,7 +152,7 @@ jobs:
       - check
       - test
       - build-and-e2e-deterministic
-      - e2e-compatibility
+      - e2e-youtube
     if: always() && github.event_name != 'schedule'
     runs-on: ubuntu-latest
     permissions:
@@ -174,17 +174,17 @@ jobs:
         with:
           name: deterministic-e2e-test-report
           path: test-results/e2e/deterministic
-      - name: Download compatibility E2E test report
+      - name: Download YouTube E2E test report
         uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6
         continue-on-error: true
         with:
-          name: compatibility-e2e-test-report
-          path: test-results/e2e/compatibility
+          name: youtube-e2e-test-report
+          path: test-results/e2e/youtube
       - name: Write test summary
         if: always()
         run: npm run ci:test-summary -w @chatenhancer/repo-tools
         env:
-          YTCQ_PLAYWRIGHT_JSON_REPORTS: test-results/e2e/deterministic/playwright-report.json,test-results/e2e/compatibility/playwright-report.json
+          YTCQ_PLAYWRIGHT_JSON_REPORTS: test-results/e2e/deterministic/playwright-report.json,test-results/e2e/youtube/playwright-report.json
       - name: Require successful jobs
         if: |
           always() && (

@@ -1,16 +1,17 @@
 /**
  * Browser scenario for conversation focus mode.
  *
- * Each exported scenario has a fixed assertion set. Mock-only checks are split
- * into separate scenarios so shared mock/live scenarios do not silently skip
- * assertions depending on the surface.
+ * Controlled-message checks use the same scenario against the mock renderer
+ * and YouTube's native continuation renderer.
  */
 import { expect, test, type Locator } from '@playwright/test';
 import { clearChatComposerIfVisible } from '../support/composer';
-import { requireNativeChatTransport } from '../support/controlled-chat';
+import {
+  requireControlledChat,
+  type ControlledChat
+} from '../support/controlled-chat';
 import { closeFocusPromptIfPresent } from '../support/focus-panel';
 import { centerLocatorInViewport } from '../support/locator';
-import type { NativeChatTransport } from '../support/native-chat-transport';
 import { cleanVisibleText } from '../support/text';
 import {
   NORMAL_CHAT_MESSAGE_SELECTOR,
@@ -27,12 +28,12 @@ export const focusPanelOpensFromAuthorScenario: BrowserScenario = async ({ chat 
 
 export const focusPanelReceivesNewMessagesScenario: BrowserScenario = async ({
   chat,
-  transport
+  controlledChat
 }) => {
-  const controlledChat = requireNativeChatTransport(transport);
-  const channelId = 'UCNativeFocusViewer';
-  const messageId = await controlledChat.injectMessage({
-    author: '@NativeFocusViewer',
+  const incoming = requireControlledChat(controlledChat);
+  const channelId = 'UCParityFocusViewer';
+  const messageId = await incoming.injectMessage({
+    author: '@ParityFocusViewer',
     channel: channelId,
     text: 'Controlled focus source message'
   });
@@ -43,7 +44,7 @@ export const focusPanelReceivesNewMessagesScenario: BrowserScenario = async ({
   source.channelId = channelId;
   await expandFocusPanel(chat);
   await expectFocusPanelContainsSourceMessage(chat, source);
-  await deliverFocusedAuthorMessageAndVerifyItAppears(chat, controlledChat, source);
+  await deliverFocusedAuthorMessageAndVerifyItAppears(chat, incoming, source);
   await cleanUpFocusPanel(chat);
 };
 
@@ -171,12 +172,12 @@ async function expectFocusPanelContainsSourceMessage(chat: ChatSurface, source: 
 
 async function deliverFocusedAuthorMessageAndVerifyItAppears(
   chat: ChatSurface,
-  transport: NativeChatTransport,
+  controlledChat: ControlledChat,
   source: MessageSource
 ): Promise<void> {
   await test.step('Deliver a new focused-author message and verify it appears', async () => {
     const text = `Focus follow-up ${Date.now()}`;
-    await transport.injectMessage({
+    await controlledChat.injectMessage({
       author: source.authorName,
       channel: source.channelId || undefined,
       text

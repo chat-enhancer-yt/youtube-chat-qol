@@ -1,8 +1,8 @@
 /**
  * Normalized Playwright fixtures for browser scenarios.
  *
- * Each plan-case spec imports one of these test objects, so reusable scenarios
- * can be passed directly to Playwright as `test(title, scenario)`.
+ * Thin catalog runners import these test objects, so reusable scenarios can be
+ * passed directly to Playwright as `test(title, scenario)`.
  */
 import type { BrowserContext, FrameLocator, Page } from '@playwright/test';
 import {
@@ -13,6 +13,10 @@ import {
   youtubeMockTest
 } from './browser-fixtures';
 import type { ChatSurface } from './chat-surface';
+import {
+  createMockControlledChat,
+  type ControlledChat
+} from './controlled-chat';
 import type { NativeChatTransport } from './native-chat-transport';
 
 interface BrowserScenarioFixtures {
@@ -21,9 +25,20 @@ interface BrowserScenarioFixtures {
   page: Page;
 }
 
-interface ControlledBrowserScenarioFixtures extends Omit<BrowserScenarioFixtures, 'chat'> {
+interface ControlledBrowserScenarioFixtures extends BrowserScenarioFixtures {
+  controlledChat: ControlledChat;
+}
+
+interface LiveBrowserScenarioFixtures extends Omit<
+  ControlledBrowserScenarioFixtures,
+  'chat'
+> {
   chat: FrameLocator;
   transport: NativeChatTransport;
+}
+
+interface ReplayBrowserScenarioFixtures extends BrowserScenarioFixtures {
+  controlledChat: undefined;
 }
 
 interface ExtensionScenarioFixtures {
@@ -36,7 +51,7 @@ export const extensionScenarioTest = extensionTest.extend<ExtensionScenarioFixtu
   }
 });
 
-export const mockLiveLoggedInTest = youtubeMockTest.extend<BrowserScenarioFixtures>({
+export const mockLiveLoggedInTest = youtubeMockTest.extend<ControlledBrowserScenarioFixtures>({
   chat: async ({ mockLoggedInSession }, use) => {
     await use(mockLoggedInSession.page);
   },
@@ -47,10 +62,14 @@ export const mockLiveLoggedInTest = youtubeMockTest.extend<BrowserScenarioFixtur
 
   page: async ({ mockLoggedInSession }, use) => {
     await use(mockLoggedInSession.page);
+  },
+
+  controlledChat: async ({ mockLoggedInSession }, use) => {
+    await use(createMockControlledChat(mockLoggedInSession.page));
   }
 });
 
-export const mockReplayLoggedInTest = youtubeMockTest.extend<BrowserScenarioFixtures>({
+export const mockReplayLoggedInTest = youtubeMockTest.extend<ControlledBrowserScenarioFixtures>({
   chat: async ({ mockLoggedInReplaySession }, use) => {
     await use(mockLoggedInReplaySession.page);
   },
@@ -61,10 +80,14 @@ export const mockReplayLoggedInTest = youtubeMockTest.extend<BrowserScenarioFixt
 
   page: async ({ mockLoggedInReplaySession }, use) => {
     await use(mockLoggedInReplaySession.page);
+  },
+
+  controlledChat: async ({ mockLoggedInReplaySession }, use) => {
+    await use(createMockControlledChat(mockLoggedInReplaySession.page));
   }
 });
 
-export const mockStudioLoggedInTest = youtubeMockTest.extend<BrowserScenarioFixtures>({
+export const mockStudioLoggedInTest = youtubeMockTest.extend<ControlledBrowserScenarioFixtures>({
   chat: async ({ mockStudioLoggedInSession }, use) => {
     await use(mockStudioLoggedInSession.page);
   },
@@ -75,10 +98,14 @@ export const mockStudioLoggedInTest = youtubeMockTest.extend<BrowserScenarioFixt
 
   page: async ({ mockStudioLoggedInSession }, use) => {
     await use(mockStudioLoggedInSession.page);
+  },
+
+  controlledChat: async ({ mockStudioLoggedInSession }, use) => {
+    await use(createMockControlledChat(mockStudioLoggedInSession.page));
   }
 });
 
-export const mockLiveLoggedOutTest = youtubeMockTest.extend<BrowserScenarioFixtures>({
+export const mockLiveLoggedOutTest = youtubeMockTest.extend<ControlledBrowserScenarioFixtures>({
   chat: async ({ mockLoggedOutSession }, use) => {
     await use(mockLoggedOutSession.page);
   },
@@ -89,109 +116,101 @@ export const mockLiveLoggedOutTest = youtubeMockTest.extend<BrowserScenarioFixtu
 
   page: async ({ mockLoggedOutSession }, use) => {
     await use(mockLoggedOutSession.page);
+  },
+
+  controlledChat: async ({ mockLoggedOutSession }, use) => {
+    await use(createMockControlledChat(mockLoggedOutSession.page));
   }
 });
 
-export const realLiveLoggedInTest = realYouTubeLoggedInTest.extend<BrowserScenarioFixtures>({
-  chat: async ({ realLiveLoggedInSession }, use) => {
-    skipIfLoggedInYouTubeUnavailable(realYouTubeLoggedInTest, realLiveLoggedInSession);
-    await use(realLiveLoggedInSession.chat);
-  },
-
-  context: async ({ realLiveLoggedInSession }, use) => {
-    skipIfLoggedInYouTubeUnavailable(realYouTubeLoggedInTest, realLiveLoggedInSession);
-    await use(realLiveLoggedInSession.context);
-  },
-
-  page: async ({ realLiveLoggedInSession }, use) => {
-    skipIfLoggedInYouTubeUnavailable(realYouTubeLoggedInTest, realLiveLoggedInSession);
-    await use(realLiveLoggedInSession.page);
-  }
-});
-
-export const nativeTransportLiveLoggedInTest = realYouTubeLoggedInTest.extend<
-  ControlledBrowserScenarioFixtures
+export const liveLoggedInTest = realYouTubeLoggedInTest.extend<
+  LiveBrowserScenarioFixtures
 >({
-  chat: async ({ nativeTransportLiveLoggedInSession }, use) => {
+  chat: async ({ liveLoggedInSession }, use) => {
     skipIfLoggedInYouTubeUnavailable(
       realYouTubeLoggedInTest,
-      nativeTransportLiveLoggedInSession
+      liveLoggedInSession
     );
-    await use(nativeTransportLiveLoggedInSession.chat);
+    await use(liveLoggedInSession.chat);
   },
 
-  context: async ({ nativeTransportLiveLoggedInSession }, use) => {
+  context: async ({ liveLoggedInSession }, use) => {
     skipIfLoggedInYouTubeUnavailable(
       realYouTubeLoggedInTest,
-      nativeTransportLiveLoggedInSession
+      liveLoggedInSession
     );
-    await use(nativeTransportLiveLoggedInSession.context);
+    await use(liveLoggedInSession.context);
   },
 
-  page: async ({ nativeTransportLiveLoggedInSession }, use) => {
+  page: async ({ liveLoggedInSession }, use) => {
     skipIfLoggedInYouTubeUnavailable(
       realYouTubeLoggedInTest,
-      nativeTransportLiveLoggedInSession
+      liveLoggedInSession
     );
-    await use(nativeTransportLiveLoggedInSession.page);
+    await use(liveLoggedInSession.page);
   },
 
-  transport: async ({ nativeTransportLiveLoggedInSession }, use) => {
+  controlledChat: async ({ liveLoggedInSession }, use) => {
     skipIfLoggedInYouTubeUnavailable(
       realYouTubeLoggedInTest,
-      nativeTransportLiveLoggedInSession
+      liveLoggedInSession
     );
-    await use(nativeTransportLiveLoggedInSession.transport);
+    await use(liveLoggedInSession.transport);
+  },
+
+  transport: async ({ liveLoggedInSession }, use) => {
+    skipIfLoggedInYouTubeUnavailable(
+      realYouTubeLoggedInTest,
+      liveLoggedInSession
+    );
+    await use(liveLoggedInSession.transport);
   }
 });
 
-export const realReplayLoggedInTest = realYouTubeLoggedInTest.extend<BrowserScenarioFixtures>({
-  chat: async ({ realReplayLoggedInSession }, use) => {
-    skipIfLoggedInYouTubeUnavailable(realYouTubeLoggedInTest, realReplayLoggedInSession);
-    await use(realReplayLoggedInSession.chat);
-  },
-
-  context: async ({ realReplayLoggedInSession }, use) => {
-    skipIfLoggedInYouTubeUnavailable(realYouTubeLoggedInTest, realReplayLoggedInSession);
-    await use(realReplayLoggedInSession.context);
-  },
-
-  page: async ({ realReplayLoggedInSession }, use) => {
-    skipIfLoggedInYouTubeUnavailable(realYouTubeLoggedInTest, realReplayLoggedInSession);
-    await use(realReplayLoggedInSession.page);
-  }
-});
-
-export const realLiveLoggedOutTest = realYouTubeLoggedOutTest.extend<BrowserScenarioFixtures>({
-  chat: async ({ realLiveLoggedOutSession }, use) => {
-    await use(realLiveLoggedOutSession.chat);
-  },
-
-  context: async ({ realLiveLoggedOutSession }, use) => {
-    await use(realLiveLoggedOutSession.context);
-  },
-
-  page: async ({ realLiveLoggedOutSession }, use) => {
-    await use(realLiveLoggedOutSession.page);
-  }
-});
-
-export const nativeTransportLiveLoggedOutTest = realYouTubeLoggedOutTest.extend<
-  ControlledBrowserScenarioFixtures
+export const replayLoggedInTest = realYouTubeLoggedInTest.extend<
+  ReplayBrowserScenarioFixtures
 >({
-  chat: async ({ nativeTransportLiveLoggedOutSession }, use) => {
-    await use(nativeTransportLiveLoggedOutSession.chat);
+  chat: async ({ replayLoggedInSession }, use) => {
+    skipIfLoggedInYouTubeUnavailable(realYouTubeLoggedInTest, replayLoggedInSession);
+    await use(replayLoggedInSession.chat);
   },
 
-  context: async ({ nativeTransportLiveLoggedOutSession }, use) => {
-    await use(nativeTransportLiveLoggedOutSession.context);
+  context: async ({ replayLoggedInSession }, use) => {
+    skipIfLoggedInYouTubeUnavailable(realYouTubeLoggedInTest, replayLoggedInSession);
+    await use(replayLoggedInSession.context);
   },
 
-  page: async ({ nativeTransportLiveLoggedOutSession }, use) => {
-    await use(nativeTransportLiveLoggedOutSession.page);
+  page: async ({ replayLoggedInSession }, use) => {
+    skipIfLoggedInYouTubeUnavailable(realYouTubeLoggedInTest, replayLoggedInSession);
+    await use(replayLoggedInSession.page);
   },
 
-  transport: async ({ nativeTransportLiveLoggedOutSession }, use) => {
-    await use(nativeTransportLiveLoggedOutSession.transport);
+  controlledChat: async ({ replayLoggedInSession }, use) => {
+    void replayLoggedInSession;
+    await use(undefined);
+  }
+});
+
+export const liveLoggedOutTest = realYouTubeLoggedOutTest.extend<
+  LiveBrowserScenarioFixtures
+>({
+  chat: async ({ liveLoggedOutSession }, use) => {
+    await use(liveLoggedOutSession.chat);
+  },
+
+  context: async ({ liveLoggedOutSession }, use) => {
+    await use(liveLoggedOutSession.context);
+  },
+
+  page: async ({ liveLoggedOutSession }, use) => {
+    await use(liveLoggedOutSession.page);
+  },
+
+  controlledChat: async ({ liveLoggedOutSession }, use) => {
+    await use(liveLoggedOutSession.transport);
+  },
+
+  transport: async ({ liveLoggedOutSession }, use) => {
+    await use(liveLoggedOutSession.transport);
   }
 });

@@ -54,7 +54,7 @@ export async function withTranslationEnabled<T>({
   );
 }
 
-async function waitForTranslationsCleared(chat: ChatSurface): Promise<void> {
+export async function waitForTranslationsCleared(chat: ChatSurface): Promise<void> {
   await test.step('Wait for previous translation state to clear', async () => {
     await expect(chat.locator('.ytcq-translation')).toHaveCount(0, { timeout: 5_000 });
     await expect(chat.locator('.ytcq-translation-replaced')).toHaveCount(0, { timeout: 5_000 });

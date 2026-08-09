@@ -1,11 +1,12 @@
 /**
  * Shared browser scenario types.
  *
- * A scenario is one feature-level browser check that can run against the
- * deterministic fixture, an uncontrolled real chat, or a real chat whose
- * continuation transport is locally controlled.
+ * A scenario is one feature-level browser check that can run against either
+ * the deterministic fixture or YouTube's real chat. Incoming-message injection
+ * and outbound capture are optional capabilities on those ordinary surfaces.
  */
 import type { BrowserContext, Page } from '@playwright/test';
+import type { ControlledChat } from '../support/controlled-chat';
 import type { NativeChatTransport } from '../support/native-chat-transport';
 import {
   NORMAL_CHAT_MESSAGE_SELECTOR,
@@ -30,7 +31,9 @@ export interface BrowserScenarioSession {
    * The top-level YouTube tab that owns the chat surface.
    */
   page: Page;
-  /** Controlled network ingress when the scenario requires synthetic chat traffic. */
+  /** Surface-neutral ingress when the scenario requires deterministic chat traffic. */
+  controlledChat?: ControlledChat;
+  /** Native YouTube protocol interception for scenarios that exercise outbound sends. */
   transport?: NativeChatTransport;
 }
 
@@ -43,8 +46,8 @@ export interface ExtensionScenarioSession {
 
 /**
  * Executes one browser-level behavior check.
- * Test titles and browser surfaces are defined by the plan-case spec files
- * under `e2e/specs/`, not on the scenario itself.
+ * Test titles and browser surfaces are defined by the YouTube catalog and its
+ * thin runner specs, not on the scenario itself.
  */
 export type BrowserScenario = (..._args: [BrowserScenarioSession]) => Promise<void>;
 

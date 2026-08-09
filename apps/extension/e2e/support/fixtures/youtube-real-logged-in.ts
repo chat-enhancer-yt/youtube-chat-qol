@@ -29,7 +29,7 @@ import {
 import {
   getRealYouTubeBrowserUserAgent,
   shouldRunRealYouTubeHeadlessBrowserTest,
-  type ControlledRealYouTubeSession,
+  type LiveYouTubeSession,
   type RealYouTubeSession
 } from './browser-session';
 
@@ -45,36 +45,20 @@ const RUNTIME_CHROME_PROFILE_FILE_NAMES = new Set([
 ]);
 
 interface RealYouTubeLoggedInTestFixtures {
-  nativeTransportLiveLoggedInSession: ControlledRealYouTubeSession | null;
-  realLiveLoggedInSession: RealYouTubeSession | null;
-  realReplayLoggedInSession: RealYouTubeSession | null;
+  liveLoggedInSession: LiveYouTubeSession | null;
+  replayLoggedInSession: RealYouTubeSession | null;
 }
 
 interface RealYouTubeLoggedInWorkerFixtures {
-  nativeTransportLiveLoggedInWorkerSession: ControlledRealYouTubeSession | null;
-  realLiveLoggedInWorkerSession: RealYouTubeSession | null;
-  realReplayLoggedInWorkerSession: RealYouTubeSession | null;
+  liveLoggedInWorkerSession: LiveYouTubeSession | null;
+  replayLoggedInWorkerSession: RealYouTubeSession | null;
 }
 
 export const realYouTubeLoggedInTest = base.extend<
   RealYouTubeLoggedInTestFixtures,
   RealYouTubeLoggedInWorkerFixtures
 >({
-  nativeTransportLiveLoggedInWorkerSession: [
-    async ({ browserName }, use) => {
-      void browserName;
-      const session = await createLoggedInNativeTransportLiveSession();
-
-      try {
-        await use(session?.session || null);
-      } finally {
-        await session?.close();
-      }
-    },
-    { scope: 'worker' }
-  ],
-
-  realLiveLoggedInWorkerSession: [
+  liveLoggedInWorkerSession: [
     async ({ browserName }, use) => {
       void browserName;
       const session = await createLoggedInLiveSession();
@@ -88,7 +72,7 @@ export const realYouTubeLoggedInTest = base.extend<
     { scope: 'worker' }
   ],
 
-  realReplayLoggedInWorkerSession: [
+  replayLoggedInWorkerSession: [
     async ({ browserName }, use) => {
       void browserName;
       const session = await createLoggedInReplaySession();
@@ -102,46 +86,33 @@ export const realYouTubeLoggedInTest = base.extend<
     { scope: 'worker' }
   ],
 
-  realLiveLoggedInSession: async ({ realLiveLoggedInWorkerSession }, use, testInfo) => {
-    if (realLiveLoggedInWorkerSession) {
-      await resetRealYouTubeScenarioState(realLiveLoggedInWorkerSession);
-    }
-    try {
-      await use(realLiveLoggedInWorkerSession);
-    } finally {
-      if (realLiveLoggedInWorkerSession) {
-        await dumpDomOnFailure(realLiveLoggedInWorkerSession.context, testInfo);
-      }
-    }
-  },
-
-  nativeTransportLiveLoggedInSession: async (
-    { nativeTransportLiveLoggedInWorkerSession },
+  liveLoggedInSession: async (
+    { liveLoggedInWorkerSession },
     use,
     testInfo
   ) => {
-    if (nativeTransportLiveLoggedInWorkerSession) {
-      await resetRealYouTubeScenarioState(nativeTransportLiveLoggedInWorkerSession);
-      await restoreRealYouTubeChatLiveEdge(nativeTransportLiveLoggedInWorkerSession);
+    if (liveLoggedInWorkerSession) {
+      await resetRealYouTubeScenarioState(liveLoggedInWorkerSession);
+      await restoreRealYouTubeChatLiveEdge(liveLoggedInWorkerSession);
     }
     try {
-      await use(nativeTransportLiveLoggedInWorkerSession);
+      await use(liveLoggedInWorkerSession);
     } finally {
-      if (nativeTransportLiveLoggedInWorkerSession) {
-        await dumpDomOnFailure(nativeTransportLiveLoggedInWorkerSession.context, testInfo);
+      if (liveLoggedInWorkerSession) {
+        await dumpDomOnFailure(liveLoggedInWorkerSession.context, testInfo);
       }
     }
   },
 
-  realReplayLoggedInSession: async ({ realReplayLoggedInWorkerSession }, use, testInfo) => {
-    if (realReplayLoggedInWorkerSession) {
-      await resetRealYouTubeScenarioState(realReplayLoggedInWorkerSession);
+  replayLoggedInSession: async ({ replayLoggedInWorkerSession }, use, testInfo) => {
+    if (replayLoggedInWorkerSession) {
+      await resetRealYouTubeScenarioState(replayLoggedInWorkerSession);
     }
     try {
-      await use(realReplayLoggedInWorkerSession);
+      await use(replayLoggedInWorkerSession);
     } finally {
-      if (realReplayLoggedInWorkerSession) {
-        await dumpDomOnFailure(realReplayLoggedInWorkerSession.context, testInfo);
+      if (replayLoggedInWorkerSession) {
+        await dumpDomOnFailure(replayLoggedInWorkerSession.context, testInfo);
       }
     }
   }
@@ -157,24 +128,12 @@ export function skipIfLoggedInYouTubeUnavailable(
 
 async function createLoggedInLiveSession(): Promise<{
   close: () => Promise<void>;
-  session: RealYouTubeSession;
-} | null> {
-  return createLoggedInYouTubeSession({
-    label: 'live stream',
-    profileName: 'youtube-real-live-logged-in',
-    requireComposer: true,
-    url: getLiveUrl()
-  });
-}
-
-async function createLoggedInNativeTransportLiveSession(): Promise<{
-  close: () => Promise<void>;
-  session: ControlledRealYouTubeSession;
+  session: LiveYouTubeSession;
 } | null> {
   const created = await createLoggedInYouTubeSession({
-    label: 'live stream with controlled transport',
-    nativeTransport: true,
-    profileName: 'youtube-native-transport-live-logged-in',
+    interceptLiveChat: true,
+    label: 'live stream',
+    profileName: 'youtube-live-logged-in',
     requireComposer: true,
     url: getLiveUrl()
   });
@@ -191,27 +150,27 @@ async function createLoggedInReplaySession(): Promise<{
 } | null> {
   return createLoggedInYouTubeSession({
     label: 'live replay',
-    profileName: 'youtube-real-replay-logged-in',
+    profileName: 'youtube-replay-logged-in',
     requireComposer: false,
     url: getReplayUrl()
   });
 }
 
 async function createLoggedInYouTubeSession({
+  interceptLiveChat = false,
   label,
   profileName,
   requireComposer,
-  nativeTransport = false,
   url
 }: {
+  interceptLiveChat?: boolean;
   label: string;
-  nativeTransport?: boolean;
   profileName: string;
   requireComposer: boolean;
   url: string;
 }): Promise<{
   close: () => Promise<void>;
-  session: ControlledRealYouTubeSession | RealYouTubeSession;
+  session: LiveYouTubeSession | RealYouTubeSession;
 } | null> {
   const sourceProfileDir = getLiveProfileDir();
   console.log(`Using logged-in Chrome source profile: ${sourceProfileDir}`);
@@ -237,10 +196,10 @@ async function createLoggedInYouTubeSession({
   });
   const { context } = chrome;
   const page = context.pages()[0] || (await context.newPage());
-  if (nativeTransport) {
+  if (interceptLiveChat) {
     await page.goto('about:blank', { timeout: 15_000, waitUntil: 'commit' });
   }
-  const transport = nativeTransport
+  const transport = interceptLiveChat
     ? await NativeChatTransport.install(page)
     : null;
   const chat = await openLiveChat(page, url);

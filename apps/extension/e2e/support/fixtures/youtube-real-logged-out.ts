@@ -15,55 +15,31 @@ import {
   getDisposableWorkerProfileDir,
   getRealYouTubeBrowserUserAgent,
   shouldRunRealYouTubeHeadlessBrowserTest,
-  type ControlledRealYouTubeSession,
-  type RealYouTubeSession
+  type LiveYouTubeSession
 } from './browser-session';
 
 interface RealYouTubeLoggedOutTestFixtures {
-  realLiveLoggedOutSession: RealYouTubeSession;
-  nativeTransportLiveLoggedOutSession: ControlledRealYouTubeSession;
+  liveLoggedOutSession: LiveYouTubeSession;
 }
 
 interface RealYouTubeLoggedOutWorkerFixtures {
-  realLiveLoggedOutWorkerSession: RealYouTubeSession;
-  nativeTransportLiveLoggedOutWorkerSession: ControlledRealYouTubeSession;
+  liveLoggedOutWorkerSession: LiveYouTubeSession;
 }
 
 export const realYouTubeLoggedOutTest = base.extend<
   RealYouTubeLoggedOutTestFixtures,
   RealYouTubeLoggedOutWorkerFixtures
 >({
-  realLiveLoggedOutWorkerSession: [
+  liveLoggedOutWorkerSession: [
     async ({ browserName }, use, workerInfo) => {
       void browserName;
       const headless = shouldRunRealYouTubeHeadlessBrowserTest();
       const context = await launchExtensionContext({
         headless,
-        profileDir: getDisposableWorkerProfileDir('youtube-real-logged-out', workerInfo),
+        profileDir: getDisposableWorkerProfileDir('youtube-live-logged-out', workerInfo),
         userAgent: getRealYouTubeBrowserUserAgent(headless)
       });
 
-      const page = await context.newPage();
-      const chat = await openLiveChat(page, getLiveUrl());
-
-      try {
-        await use({ context, page, chat });
-      } finally {
-        await closeExtensionContext(context);
-      }
-    },
-    { scope: 'worker' }
-  ],
-
-  nativeTransportLiveLoggedOutWorkerSession: [
-    async ({ browserName }, use, workerInfo) => {
-      void browserName;
-      const headless = shouldRunRealYouTubeHeadlessBrowserTest();
-      const context = await launchExtensionContext({
-        headless,
-        profileDir: getDisposableWorkerProfileDir('youtube-native-transport-logged-out', workerInfo),
-        userAgent: getRealYouTubeBrowserUserAgent(headless)
-      });
       const page = context.pages()[0] || (await context.newPage());
       const transport = await NativeChatTransport.install(page);
 
@@ -79,26 +55,17 @@ export const realYouTubeLoggedOutTest = base.extend<
     { scope: 'worker' }
   ],
 
-  realLiveLoggedOutSession: async ({ realLiveLoggedOutWorkerSession }, use, testInfo) => {
-    await resetRealYouTubeScenarioState(realLiveLoggedOutWorkerSession);
-    try {
-      await use(realLiveLoggedOutWorkerSession);
-    } finally {
-      await dumpDomOnFailure(realLiveLoggedOutWorkerSession.context, testInfo);
-    }
-  },
-
-  nativeTransportLiveLoggedOutSession: async (
-    { nativeTransportLiveLoggedOutWorkerSession },
+  liveLoggedOutSession: async (
+    { liveLoggedOutWorkerSession },
     use,
     testInfo
   ) => {
-    await resetRealYouTubeScenarioState(nativeTransportLiveLoggedOutWorkerSession);
-    await restoreRealYouTubeChatLiveEdge(nativeTransportLiveLoggedOutWorkerSession);
+    await resetRealYouTubeScenarioState(liveLoggedOutWorkerSession);
+    await restoreRealYouTubeChatLiveEdge(liveLoggedOutWorkerSession);
     try {
-      await use(nativeTransportLiveLoggedOutWorkerSession);
+      await use(liveLoggedOutWorkerSession);
     } finally {
-      await dumpDomOnFailure(nativeTransportLiveLoggedOutWorkerSession.context, testInfo);
+      await dumpDomOnFailure(liveLoggedOutWorkerSession.context, testInfo);
     }
   }
 });

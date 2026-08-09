@@ -1,6 +1,6 @@
 /** Browser scenarios for profile card behavior. */
 import { expect, test } from '@playwright/test';
-import { requireNativeChatTransport } from '../../support/controlled-chat';
+import { requireControlledChat } from '../../support/controlled-chat';
 import { centerLocatorInViewport } from '../../support/locator';
 import { NORMAL_CHAT_MESSAGE_SELECTOR, type BrowserScenario } from '../types';
 import {
@@ -27,25 +27,28 @@ export const profileCardRecentMessagesScenario: BrowserScenario = async ({ chat,
 
 export const profileCardReceivesNewMessagesScenario: BrowserScenario = async ({
   chat,
-  transport
+  controlledChat
 }) => {
-  const controlledChat = requireNativeChatTransport(transport);
-  const channelId = 'UCNativeProfileViewer';
-  await controlledChat.injectMessage({
-    author: '@NativeProfileViewer',
+  const incoming = requireControlledChat(controlledChat);
+  const channelId = 'UCParityProfileViewer';
+  await incoming.injectMessage({
+    author: '@ParityProfileViewer',
     channel: channelId,
     text: 'Controlled profile source message'
   });
   const source = await openStableProfileCardFromRecentMessage(chat);
   source.channelId = channelId;
   await expectProfileCardHasRecentMessages(chat, source);
-  await deliverAuthorMessageAndVerifyProfileCardUpdates(chat, controlledChat, source);
+  await deliverAuthorMessageAndVerifyProfileCardUpdates(chat, incoming, source);
   await closeProfileCard(chat);
 };
 
-export const profileCardHistoryPagingScenario: BrowserScenario = async ({ chat, transport }) => {
+export const profileCardHistoryPagingScenario: BrowserScenario = async ({
+  chat,
+  controlledChat
+}) => {
   await test.step('Page through retained profile history around an older feed message', async () => {
-    const controlledChat = requireNativeChatTransport(transport);
+    const incoming = requireControlledChat(controlledChat);
 
     const author = '@ProfileHistoryViewer';
     const channel = 'profile-history-channel';
@@ -54,7 +57,7 @@ export const profileCardHistoryPagingScenario: BrowserScenario = async ({ chat, 
       channel,
       text: `Profile history ${index}`
     }));
-    const { deliveredIds: messageIds } = await controlledChat.injectMessages(messages);
+    const { deliveredIds: messageIds } = await incoming.injectMessages(messages);
     expect(messageIds).toHaveLength(30);
 
     const originMessageId = messageIds[15];
@@ -71,6 +74,12 @@ export const profileCardHistoryPagingScenario: BrowserScenario = async ({ chat, 
     await expect(records).toHaveCount(12);
     await expect(originRecord).toHaveClass(/ytcq-profile-card-message-origin/);
     await expect(originRecord).toBeVisible();
+    await list.evaluate(
+      () =>
+        new Promise<void>((resolve) =>
+          window.requestAnimationFrame(() => window.requestAnimationFrame(() => resolve()))
+        )
+    );
 
     await list.evaluate((element) => {
       element.scrollTop = 0;

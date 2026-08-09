@@ -39,7 +39,7 @@ export const nativeYouTubePerformanceTest = base.extend<NativePerformanceFixture
       userAgent: getRealYouTubeBrowserUserAgent(headless)
     });
     const page = context.pages()[0] || (await context.newPage());
-    const transport = await NativeChatTransport.install(page);
+    const transport = await NativeChatTransport.install(page, { mode: 'takeover' });
     let chat: FrameLocator | null = null;
 
     try {

@@ -9,8 +9,9 @@ const PROJECT_REPORT_DIRS = new Map([
   ['extension-pages', 'playwright-report/extension-pages'],
   ['integrations', 'playwright-report/integrations'],
   ['youtube-mock', 'playwright-report/youtube-mock'],
-  ['youtube-real-logged-in', 'playwright-report/youtube-real-logged-in'],
-  ['youtube-real-logged-out', 'playwright-report/youtube-real-logged-out']
+  ['youtube-live-logged-in', 'playwright-report/youtube-live-logged-in'],
+  ['youtube-live-logged-out', 'playwright-report/youtube-live-logged-out'],
+  ['youtube-replay-logged-in', 'playwright-report/youtube-replay-logged-in']
 ]);
 
 export function createE2eTestPlan(args: string[]) {

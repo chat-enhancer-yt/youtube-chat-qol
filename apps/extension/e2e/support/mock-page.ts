@@ -1,8 +1,8 @@
 /**
- * Mock-page helpers for browser scenarios.
- *
- * A few behavior checks are intentionally mock-only because they need fully
- * deterministic page visibility or fixture-controlled incoming messages.
+ * Low-level controls exposed by the deterministic YouTube fixture.
+ * Surface-neutral live scenarios receive message ingress through
+ * `createMockControlledChat`; direct calls here are reserved for fixture-only
+ * behavior such as replay timing and feed-event ordering.
  */
 import type { Page } from '@playwright/test';
 import type { ChatSurface } from './chat-surface';

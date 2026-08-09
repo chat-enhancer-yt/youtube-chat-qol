@@ -1,7 +1,7 @@
 /** Native composer scenarios whose send request is intercepted before the network. */
 import { expect, test } from '@playwright/test';
 import { CHAT_INPUT_DRAFTS_STORAGE_KEY } from '../../src/features/chat-drafts/storage';
-import { requireNativeChatTransport } from '../support/controlled-chat';
+import { requireNativeChatTransport } from '../support/native-chat-transport';
 import {
   appendChatComposerText,
   clearChatComposer,
@@ -23,7 +23,7 @@ const MOCK_TRANSLATED_SEND = 'message traduit puis envoyé localement';
 export const interceptedNativeSendScenario: BrowserScenario = async ({ chat, transport }) => {
   const controlledChat = requireNativeChatTransport(transport);
   const text = `Intercepted native send ${Date.now()}`;
-  const previousSendCount = controlledChat.getSentMessages().length;
+  const capturedSend = controlledChat.captureNextSend();
 
   await test.step('Submit through YouTube’s native composer', async () => {
     await setChatComposerText(chat, text);
@@ -31,7 +31,7 @@ export const interceptedNativeSendScenario: BrowserScenario = async ({ chat, tra
   });
 
   const sent = await test.step('Verify the outbound request was intercepted', async () => {
-    const intercepted = await controlledChat.waitForSentMessage(previousSendCount);
+    const intercepted = await capturedSend;
     expect(intercepted.text).toBe(text);
     return intercepted;
   });
@@ -140,9 +140,9 @@ async function submitComposerAndExpectLocalSuccess(
   expectedText: string,
   expectEmptyComposer = true
 ): Promise<void> {
-  const previousSendCount = transport.getSentMessages().length;
+  const capturedSend = transport.captureNextSend();
   await getChatComposerInput(chat).press('Enter');
-  const sent = await transport.waitForSentMessage(previousSendCount);
+  const sent = await capturedSend;
   expect(sent.text).toBe(expectedText);
 
   if (expectEmptyComposer) {

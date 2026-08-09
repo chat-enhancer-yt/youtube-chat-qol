@@ -1,15 +1,19 @@
 /**
- * Controlled live-chat transport for tests that exercise YouTube's real client.
+ * Safe live-chat interception for tests that exercise YouTube's real client.
  *
- * The first continuation response comes from YouTube so its native client can
- * bootstrap normally. Later responses are fulfilled locally with queued
- * `addChatItemAction` values or an empty timed poll. YouTube remains solely
- * responsible for creating, updating, and retaining the resulting renderer
- * elements.
+ * Regular live tests proxy YouTube responses unchanged until a scenario queues
+ * synthetic messages. Performance tests can explicitly take over the
+ * continuation stream for fast, repeatable batches. YouTube remains solely
+ * responsible for creating, updating, and retaining every renderer element.
  */
 import type { Frame, Page, Request, Route } from '@playwright/test';
 import { randomBytes } from 'node:crypto';
 import { brotliDecompressSync, gunzipSync, inflateSync } from 'node:zlib';
+import type {
+  ControlledChat,
+  ControlledChatDelivery,
+  ControlledChatMessage
+} from './controlled-chat';
 
 const GET_LIVE_CHAT_PATH = '/youtubei/v1/live_chat/get_live_chat';
 const SEND_LIVE_CHAT_PATH = '/youtubei/v1/live_chat/send_message';
@@ -29,22 +33,26 @@ const MAX_ACTIONS_PER_RESPONSE = 25;
 const OUTBOUND_AUTHOR = '@CurrentViewer';
 const OUTBOUND_CHANNEL = 'UCYtcqVirtualCurrentViewer';
 
-export interface ControlledChatMessage {
-  author: string;
-  channel?: string;
-  text: string;
-}
-
-export interface ControlledChatDelivery {
-  deliveredIds: string[];
-  // Time until YouTube consumes every action-bearing continuation. Its client
-  // may render those actions later through the native smoothing queue.
-  durationMs: number;
-}
-
 export interface InterceptedChatSend {
   messageId: string;
   text: string;
+}
+
+type NativeChatTransportMode = 'passive' | 'takeover';
+
+interface NativeChatTransportOptions {
+  mode?: NativeChatTransportMode;
+}
+
+export function requireNativeChatTransport(
+  transport: NativeChatTransport | undefined
+): NativeChatTransport {
+  if (!transport) {
+    throw new Error(
+      'This scenario requires the native YouTube client with controlled continuation transport.'
+    );
+  }
+  return transport;
 }
 
 interface QueuedChatMessage {
@@ -55,32 +63,39 @@ interface QueuedChatMessage {
   resolve: () => void;
 }
 
+interface PendingSendCapture {
+  reject: (_error: Error) => void;
+  resolve: (_send: InterceptedChatSend) => void;
+}
+
 interface JsonObject {
   [key: string]: JsonValue;
 }
 
 type JsonValue = boolean | JsonObject | JsonValue[] | null | number | string;
 
-export class NativeChatTransport {
+export class NativeChatTransport implements ControlledChat {
+  private readonly mode: NativeChatTransportMode;
   private readonly page: Page;
   private readonly queuedMessages: QueuedChatMessage[] = [];
   private readonly pendingMessages: QueuedChatMessage[] = [];
-  private readonly sentMessages: InterceptedChatSend[] = [];
   private readonly frameNavigatedHandler: (_frame: Frame) => void;
   private readonly routeHandler: (_route: Route) => Promise<void>;
-  private readonly sendWaiters = new Set<() => void>();
   private readonly currentContinuationTokens = new Set<string>();
   private bootstrapResponse: JsonObject | null = null;
+  private contextMenuEndpoint: JsonObject | null = null;
   private continuationTurn: Promise<void> = Promise.resolve();
   private disposed = false;
   private messageSequence = 0;
   private navigationGeneration = 0;
+  private pendingSendCapture: PendingSendCapture | null = null;
   private responseSequence = 0;
   private readyPromise: Promise<void> = Promise.resolve();
   private rejectReady: (_error: Error) => void = () => undefined;
   private resolveReady: () => void = () => undefined;
 
-  private constructor(page: Page) {
+  private constructor(page: Page, mode: NativeChatTransportMode) {
+    this.mode = mode;
     this.page = page;
     this.frameNavigatedHandler = (frame) => this.handleFrameNavigated(frame);
     this.routeHandler = (route) => this.handleRoute(route);
@@ -92,10 +107,18 @@ export class NativeChatTransport {
       this.resolveReady = resolve;
       this.rejectReady = reject;
     });
+    // A late chat-frame navigation can replace this promise just before worker
+    // teardown, when no scenario is left to await it. Keep that expected close
+    // rejection from becoming an unhandled worker error; waiters still receive
+    // the rejection from the original promise.
+    void this.readyPromise.catch(() => undefined);
   }
 
-  static async install(page: Page): Promise<NativeChatTransport> {
-    const transport = new NativeChatTransport(page);
+  static async install(
+    page: Page,
+    { mode = 'passive' }: NativeChatTransportOptions = {}
+  ): Promise<NativeChatTransport> {
+    const transport = new NativeChatTransport(page, mode);
     page.on('framenavigated', transport.frameNavigatedHandler);
     await page.route('**/youtubei/v1/live_chat/**', transport.routeHandler);
     return transport;
@@ -105,7 +128,7 @@ export class NativeChatTransport {
     await withTimeout(
       this.readyPromise,
       timeoutMs,
-      'YouTube did not make a live-chat continuation request for the controlled transport.'
+      'YouTube did not make a live-chat continuation request through the test interceptor.'
     );
   }
 
@@ -141,21 +164,26 @@ export class NativeChatTransport {
     };
   }
 
-  getSentMessages(): readonly InterceptedChatSend[] {
-    return this.sentMessages;
-  }
-
-  async waitForSentMessage(
-    previousCount = 0,
+  captureNextSend(
     timeoutMs = DEFAULT_DELIVERY_TIMEOUT_MS
   ): Promise<InterceptedChatSend> {
-    await withTimeout(this.waitForSendCount(previousCount + 1), timeoutMs, [
-      'YouTube did not issue the expected live-chat send request.',
-      'The request was not forwarded to YouTube.'
-    ].join(' '));
-    const sentMessage = this.sentMessages[previousCount];
-    if (!sentMessage) throw new Error('The intercepted send request was not recorded.');
-    return sentMessage;
+    if (this.disposed) throw new Error('The live-chat interceptor is closed.');
+    if (this.pendingSendCapture) {
+      throw new Error('A live-chat send capture is already armed.');
+    }
+
+    let capture: PendingSendCapture;
+    const captured = new Promise<InterceptedChatSend>((resolve, reject) => {
+      capture = { reject, resolve };
+      this.pendingSendCapture = capture;
+    });
+    return withTimeout(
+      captured,
+      timeoutMs,
+      'YouTube did not issue the expected intercepted live-chat send request.'
+    ).finally(() => {
+      if (this.pendingSendCapture === capture) this.pendingSendCapture = null;
+    });
   }
 
   async dispose(): Promise<void> {
@@ -165,7 +193,8 @@ export class NativeChatTransport {
     this.rejectReady(error);
     this.queuedMessages.splice(0).forEach((message) => message.reject(error));
     this.pendingMessages.splice(0).forEach((message) => message.reject(error));
-    this.signalSends();
+    this.pendingSendCapture?.reject(error);
+    this.pendingSendCapture = null;
     this.page.off('framenavigated', this.frameNavigatedHandler);
     await this.page.unroute('**/youtubei/v1/live_chat/**', this.routeHandler);
   }
@@ -173,24 +202,69 @@ export class NativeChatTransport {
   private async handleRoute(route: Route): Promise<void> {
     const pathname = new URL(route.request().url()).pathname;
     if (pathname === GET_LIVE_CHAT_PATH) {
+      if (this.mode === 'passive') {
+        await this.handlePassiveContinuation(route);
+        return;
+      }
       const navigationGeneration = this.acceptContinuationRequest(route.request());
       if (navigationGeneration === null) {
         await route.abort('aborted').catch(() => undefined);
         return;
       }
-      await this.handleContinuation(route, navigationGeneration);
+      await this.handleTakeoverContinuation(route, navigationGeneration);
       return;
     }
     if (pathname === SEND_LIVE_CHAT_PATH) {
       await this.handleSend(route);
       return;
     }
-    // Controlled sessions must fail closed: an unfamiliar live-chat endpoint
-    // may be a renamed write operation and must never reach YouTube.
+    if (this.mode === 'passive') {
+      // Normal live scenarios only intercept continuation data and sends.
+      // YouTube still owns read-only side requests such as message menus.
+      await route.continue();
+      return;
+    }
+    // Takeover sessions must fail closed: an unfamiliar live-chat endpoint may
+    // mutate server state and must never reach YouTube.
     await route.abort('blockedbyclient');
   }
 
-  private async handleContinuation(route: Route, navigationGeneration: number): Promise<void> {
+  private async handlePassiveContinuation(route: Route): Promise<void> {
+    this.acknowledgePendingMessages();
+
+    try {
+      const response = await route.fetch();
+      const body = asJsonObject(await response.json());
+      if (body) {
+        this.bootstrapResponse = cloneJson(body);
+        this.contextMenuEndpoint ||= getContextMenuEndpoint(body);
+      }
+      this.resolveReady();
+
+      const messages = this.peekQueuedMessages();
+      const continuation = body ? getLiveChatContinuation(body) : null;
+      if (messages.length === 0 || !continuation) {
+        await route.fulfill({ response });
+        return;
+      }
+
+      const actions = Array.isArray(continuation.actions) ? continuation.actions : [];
+      continuation.actions = [...actions, ...messages.map((message) => message.action)];
+      await route.fulfill({ response, json: body });
+      this.queuedMessages.splice(0, messages.length);
+      this.pendingMessages.push(...messages);
+    } catch (error) {
+      const transportError = toError(error, 'Could not proxy the live-chat continuation.');
+      this.rejectReady(transportError);
+      this.queuedMessages.splice(0).forEach((message) => message.reject(transportError));
+      await route.abort('failed').catch(() => undefined);
+    }
+  }
+
+  private async handleTakeoverContinuation(
+    route: Route,
+    navigationGeneration: number
+  ): Promise<void> {
     if (!this.bootstrapResponse) {
       await this.handleBootstrapContinuation(route);
       return;
@@ -247,7 +321,11 @@ export class NativeChatTransport {
 
     this.navigationGeneration += 1;
     this.bootstrapResponse = null;
+    this.contextMenuEndpoint = null;
     this.currentContinuationTokens.clear();
+    const error = new Error('Live chat navigated before the queued test data was delivered.');
+    this.queuedMessages.splice(0).forEach((message) => message.reject(error));
+    this.pendingMessages.splice(0).forEach((message) => message.reject(error));
     this.resetReadyPromise();
   }
 
@@ -282,6 +360,7 @@ export class NativeChatTransport {
       }
 
       this.bootstrapResponse = body;
+      this.contextMenuEndpoint = getContextMenuEndpoint(body);
       const bootstrapBody = cloneJson(body);
       const continuation = getLiveChatContinuation(bootstrapBody);
       if (!continuation) throw new Error('Could not clone YouTube live-chat continuation data.');
@@ -302,29 +381,39 @@ export class NativeChatTransport {
   }
 
   private async handleSend(route: Route): Promise<void> {
-    const text = extractSentText(parseRequestBody(route.request()));
-    if (!text) {
-      await route.abort('failed').catch(() => undefined);
-      throw new Error('Could not parse the intercepted YouTube live-chat send payload.');
+    const capture = this.pendingSendCapture;
+    this.pendingSendCapture = null;
+    if (!capture) {
+      await route.abort('blockedbyclient').catch(() => undefined);
+      return;
     }
-    const queuedMessage = this.createQueuedMessage({
-      author: OUTBOUND_AUTHOR,
-      channel: OUTBOUND_CHANNEL,
-      text
-    });
-    const { action, id: messageId } = queuedMessage;
 
-    this.queuedMessages.push(queuedMessage);
-    void queuedMessage.delivered.catch(() => undefined);
-    this.sentMessages.push({ messageId, text });
-    this.signalSends();
-    await route.fulfill({
-      json: {
-        actions: [action],
-        responseContext: getResponseContext(this.bootstrapResponse)
-      },
-      status: 200
-    });
+    try {
+      const text = extractSentText(parseRequestBody(route.request()));
+      if (!text) throw new Error('Could not parse the intercepted live-chat send payload.');
+
+      const queuedMessage = this.createQueuedMessage({
+        author: OUTBOUND_AUTHOR,
+        channel: OUTBOUND_CHANNEL,
+        text
+      });
+      const { action, id: messageId } = queuedMessage;
+      this.queuedMessages.push(queuedMessage);
+      void queuedMessage.delivered.catch(() => undefined);
+
+      await route.fulfill({
+        json: {
+          actions: [action],
+          responseContext: getResponseContext(this.bootstrapResponse)
+        },
+        status: 200
+      });
+      capture.resolve({ messageId, text });
+    } catch (error) {
+      const transportError = toError(error, 'Could not intercept the live-chat send request.');
+      capture.reject(transportError);
+      await route.abort('failed').catch(() => undefined);
+    }
   }
 
   private createQueuedMessage(message: ControlledChatMessage): QueuedChatMessage {
@@ -353,7 +442,7 @@ export class NativeChatTransport {
     const author = message.author.startsWith('@') ? message.author : `@${message.author}`;
     const channel = message.channel || `UCYtcqNative${this.messageSequence}`;
     const timestampUsec = String(Date.now() * 1_000 + this.messageSequence);
-    const renderer = {
+    const renderer: JsonObject = {
       authorExternalChannelId: channel,
       authorName: { simpleText: author },
       authorPhoto: {
@@ -369,6 +458,9 @@ export class NativeChatTransport {
       message: { runs: [{ text: message.text }] },
       timestampUsec
     };
+    if (this.contextMenuEndpoint) {
+      renderer.contextMenuEndpoint = cloneJson(this.contextMenuEndpoint);
+    }
 
     return {
       addChatItemAction: {
@@ -413,22 +505,6 @@ export class NativeChatTransport {
     return this.queuedMessages.slice(0, MAX_ACTIONS_PER_RESPONSE);
   }
 
-  private waitForSendCount(expectedCount: number): Promise<void> {
-    if (this.sentMessages.length >= expectedCount) return Promise.resolve();
-    return new Promise<void>((resolve) => {
-      const check = () => {
-        if (this.disposed || this.sentMessages.length >= expectedCount) {
-          this.sendWaiters.delete(check);
-          resolve();
-        }
-      };
-      this.sendWaiters.add(check);
-    });
-  }
-
-  private signalSends(): void {
-    [...this.sendWaiters].forEach((check) => check());
-  }
 }
 
 function getLiveChatContinuation(response: JsonObject): JsonObject | null {
@@ -444,6 +520,21 @@ function getMessageId(action: JsonObject): string {
   const item = asJsonObject(addAction?.item);
   const renderer = asJsonObject(item?.liveChatTextMessageRenderer);
   return typeof renderer?.id === 'string' ? renderer.id : '';
+}
+
+function getContextMenuEndpoint(response: JsonObject): JsonObject | null {
+  const continuation = getLiveChatContinuation(response);
+  if (!Array.isArray(continuation?.actions)) return null;
+
+  for (const value of continuation.actions) {
+    const action = asJsonObject(value);
+    const addAction = asJsonObject(action?.addChatItemAction);
+    const item = asJsonObject(addAction?.item);
+    const renderer = asJsonObject(item?.liveChatTextMessageRenderer);
+    const endpoint = asJsonObject(renderer?.contextMenuEndpoint);
+    if (endpoint) return cloneJson(endpoint);
+  }
+  return null;
 }
 
 function asJsonObject(value: unknown): JsonObject | null {

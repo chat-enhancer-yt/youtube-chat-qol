@@ -1,42 +1,42 @@
 /** Browser scenarios for profile mentions behavior. */
 import { expect, test } from '@playwright/test';
-import { appendMockFixtureMessage, isMockPageSurface } from '../../support/mock-page';
+import { requireControlledChat } from '../../support/controlled-chat';
 import { NORMAL_CHAT_MESSAGE_SELECTOR, type BrowserScenario } from '../types';
 import { expectProfileCardPositionedFromAnchor } from './card-assertions';
 import { closeProfileCard, escapeCssString } from './card-fixture';
 
-export const profileMentionOpensRecentMessagesScenario: BrowserScenario = async ({ chat }) => {
+export const profileMentionOpensRecentMessagesScenario: BrowserScenario = async ({
+  chat,
+  controlledChat
+}) => {
   await test.step('Open mentioned-user history from an inline handle', async () => {
-    if (!isMockPageSurface(chat)) {
-      throw new Error('Clickable profile mentions require the deterministic mock chat page.');
-    }
+    const incoming = requireControlledChat(controlledChat);
 
     const mentionedAuthor = '@MentionedProfileViewer';
     const mentionText = mentionedAuthor.toLowerCase();
-    const mentionedChannel = 'mentioned-profile-channel';
+    const mentionedChannel = 'UCMentionedProfileViewer';
     const nestedAuthor = '@NestedProfileViewer';
     const nestedMentionText = nestedAuthor.toLowerCase();
     const nestedHistoryText = `Nested profile history ${Date.now()}`;
     const historyText = `Please ask ${nestedMentionText} next`;
-    await appendMockFixtureMessage(chat, {
+    await incoming.injectMessage({
       author: nestedAuthor,
-      channel: 'nested-profile-channel',
+      channel: 'UCNestedProfileViewer',
       text: nestedHistoryText
     });
-    await appendMockFixtureMessage(chat, {
+    await incoming.injectMessage({
       author: mentionedAuthor,
       channel: mentionedChannel,
       text: historyText
     });
-    const mentionMessageId = await appendMockFixtureMessage(chat, {
+    const mentionMessageId = await incoming.injectMessage({
       author: '@MentioningProfileViewer',
-      channel: 'mentioning-profile-channel',
+      channel: 'UCMentioningProfileViewer',
       text: `Please ask ${mentionText}, not @mentionedprofile or @NoMatchingProfileViewer`
     });
-    expect(mentionMessageId).not.toBeNull();
 
     const mentionMessage = chat.locator(
-      `${NORMAL_CHAT_MESSAGE_SELECTOR}[id="${escapeCssString(mentionMessageId || '')}"]`
+      `${NORMAL_CHAT_MESSAGE_SELECTOR}[id="${escapeCssString(mentionMessageId)}"]`
     );
     const mention = mentionMessage.locator('.ytcq-profile-mention').filter({
       hasText: mentionText
@@ -56,7 +56,7 @@ export const profileMentionOpensRecentMessagesScenario: BrowserScenario = async 
       hasText: nestedMentionText
     });
     await expect(nestedMention).toBeVisible();
-    await chat.evaluate(() => {
+    await chat.locator('html').evaluate(() => {
       const testWindow = window as typeof window & {
         ytcqBrowserProfileMentionRect?: { left: number; right: number; top: number };
       };
@@ -81,7 +81,7 @@ export const profileMentionOpensRecentMessagesScenario: BrowserScenario = async 
       );
     });
     await nestedMention.click();
-    const nestedMentionRect = await chat.evaluate(() => {
+    const nestedMentionRect = await chat.locator('html').evaluate(() => {
       const testWindow = window as typeof window & {
         ytcqBrowserProfileMentionRect?: { left: number; right: number; top: number };
       };

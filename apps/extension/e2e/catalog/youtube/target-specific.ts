@@ -1,0 +1,81 @@
+import { bookmarkPopupRenderingScenario } from '../../scenarios/bookmarks';
+import { delayedChatPanelNavigationScenario } from '../../scenarios/navigation';
+import { nativeContinuationRendererScenario } from '../../scenarios/native-renderer';
+import { popupResetScenario } from '../../scenarios/popup-reset';
+import {
+  interceptedFocusSendRestoresMentionScenario,
+  interceptedNativeSendScenario,
+  interceptedSendClearsStoredDraftScenario,
+  interceptedTranslatedNativeSendScenario
+} from '../../scenarios/safe-send';
+import { popupSettingsBehaviorScenario } from '../../scenarios/settings';
+import { tabAlertScenario } from '../../scenarios/tab-alert';
+import { youtubeScenarioTargets as target, type YouTubeScenario } from './model';
+
+const popupReason =
+  'Exercises extension-popup state against isolated deterministic storage rather than a YouTube chat surface.';
+const interceptedSendReason =
+  'Requires a locally intercepted YouTube send response without posting a real message.';
+
+export const targetSpecificScenarios: readonly YouTubeScenario[] = [
+  {
+    title: 'popup fully renders saved messages and remembered rings',
+    run: bookmarkPopupRenderingScenario,
+    on: [target.mockLiveLoggedIn],
+    reason: popupReason
+  },
+  {
+    title: 'extension popup settings persist options',
+    run: popupSettingsBehaviorScenario,
+    on: [target.mockLiveLoggedIn],
+    reason: popupReason
+  },
+  {
+    title: 'popup reset restores defaults and clears local data',
+    run: popupResetScenario,
+    on: [target.mockLiveLoggedIn],
+    reason: popupReason
+  },
+  {
+    title: 'background tab alert updates title and favicon',
+    run: tabAlertScenario,
+    on: [target.mockLiveLoggedIn],
+    reason: 'Requires forced isolated-world visibility and fixture-owned title/favicon state.'
+  },
+  {
+    title: 'collapsed live chat panel opens after delayed page navigation',
+    run: delayedChatPanelNavigationScenario,
+    on: [target.mockLiveLoggedOut],
+    reason: 'Builds a synthetic delayed top-level watch page and iframe.'
+  },
+  {
+    title: 'YouTube renders an intercepted continuation message',
+    run: nativeContinuationRendererScenario,
+    on: [target.liveLoggedOut],
+    reason: 'Verifies YouTube consumes the intercepted continuation protocol itself.'
+  },
+  {
+    title: 'composer send is intercepted and handled without posting',
+    run: interceptedNativeSendScenario,
+    on: [target.liveLoggedIn],
+    reason: interceptedSendReason
+  },
+  {
+    title: 'translated composer text sends only to the local interceptor',
+    run: interceptedTranslatedNativeSendScenario,
+    on: [target.liveLoggedIn],
+    reason: interceptedSendReason
+  },
+  {
+    title: 'intercepted send clears the saved draft',
+    run: interceptedSendClearsStoredDraftScenario,
+    on: [target.liveLoggedIn],
+    reason: interceptedSendReason
+  },
+  {
+    title: 'Focus restores its mention after an intercepted send',
+    run: interceptedFocusSendRestoresMentionScenario,
+    on: [target.liveLoggedIn],
+    reason: interceptedSendReason
+  }
+];

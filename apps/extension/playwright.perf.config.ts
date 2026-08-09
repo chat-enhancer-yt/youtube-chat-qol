@@ -29,7 +29,7 @@ export default defineConfig({
   projects: [
     createPerformanceProject('youtube-mock-perf', /mock\/.*\.spec\.ts/),
     createPerformanceProject(
-      'youtube-native-transport-perf',
+      'youtube-live-performance',
       /native-transport\/.*\.spec\.ts/
     )
   ],

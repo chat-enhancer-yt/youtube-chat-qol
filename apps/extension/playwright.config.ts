@@ -45,34 +45,27 @@ export default defineConfig({
     },
     {
       name: 'youtube-mock',
-      testMatch: /specs\/youtube\/mock\/.*\.spec\.ts/,
+      testMatch: /specs\/youtube\/mock\.spec\.ts/,
       use: failureArtifactUse
     },
     {
-      name: 'youtube-real-logged-out',
-      testMatch: /specs\/youtube\/real\/.*\/logged-out\/.*\.spec\.ts/,
-      use: shouldCaptureE2eFailureArtifacts('youtube-real-logged-out')
+      name: 'youtube-live-logged-out',
+      testMatch: /specs\/youtube\/live-logged-out\.spec\.ts/,
+      use: shouldCaptureE2eFailureArtifacts('youtube-live-logged-out')
         ? failureArtifactUse
         : disabledArtifactUse
     },
     {
-      name: 'youtube-native-transport-logged-out',
-      testMatch: /specs\/youtube\/native-transport\/.*\/logged-out\/.*\.spec\.ts/,
-      use: shouldCaptureE2eFailureArtifacts('youtube-native-transport-logged-out')
+      name: 'youtube-live-logged-in',
+      testMatch: /specs\/youtube\/live-logged-in\.spec\.ts/,
+      use: shouldCaptureE2eFailureArtifacts('youtube-live-logged-in')
         ? failureArtifactUse
         : disabledArtifactUse
     },
     {
-      name: 'youtube-native-transport-logged-in',
-      testMatch: /specs\/youtube\/native-transport\/.*\/logged-in\/.*\.spec\.ts/,
-      use: shouldCaptureE2eFailureArtifacts('youtube-native-transport-logged-in')
-        ? failureArtifactUse
-        : disabledArtifactUse
-    },
-    {
-      name: 'youtube-real-logged-in',
-      testMatch: /specs\/youtube\/real\/.*\/logged-in\/.*\.spec\.ts/,
-      use: shouldCaptureE2eFailureArtifacts('youtube-real-logged-in')
+      name: 'youtube-replay-logged-in',
+      testMatch: /specs\/youtube\/replay-logged-in\.spec\.ts/,
+      use: shouldCaptureE2eFailureArtifacts('youtube-replay-logged-in')
         ? failureArtifactUse
         : disabledArtifactUse
     },

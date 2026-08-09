@@ -1,9 +1,11 @@
 /** Browser scenarios for display translation behavior. */
 import { expect, test, type BrowserContext, type Locator } from '@playwright/test';
-import { requireNativeChatTransport } from '../../support/controlled-chat';
+import {
+  requireControlledChat,
+  type ControlledChat
+} from '../../support/controlled-chat';
 import { closeFocusPromptIfPresent } from '../../support/focus-panel';
 import { centerLocatorInViewport } from '../../support/locator';
-import type { NativeChatTransport } from '../../support/native-chat-transport';
 import { cleanVisibleText } from '../../support/text';
 import { withMockedTranslationEndpoint } from '../../support/translation-endpoint';
 import {
@@ -13,11 +15,13 @@ import {
 } from '../types';
 import {
   escapeCssAttributeValue,
-  expectToggleableReplacement,
-  findRenderedTranslation,
-  waitForSourceChatMessage
+  expectToggleableReplacement
 } from './rendering';
-import { withTranslationCleared, withTranslationEnabled } from './storage';
+import {
+  waitForTranslationsCleared,
+  withTranslationCleared,
+  withTranslationEnabled
+} from './storage';
 import {
   DISPLAY_TARGET_LANGUAGE,
   DISPLAY_TRANSLATED_TEXT,
@@ -26,42 +30,53 @@ import {
   TOGGLE_TRANSLATED_TEXT
 } from './test-data';
 
-export const translationDisplayScenario: BrowserScenario = async ({ chat, context }) => {
-  await waitForSourceChatMessage(chat);
-  await expectTranslationDisplayModes({ chat, context });
+export const translationDisplayScenario: BrowserScenario = async ({
+  chat,
+  context,
+  controlledChat
+}) => {
+  await expectTranslationDisplayModes({
+    chat,
+    context,
+    controlledChat: requireControlledChat(controlledChat)
+  });
 };
 
 export const replacedTranslationToggleSurfacesScenario: BrowserScenario = async ({
   chat,
   context,
-  transport
+  controlledChat
 }) => {
   await expectReplacedTranslationToggleSurfaces({
     chat,
     context,
-    transport: requireNativeChatTransport(transport)
+    controlledChat: requireControlledChat(controlledChat)
   });
 };
 
 async function expectTranslationDisplayModes({
   chat,
-  context
+  context,
+  controlledChat
 }: {
   chat: ChatSurface;
   context: BrowserContext;
+  controlledChat: ControlledChat;
 }): Promise<void> {
   await test.step('Use mocked translation endpoint for display modes', async () => {
     await withMockedTranslationEndpoint(context, DISPLAY_TRANSLATED_TEXT, async () => {
       await withTranslationCleared({ chat, context, targetLanguage: DISPLAY_TARGET_LANGUAGE, callback: async () => {
-        const { sourceMessage, sourceText } = await expectBelowDisplayMode({
+        await expectBelowDisplayMode({
           chat,
           context,
+          controlledChat,
           expectedText: DISPLAY_TRANSLATED_TEXT
         });
+        await waitForTranslationsCleared(chat);
         await expectReplaceDisplayMode({
+          chat,
           context,
-          sourceMessage,
-          sourceText,
+          controlledChat,
           expectedText: DISPLAY_TRANSLATED_TEXT
         });
       } });
@@ -72,43 +87,48 @@ async function expectTranslationDisplayModes({
 async function expectBelowDisplayMode({
   chat,
   context,
+  controlledChat,
   expectedText
 }: {
   chat: ChatSurface;
   context: BrowserContext;
+  controlledChat: ControlledChat;
   expectedText?: string;
-}): Promise<{
-  sourceMessage: Locator;
-  sourceText: string;
-}> {
+}): Promise<void> {
   return test.step('Render translation below the original message', async () => {
     return withTranslationEnabled({
       context,
       targetLanguage: DISPLAY_TARGET_LANGUAGE,
       translationDisplay: 'below',
       callback: async () => {
-        const { sourceMessage, sourceText, translation } = await findRenderedTranslation({
-          chat,
-          targetLanguage: DISPLAY_TARGET_LANGUAGE,
-          expectedText
+        const sourceText = 'Gracias por probar la traducción debajo';
+        const messageId = await controlledChat.injectMessage({
+          author: '@TranslationBelowViewer',
+          channel: 'UCTranslationBelowViewer',
+          text: sourceText
         });
+        const sourceMessage = getSourceMessage(chat, { messageId });
+        const translation = sourceMessage.locator(
+          `.ytcq-translation[lang="${DISPLAY_TARGET_LANGUAGE}"]`
+        );
+        await expect(translation).toBeVisible({ timeout: 20_000 });
+        if (expectedText) await expect(translation).toContainText(expectedText);
         await expect(sourceMessage.locator('#message')).toContainText(sourceText);
         await expect(sourceMessage).not.toHaveClass(/ytcq-translation-replaced/);
-        return { sourceMessage, sourceText, translation };
       }
     });
   });
 }
 
 async function expectReplaceDisplayMode({
+  chat,
   context,
-  sourceMessage,
-  sourceText,
+  controlledChat,
   expectedText
 }: {
+  chat: ChatSurface;
   context: BrowserContext;
-  sourceMessage: Locator;
-  sourceText: string;
+  controlledChat: ControlledChat;
   expectedText?: string;
 }): Promise<void> {
   await test.step('Render translation as a message replacement', async () => {
@@ -117,6 +137,13 @@ async function expectReplaceDisplayMode({
       targetLanguage: DISPLAY_TARGET_LANGUAGE,
       translationDisplay: 'replace',
       callback: async () => {
+        const sourceText = 'Gracias por probar la traducción reemplazada';
+        const messageId = await controlledChat.injectMessage({
+          author: '@TranslationReplaceViewer',
+          channel: 'UCTranslationReplaceViewer',
+          text: sourceText
+        });
+        const sourceMessage = getSourceMessage(chat, { messageId });
         const messageText = sourceMessage.locator('#message').first();
         await expect(sourceMessage).toHaveClass(/ytcq-translation-replaced/, { timeout: 20_000 });
         await expect(messageText).toHaveClass(/ytcq-translation-replaced-text/);
@@ -138,11 +165,11 @@ async function expectReplaceDisplayMode({
 async function expectReplacedTranslationToggleSurfaces({
   chat,
   context,
-  transport
+  controlledChat
 }: {
   chat: ChatSurface;
   context: BrowserContext;
-  transport: NativeChatTransport;
+  controlledChat: ControlledChat;
 }): Promise<void> {
   await test.step('Use mocked translation endpoint for replaced toggle surfaces', async () => {
     await withMockedTranslationEndpoint(context, TOGGLE_TRANSLATED_TEXT, async () => {
@@ -152,7 +179,7 @@ async function expectReplacedTranslationToggleSurfaces({
           targetLanguage: TOGGLE_TARGET_LANGUAGE,
           translationDisplay: 'replace',
           callback: async () => {
-            const source = await deliverTranslatedToggleMessage(chat, transport);
+            const source = await deliverTranslatedToggleMessage(chat, controlledChat);
             await expectLiveMessageReplacementToggle(chat, source);
             await expectProfileCardReplacementToggle(chat, source);
             await expectFocusPanelReplacementToggle(chat, source);
@@ -165,14 +192,14 @@ async function expectReplacedTranslationToggleSurfaces({
 
 async function deliverTranslatedToggleMessage(
   chat: ChatSurface,
-  transport: NativeChatTransport
+  controlledChat: ControlledChat
 ): Promise<{
   authorName: string;
   messageId: string;
   sourceText: string;
 }> {
   return test.step('Deliver a deterministic translatable continuation message', async () => {
-    const messageId = await transport.injectMessage({
+    const messageId = await controlledChat.injectMessage({
       author: '@ToggleViewer',
       text: 'Gracias por probar el cambio'
     });
