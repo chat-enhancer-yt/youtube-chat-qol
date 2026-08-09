@@ -236,6 +236,28 @@ describe('inbox coordinator', () => {
     expect(tabAlertMocks.showInboxTabAlert).toHaveBeenCalledWith(1);
   });
 
+  it('commits a multi-message feed batch with one save, card refresh, and alert', async () => {
+    inboxTestState.keywords = ['alpha'];
+    inboxTestState.matchingKeywords = ['alpha'];
+    initInbox();
+    await Promise.resolve();
+    vi.clearAllMocks();
+
+    dispatchNewFeedRecords([
+      { id: 'batch-one', plainText: 'hello alpha one' },
+      { id: 'batch-two', plainText: 'hello alpha two' },
+      { id: 'batch-three', plainText: 'hello alpha three' }
+    ]);
+
+    expect(stateMocks.upsertInboxRecord).toHaveBeenCalledTimes(3);
+    expect(stateMocks.markInboxRecordsRead).not.toHaveBeenCalled();
+    expect(stateMocks.saveInboxRecords).toHaveBeenCalledOnce();
+    expect(cardMocks.refreshOpenInboxCard).toHaveBeenCalledOnce();
+    expect(soundMocks.playAlertSound).toHaveBeenCalledOnce();
+    expect(buttonMocks.refreshInboxSurfaces).toHaveBeenCalledOnce();
+    expect(tabAlertMocks.showInboxTabAlert).toHaveBeenCalledOnce();
+  });
+
   it('handles added and existing rows through the feature dispatcher', async () => {
     inboxTestState.keywords = ['alpha'];
     inboxTestState.matchingKeywords = ['alpha'];
@@ -250,6 +272,23 @@ describe('inbox coordinator', () => {
     expect(stateMocks.attachLiveInboxMessage).toHaveBeenCalledWith(addedMessage);
     expect(stateMocks.attachLiveInboxMessage).not.toHaveBeenCalledWith(touchedMessage);
     expect(highlightMocks.applyChatKeywordHighlights).toHaveBeenCalledWith(touchedMessage, ['alpha'], '@ViewerTouched|hello alpha');
+  });
+
+  it('coalesces live-message card refreshes into one animation frame', async () => {
+    inboxTestState.inboxOpen = true;
+    const firstMessage = createMessage('@ViewerOne', 'hello one');
+    const secondMessage = createMessage('@ViewerTwo', 'hello two');
+    document.body.append(firstMessage, secondMessage);
+    stateMocks.attachLiveInboxMessage
+      .mockReturnValueOnce(true)
+      .mockReturnValueOnce(true);
+
+    handleFeatureMessage(firstMessage, { source: 'added' });
+    handleFeatureMessage(secondMessage, { source: 'added' });
+
+    expect(cardMocks.refreshOpenInboxCard).not.toHaveBeenCalled();
+    await waitForAnimationFrame();
+    expect(cardMocks.refreshOpenInboxCard).toHaveBeenCalledOnce();
   });
 
   it('wires the inbox button and binds changed message rows through the lifecycle', () => {
@@ -595,12 +634,23 @@ function createFeedRecord(id: string, plainText: string) {
 }
 
 function dispatchNewFeedRecord(id: string, plainText: string): void {
+  dispatchNewFeedRecords([{ id, plainText }]);
+}
+
+function dispatchNewFeedRecords(records: Array<{ id: string; plainText: string }>): void {
   inboxTestState.feedOnBatch?.({
-    actions: [{ record: createFeedRecord(id, plainText), type: 'upsert' }],
+    actions: records.map(({ id, plainText }) => ({
+      record: createFeedRecord(id, plainText),
+      type: 'upsert' as const
+    })),
     activity: 'new',
     delivery: 'transport',
     receivedAt: 1,
     sequence: 1,
     source: 'live'
   });
+}
+
+function waitForAnimationFrame(): Promise<void> {
+  return new Promise((resolve) => window.requestAnimationFrame(() => resolve()));
 }

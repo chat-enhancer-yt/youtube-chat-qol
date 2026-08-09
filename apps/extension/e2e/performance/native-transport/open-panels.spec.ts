@@ -37,7 +37,7 @@ const PANEL_KEYWORD = 'panelwatch';
 const BUDGETS = {
   continuationIngressMs: 2_500,
   heapGrowthMb: 80,
-  maxLongTaskMs: 1_200,
+  maxLongTaskMs: 300,
   panelUpdateMs: 5_000,
   p95FrameGapMs: 350
 };

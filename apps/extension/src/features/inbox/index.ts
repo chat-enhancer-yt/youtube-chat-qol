@@ -92,6 +92,14 @@ interface PendingChatFeedRecord {
   source: 'live' | 'replay';
 }
 
+interface InboxCommitEffects {
+  alert: boolean;
+  markRead: boolean;
+  refreshCard: boolean;
+  save: boolean;
+}
+
+let inboxCardRefreshFrame = 0;
 let unsubscribeChatFeed: (() => void) | null = null;
 let unsubscribeMentionCandidatesChanged: (() => void) | null = null;
 
@@ -147,7 +155,9 @@ function handleInboxMessage(
 ): void {
   if (source === 'added' || source === 'changed') {
     if (!message.isConnected || !getMessageText(message)) return;
-    if (attachLiveInboxMessage(message)) refreshOpenInboxCard();
+    if (attachLiveInboxMessage(message) && isInboxCardOpen()) {
+      scheduleOpenInboxCardRefresh();
+    }
   }
   highlightPotentialInboxKeywords(message);
 }
@@ -187,6 +197,7 @@ function shouldIgnoreInboxHighlightMutation(element: Element): boolean {
 }
 
 export function resetInboxState(): void {
+  cancelOpenInboxCardRefresh();
   pendingChatFeedRecords.clear();
   pendingMentionChatFeedRecords.clear();
   resetInboxStore();
@@ -200,6 +211,7 @@ export function resetInboxState(): void {
 }
 
 export function cleanupStaleInboxSurfaces(): void {
+  cancelOpenInboxCardRefresh();
   stopInboxChatFeed();
   unsubscribeMentionCandidatesChanged?.();
   unsubscribeMentionCandidatesChanged = null;
@@ -254,7 +266,7 @@ export async function removeInboxKeywords(values: string[]): Promise<{
   return result;
 }
 
-function commitInboxRecord(record: InboxRecord): void {
+function commitInboxRecord(record: InboxRecord, effects: InboxCommitEffects): void {
   const isReadNow = Boolean(isInboxCardOpen() && isCurrentTabActive());
   const result = upsertInboxRecord({
     ...record,
@@ -262,21 +274,46 @@ function commitInboxRecord(record: InboxRecord): void {
   }, isReadNow);
 
   if (!result.changed && result.transientChanged) {
-    refreshOpenInboxCard();
+    effects.refreshCard = true;
     return;
   }
   if (!result.changed) return;
 
-  void saveInboxRecords();
-  refreshOpenInboxCard();
+  effects.alert ||= !isReadNow;
+  effects.markRead ||= isReadNow;
+  effects.refreshCard = true;
+  effects.save = true;
+}
 
-  if (isReadNow) {
-    markInboxRead();
-  } else {
+function applyInboxCommitEffects(effects: InboxCommitEffects): void {
+  let shouldSave = effects.save;
+  if (effects.markRead) {
+    const readStateChanged = markInboxRecordsRead();
+    shouldSave ||= readStateChanged;
+    clearInboxTabAlert();
+    refreshInboxSurfaces(getUnreadInboxCount);
+  }
+  if (shouldSave) void saveInboxRecords();
+  if (effects.refreshCard) refreshOpenInboxCard();
+
+  if (effects.alert && !effects.markRead) {
     playAlertSound('message');
     refreshInboxSurfaces(getUnreadInboxCount);
     showInboxTabAlert(getUnreadInboxCount());
   }
+}
+
+function scheduleOpenInboxCardRefresh(): void {
+  if (inboxCardRefreshFrame) return;
+  inboxCardRefreshFrame = window.requestAnimationFrame(() => {
+    inboxCardRefreshFrame = 0;
+    refreshOpenInboxCard();
+  });
+}
+
+function cancelOpenInboxCardRefresh(): void {
+  if (inboxCardRefreshFrame) window.cancelAnimationFrame(inboxCardRefreshFrame);
+  inboxCardRefreshFrame = 0;
 }
 
 function startInboxChatFeed(): void {
@@ -299,10 +336,11 @@ function handleInboxChatFeedBatch(batch: YouTubeChatFeedBatch): void {
   const replayTimeline = batch.delivery === 'replay-timeline';
   if (!replayTimeline && batch.source !== 'live' && batch.source !== 'replay') return;
   const source = replayTimeline || batch.source === 'replay' ? 'replay' : 'live';
+  const pending: PendingChatFeedRecord[] = [];
 
   batch.actions.forEach((action) => {
     if (action.type !== 'upsert') return;
-    enqueueInboxChatFeedRecord({
+    pending.push({
       receivedAt: batch.receivedAt,
       record: action.record,
       ...(action.replayOffsetMs !== undefined
@@ -311,16 +349,20 @@ function handleInboxChatFeedBatch(batch: YouTubeChatFeedBatch): void {
       source
     });
   });
+  enqueueInboxChatFeedRecords(pending);
 }
 
-function enqueueInboxChatFeedRecord(pending: PendingChatFeedRecord): void {
+function enqueueInboxChatFeedRecords(pending: readonly PendingChatFeedRecord[]): void {
+  if (!pending.length) return;
   if (isInboxStateLoaded()) {
-    processInboxChatFeedRecord(pending);
+    processInboxChatFeedRecords(pending);
     return;
   }
 
-  pendingChatFeedRecords.delete(pending.record.id);
-  pendingChatFeedRecords.set(pending.record.id, pending);
+  pending.forEach((record) => {
+    pendingChatFeedRecords.delete(record.record.id);
+    pendingChatFeedRecords.set(record.record.id, record);
+  });
   while (pendingChatFeedRecords.size > MAX_PENDING_CHAT_FEED_RECORDS) {
     const oldestId = pendingChatFeedRecords.keys().next().value;
     if (!oldestId) break;
@@ -332,10 +374,25 @@ function enqueueInboxChatFeedRecord(pending: PendingChatFeedRecord): void {
 function flushPendingInboxChatFeedRecords(): void {
   const pending = [...pendingChatFeedRecords.values()];
   pendingChatFeedRecords.clear();
-  pending.forEach(processInboxChatFeedRecord);
+  processInboxChatFeedRecords(pending);
 }
 
-function processInboxChatFeedRecord(pending: PendingChatFeedRecord): void {
+function processInboxChatFeedRecords(pending: readonly PendingChatFeedRecord[]): void {
+  if (!pending.length) return;
+  const effects: InboxCommitEffects = {
+    alert: false,
+    markRead: false,
+    refreshCard: false,
+    save: false
+  };
+  pending.forEach((record) => processInboxChatFeedRecord(record, effects));
+  applyInboxCommitEffects(effects);
+}
+
+function processInboxChatFeedRecord(
+  pending: PendingChatFeedRecord,
+  effects: InboxCommitEffects
+): void {
   const authorName = pending.record.author?.name || '';
   const text = pending.record.plainText;
   if (!authorName || !text || isCurrentUserAuthorName(authorName)) return;
@@ -357,7 +414,7 @@ function processInboxChatFeedRecord(pending: PendingChatFeedRecord): void {
     source: pending.source,
     sourceUrl: getCurrentYouTubeChatSourceUrl()
   });
-  if (record) commitInboxRecord(record);
+  if (record) commitInboxRecord(record, effects);
 }
 
 function rememberPendingMentionChatFeedRecord(pending: PendingChatFeedRecord): void {
@@ -374,7 +431,7 @@ function handleInboxMentionCandidatesChanged(candidates: readonly string[]): voi
   if (!candidates.length || !pendingMentionChatFeedRecords.size) return;
   const pending = [...pendingMentionChatFeedRecords.values()];
   pendingMentionChatFeedRecords.clear();
-  pending.forEach(processInboxChatFeedRecord);
+  processInboxChatFeedRecords(pending);
 }
 
 function refreshVisibleChatKeywordHighlights(): void {
