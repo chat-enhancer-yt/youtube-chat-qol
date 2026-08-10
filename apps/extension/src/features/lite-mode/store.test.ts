@@ -108,6 +108,8 @@ describe('Lite chat store', () => {
       'message-1998',
       'message-1999'
     ]);
+    expect(store.getLatest()).toHaveLength(100);
+    expect(store.getLatest()[0]?.id).toBe('message-1900');
   });
 
   it('trims rich records by retained weight before the count limit', () => {

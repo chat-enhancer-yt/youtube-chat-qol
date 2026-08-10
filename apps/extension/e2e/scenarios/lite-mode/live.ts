@@ -1,5 +1,6 @@
 /** Browser scenarios for Lite mode live behavior. */
 import { expect, test, type Request } from '@playwright/test';
+import { DEFAULT_LITE_CHAT_RENDER_LIMIT } from '../../../src/features/lite-mode/store';
 import { clearChatComposerIfVisible } from '../../support/composer';
 import { setExtensionStorageValues } from '../../support/extension-storage';
 import type { BrowserScenario } from '../types';
@@ -125,7 +126,7 @@ export const liteModeLiveSustainedScenario: BrowserScenario = async ({ chat, con
     expect(sustained.followingLiveEdge).toBe(true);
     expect(sustained.liveEdgeDistance).toBeLessThanOrEqual(32);
     expect(sustained.liteRows).toBeGreaterThan(0);
-    expect(sustained.liteRows).toBeLessThanOrEqual(150);
+    expect(sustained.liteRows).toBeLessThanOrEqual(DEFAULT_LITE_CHAT_RENDER_LIMIT);
     expect(sustained.newMessagesVisible).toBe(false);
     expect(sustained.pendingLiveActions).toBe(0);
     expect(edgeSamples.length).toBeGreaterThan(0);

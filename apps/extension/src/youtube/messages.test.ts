@@ -4,6 +4,7 @@ import {
   getAuthorChannelId,
   getMessageAvatarSrc,
   getMessageContentNodes,
+  formatMessageTimestamp,
   formatMessageTimestampUsec,
   getMessageStableId,
   getMessageText,
@@ -62,6 +63,33 @@ describe('YouTube message adapter fixtures', () => {
     expect(formatMessageTimestampUsec('0000000001782000000000000')).toBe(formatted);
     expect(formatMessageTimestampUsec('not-a-timestamp')).toBe('');
     expect(formatMessageTimestampUsec(undefined)).toBe('');
+  });
+
+  it('reuses timestamp formatters for the same locale', () => {
+    const NativeDateTimeFormat = Intl.DateTimeFormat;
+    const descriptor = Object.getOwnPropertyDescriptor(Intl, 'DateTimeFormat')!;
+    let constructorCalls = 0;
+    const CountingDateTimeFormat = new Proxy(NativeDateTimeFormat, {
+      construct(target, argumentsList, newTarget) {
+        constructorCalls += 1;
+        return Reflect.construct(target, argumentsList, newTarget);
+      }
+    });
+    const timestamp = new Date('2026-06-03T12:34:00Z').getTime();
+
+    Object.defineProperty(Intl, 'DateTimeFormat', {
+      ...descriptor,
+      value: CountingDateTimeFormat
+    });
+    try {
+      expect(formatMessageTimestamp(timestamp, 'fr-FR')).toMatch(/\d/);
+      expect(formatMessageTimestamp(timestamp + 60_000, 'fr-FR')).toMatch(/\d/);
+      expect(formatMessageTimestamp(timestamp, 'de-DE')).toMatch(/\d/);
+
+      expect(constructorCalls).toBe(2);
+    } finally {
+      Object.defineProperty(Intl, 'DateTimeFormat', descriptor);
+    }
   });
 
   it('uses DOM fallbacks for message text, channel ids, avatars, and stable ids', () => {

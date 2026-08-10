@@ -40,6 +40,20 @@ describe('current-user mention detection', () => {
     expect(listener).toHaveBeenCalledOnce();
   });
 
+  it('does not repeatedly scan the document when no identity is available', async () => {
+    const querySelectorAll = vi.spyOn(document, 'querySelectorAll');
+    const mentionDetection = await import('./mention-detection');
+
+    mentionDetection.initMentionDetection();
+    const callsAfterInitialization = querySelectorAll.mock.calls.length;
+    expect(callsAfterInitialization).toBeGreaterThan(0);
+
+    expect(mentionDetection.getCurrentMentionCandidates()).toEqual([]);
+    expect(mentionDetection.isCurrentUserAuthorName('@OtherViewer')).toBe(false);
+    expect(mentionDetection.getCurrentMentionCandidates()).toEqual([]);
+    expect(querySelectorAll).toHaveBeenCalledTimes(callsAfterInitialization);
+  });
+
   it('derives candidates from plain handles and channel URL handles', async () => {
     const surface = document.createElement('yt-live-chat-message-input-renderer');
     surface.innerHTML = `

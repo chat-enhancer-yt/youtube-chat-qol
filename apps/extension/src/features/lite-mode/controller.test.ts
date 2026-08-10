@@ -43,6 +43,7 @@ import {
 } from './controller';
 import { parseYouTubeChatFeedBatchDetail } from '../../youtube/chat-feed/batch';
 import { clearLiteModeSessionCooldown, hasLiteModeSessionCooldown } from './bootstrap';
+import { DEFAULT_LITE_CHAT_RENDER_LIMIT } from './store';
 
 describe('Lite mode controller', () => {
   beforeEach(() => {
@@ -467,7 +468,9 @@ describe('Lite mode controller', () => {
 
     const root = document.querySelector<HTMLElement>('.ytcq-lite-root')!;
     expect(isLiteModeActive()).toBe(true);
-    expect(Number(root.dataset.ytcqLiteStoreSize)).toBeGreaterThan(150);
+    expect(Number(root.dataset.ytcqLiteStoreSize)).toBeGreaterThan(
+      DEFAULT_LITE_CHAT_RENDER_LIMIT
+    );
     expect(root.dataset.ytcqLitePendingLiveActions).toBe('0');
     expect(root.dataset.ytcqLitePendingLiveActionBytes).toBe('0');
     expect(document.querySelectorAll('.ytcq-lite-message')).toHaveLength(1);
@@ -475,11 +478,15 @@ describe('Lite mode controller', () => {
     await vi.advanceTimersByTimeAsync(1_200);
 
     expect(document.querySelectorAll('.ytcq-lite-message').length).toBeGreaterThan(1);
-    expect(document.querySelectorAll('.ytcq-lite-message').length).toBeLessThan(150);
+    expect(document.querySelectorAll('.ytcq-lite-message').length).toBeLessThan(
+      DEFAULT_LITE_CHAT_RENDER_LIMIT
+    );
 
     await vi.advanceTimersByTimeAsync(8_800);
 
-    expect(document.querySelectorAll('.ytcq-lite-message')).toHaveLength(150);
+    expect(document.querySelectorAll('.ytcq-lite-message')).toHaveLength(
+      DEFAULT_LITE_CHAT_RENDER_LIMIT
+    );
     expect(requestNativeChatRestoreMock).not.toHaveBeenCalled();
   });
 

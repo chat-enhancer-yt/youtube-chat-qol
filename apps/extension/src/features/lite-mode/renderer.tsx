@@ -379,7 +379,7 @@ export function createLiteChatRenderer(
       pendingLivePresentationIdSet.delete(id);
     }
 
-    renderRecords(null, true);
+    renderRecords(null, releaseCount === 1);
     pinScrollToBottom();
     if (!pendingLivePresentationIds.length) {
       clearLivePresentation();

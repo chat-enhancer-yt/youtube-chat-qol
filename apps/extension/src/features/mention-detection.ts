@@ -28,6 +28,7 @@ type MentionCandidatesChangedListener = (candidates: readonly string[]) => void;
 
 let cachedMentionKey = '';
 let cachedMentionCandidates: string[] = [];
+let mentionCandidatesInitialized = false;
 let mentionIdentityRefreshTimer: number | null = null;
 const mentionCandidatesChangedListeners = new Set<MentionCandidatesChangedListener>();
 
@@ -71,7 +72,7 @@ export function isCurrentUserAuthorName(authorName: string): boolean {
 }
 
 function getMentionCandidates(): string[] {
-  if (!cachedMentionCandidates.length) {
+  if (!mentionCandidatesInitialized) {
     refreshMentionCandidates();
   }
 
@@ -81,6 +82,7 @@ function getMentionCandidates(): string[] {
 function refreshMentionCandidates(): void {
   const rawCandidates = getRawMentionCandidates();
   const key = rawCandidates.join('\n');
+  mentionCandidatesInitialized = true;
   if (key === cachedMentionKey) return;
 
   cachedMentionKey = key;

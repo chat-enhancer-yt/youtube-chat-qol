@@ -8,7 +8,7 @@
  */
 import type { YouTubeChatFeedAction, YouTubeChatMessageRecord } from '../../youtube/chat-feed/protocol';
 
-export const DEFAULT_LITE_CHAT_RENDER_LIMIT = 150;
+export const DEFAULT_LITE_CHAT_RENDER_LIMIT = 100;
 export const DEFAULT_LITE_CHAT_STORE_LIMIT = 500;
 export const DEFAULT_LITE_CHAT_STORE_BYTE_LIMIT = 12 * 1024 * 1024;
 

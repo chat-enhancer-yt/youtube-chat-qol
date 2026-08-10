@@ -20,6 +20,7 @@ interface OriginalMessageSnapshot {
 }
 
 const replacedMessages = new WeakMap<HTMLElement, OriginalMessageSnapshot>();
+const messageTimestampFormatters = new Map<string | undefined, Intl.DateTimeFormat>();
 
 export function getMessageDetails(message: HTMLElement): { authorName: string; text: string } {
   return {
@@ -89,10 +90,15 @@ export function formatMessageTimestamp(timestamp: number, locale?: string): stri
   const date = new Date(timestamp);
   if (Number.isNaN(date.getTime())) return '';
 
-  return new Intl.DateTimeFormat(locale, {
-    hour: 'numeric',
-    minute: '2-digit'
-  }).format(date);
+  let formatter = messageTimestampFormatters.get(locale);
+  if (!formatter) {
+    formatter = new Intl.DateTimeFormat(locale, {
+      hour: 'numeric',
+      minute: '2-digit'
+    });
+    messageTimestampFormatters.set(locale, formatter);
+  }
+  return formatter.format(date);
 }
 
 export function formatMessageTimestampUsec(timestampUsec: string | undefined): string {

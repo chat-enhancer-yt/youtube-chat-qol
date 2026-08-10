@@ -469,8 +469,17 @@ describe('Lite chat renderer', () => {
     store.apply(actions);
 
     expect(getRenderedMessageIds(renderer.root)).toEqual(['seed', 'fast-0']);
+    expect(renderer.getMessageElement('fast-0')?.classList).toContain(
+      'ytcq-lite-message-enter'
+    );
     await vi.advanceTimersByTimeAsync(80);
     expect(getRenderedMessageIds(renderer.root)).toEqual(['seed', 'fast-0', 'fast-1', 'fast-2']);
+    expect(renderer.getMessageElement('fast-1')?.classList).not.toContain(
+      'ytcq-lite-message-enter'
+    );
+    expect(renderer.getMessageElement('fast-2')?.classList).not.toContain(
+      'ytcq-lite-message-enter'
+    );
 
     await vi.advanceTimersByTimeAsync(5_000);
     expect(getRenderedMessageIds(renderer.root)).toEqual([
