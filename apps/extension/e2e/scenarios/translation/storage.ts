@@ -1,5 +1,5 @@
 /** Temporary extension-storage state used by translation scenarios. */
-import { expect, test, type BrowserContext } from '@playwright/test';
+import { expect, test, type BrowserContext, type Locator } from '@playwright/test';
 import { withExtensionStorageValues } from '../../support/extension-storage';
 import { closeOpenMenus, openSettingsMenu } from '../../support/menu-openers';
 import { NORMAL_CHAT_MESSAGE_SELECTOR, type ChatSurface } from '../types';
@@ -55,10 +55,31 @@ export async function withTranslationEnabled<T>({
       translationDisplay
     },
     async () => {
-      await waitForTranslationSettingState(chat, true);
+      await reactivateTranslationThroughSettings(chat);
       return callback();
     }
   );
+}
+
+async function reactivateTranslationThroughSettings(chat: ChatSurface): Promise<void> {
+  await test.step('Reactivate Translate through chat settings', async () => {
+    const menu = await openSettingsMenu(chat);
+    try {
+      const translateItem = getTranslationSettingItem(menu);
+      await expect(translateItem).toHaveAttribute('aria-checked', 'true', {
+        timeout: 10_000
+      });
+
+      // Reapply the setting through the same synchronous path a viewer uses.
+      // This keeps controlled message delivery from racing a storage listener.
+      await translateItem.click();
+      await expect(translateItem).toHaveAttribute('aria-checked', 'false');
+      await translateItem.click();
+      await expect(translateItem).toHaveAttribute('aria-checked', 'true');
+    } finally {
+      await closeOpenMenus(chat);
+    }
+  });
 }
 
 async function waitForTranslationSettingState(
@@ -68,9 +89,7 @@ async function waitForTranslationSettingState(
   await test.step(`Wait for Translate setting to become ${enabled ? 'enabled' : 'disabled'}`, async () => {
     const menu = await openSettingsMenu(chat);
     try {
-      const translateItem = menu
-        .locator('.ytcq-settings-item[data-ytcq-setting="targetLanguage"]')
-        .first();
+      const translateItem = getTranslationSettingItem(menu);
       // Both translation fields are written together and applied by one storage-change handler.
       await expect(translateItem).toHaveAttribute('aria-checked', String(enabled), {
         timeout: 10_000
@@ -79,6 +98,12 @@ async function waitForTranslationSettingState(
       await closeOpenMenus(chat);
     }
   });
+}
+
+function getTranslationSettingItem(menu: Locator): Locator {
+  return menu
+    .locator('.ytcq-settings-item[data-ytcq-setting="targetLanguage"]')
+    .first();
 }
 
 export async function waitForTranslationsCleared(chat: ChatSurface): Promise<void> {
