@@ -1,5 +1,6 @@
 import { bookmarkPopupRenderingScenario } from '../../scenarios/bookmarks';
 import { delayedChatPanelNavigationScenario } from '../../scenarios/navigation';
+import { inboxClosesOnWatchPageClickScenario } from '../../scenarios/inbox';
 import { nativeContinuationRendererScenario } from '../../scenarios/native-renderer';
 import { popupResetScenario } from '../../scenarios/popup-reset';
 import {
@@ -53,6 +54,12 @@ export const targetSpecificScenarios: readonly YouTubeScenario[] = [
     run: nativeContinuationRendererScenario,
     on: [target.liveLoggedOut],
     reason: 'Verifies YouTube consumes the intercepted continuation protocol itself.'
+  },
+  {
+    title: 'Inbox closes when the watch page is clicked',
+    run: inboxClosesOnWatchPageClickScenario,
+    on: [target.liveLoggedOut],
+    reason: 'Requires the real top-level watch page around YouTube\'s chat iframe.'
   },
   {
     title: 'composer send is intercepted and handled without posting',

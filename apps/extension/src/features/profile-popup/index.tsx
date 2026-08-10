@@ -6,6 +6,7 @@
  * it only exists while the current chat page is open.
  */
 import { t } from '../../shared/i18n';
+import { dismissOnFrameBlur } from '../../shared/dismiss-on-frame-blur';
 import { wireFloatingPanelDrag } from '../../shared/floating-panel-drag';
 import { createCloseIcon } from '../../shared/icons';
 import { jsx, el } from '../../shared/jsx-dom';
@@ -224,6 +225,7 @@ export function openProfileCardForIdentity(
 function ensureProfileMentionListeners(): void {
   if (profileMentionListenersWired) return;
   profileMentionListenersWired = true;
+  dismissOnFrameBlur(closeProfileCard, profileWiringListeners.signal);
   const options = {
     capture: true,
     signal: profileWiringListeners.signal

@@ -28,6 +28,35 @@ export const inboxOpensFromHeaderScenario: BrowserScenario = async ({ chat }) =>
   await closeInboxPanel(chat);
 };
 
+export const inboxClosesOnWatchPageClickScenario: BrowserScenario = async ({ chat, page }) => {
+  await expectInboxButtonAttached(chat);
+  await openInboxPanel(chat);
+
+  const outsideTargetId = 'ytcq-e2e-watch-page-focus-target';
+  await page.evaluate((id) => {
+    const button = document.createElement('button');
+    button.id = id;
+    button.type = 'button';
+    button.textContent = 'Outside chat frame';
+    Object.assign(button.style, {
+      height: '1px',
+      left: '0',
+      position: 'fixed',
+      top: '0',
+      width: '1px',
+      zIndex: '2147483647'
+    });
+    document.body.append(button);
+  }, outsideTargetId);
+
+  try {
+    await page.locator(`#${outsideTargetId}`).click();
+    await expect(chat.locator('.ytcq-inbox-card')).toHaveCount(0);
+  } finally {
+    await page.evaluate((id) => document.getElementById(id)?.remove(), outsideTargetId);
+  }
+};
+
 export const inboxRecordCreationAndJumpScenario: BrowserScenario = async ({
   chat,
   controlledChat

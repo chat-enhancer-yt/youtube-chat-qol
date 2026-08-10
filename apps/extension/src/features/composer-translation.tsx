@@ -9,6 +9,7 @@
  */
 import { getLocalizedLanguageLabel, t } from '../shared/i18n';
 import { createSplitTranslateIcon } from '../shared/icons';
+import { dismissOnFrameBlur } from '../shared/dismiss-on-frame-blur';
 import { LANGUAGE_OPTIONS } from '../shared/languages';
 import { jsx, el } from '../shared/jsx-dom';
 import type { Options } from '../shared/options';
@@ -89,6 +90,7 @@ export function initComposerTranslation(callback: SaveOptions): void {
   document.addEventListener('keydown', handleDocumentKeydown, options);
   document.addEventListener('scroll', positionPanel, options);
   window.addEventListener('resize', positionPanel, options);
+  dismissOnFrameBlur(closePanel, composerTranslationListeners.signal);
 }
 
 export function scheduleComposerTranslationWire(): void {

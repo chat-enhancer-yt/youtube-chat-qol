@@ -738,7 +738,7 @@ describe('profile popup coordinator', () => {
     expect(avatar.hasAttribute('title')).toBe(false);
   });
 
-  it('closes from the header button and Escape while ignoring outside clicks', async () => {
+  it('closes from the header, Escape, or frame blur while ignoring in-frame outside clicks', async () => {
     vi.useFakeTimers();
     const message = createMessage();
     document.body.append(message);
@@ -753,6 +753,11 @@ describe('profile popup coordinator', () => {
     document.body.dispatchEvent(new MouseEvent('click', { bubbles: true }));
     expect(document.querySelector('.ytcq-profile-card')).not.toBeNull();
 
+    window.dispatchEvent(new Event('blur'));
+    expect(document.querySelector('.ytcq-profile-card')).toBeNull();
+
+    message.querySelector<HTMLElement>('#author-photo')!.click();
+    await vi.runOnlyPendingTimersAsync();
     document.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, key: 'Escape' }));
     expect(document.querySelector('.ytcq-profile-card')).toBeNull();
   });

@@ -5,6 +5,7 @@
  * document listeners that close or reposition that panel.
  */
 import { createCloseIcon, createGamesIcon } from '../../../shared/icons';
+import { dismissOnFrameBlur } from '../../../shared/dismiss-on-frame-blur';
 import { t } from '../../../shared/i18n';
 import { jsx, el } from '../../../shared/jsx-dom';
 import { positionGamesCard } from './button';
@@ -67,6 +68,7 @@ export function installGamesCardListeners({
     positionGamesCard(card, getAnchor() || undefined);
   };
   const cardListeners = new AbortController();
+  dismissOnFrameBlur(onClose, cardListeners.signal);
 
   window.setTimeout(() => {
     const options = { capture: true, signal: cardListeners.signal };

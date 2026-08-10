@@ -1728,8 +1728,13 @@ describe('playground games header button', () => {
     expect(onClose).toHaveBeenCalledOnce();
 
     onClose.mockClear();
+    window.dispatchEvent(new Event('blur'));
+    expect(onClose).toHaveBeenCalledOnce();
+
+    onClose.mockClear();
     cleanup();
     document.body.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    window.dispatchEvent(new Event('blur'));
     expect(onClose).not.toHaveBeenCalled();
   });
 

@@ -163,6 +163,22 @@ describe('focus mode entrypoint', () => {
     expect(chatState.text).toBe('@ViewerOne ');
   });
 
+  it('closes collapsed and expanded Focus surfaces when the chat frame loses focus', () => {
+    showFocusPromptForAuthor({ authorName: '@BlurredViewer', channelId: 'viewer-channel' });
+    expect(document.querySelector('.ytcq-focus-card-collapsed')).not.toBeNull();
+
+    window.dispatchEvent(new Event('blur'));
+    expect(document.querySelector('.ytcq-focus-card')).toBeNull();
+
+    expect(
+      openFocusModeForAuthor({ authorName: '@BlurredViewer', channelId: 'viewer-channel' })
+    ).toBe(true);
+    expect(document.querySelector('.ytcq-focus-card-expanded')).not.toBeNull();
+
+    window.dispatchEvent(new Event('blur'));
+    expect(document.querySelector('.ytcq-focus-card')).toBeNull();
+  });
+
   it('can show a collapsed prompt from a live chat message source', () => {
     const message = createMessage('@MessagePromptViewer', 'hello', 'message-prompt-channel');
     document.body.append(message);

@@ -142,6 +142,28 @@ describe('frequent emoji feature entry points', () => {
     );
   });
 
+  it('closes the quick emoji popover when the chat frame loses focus', async () => {
+    chrome.storage.local.set({
+      ytcqEmojiUsage: [emoji({ text: '🙂' })]
+    });
+    const toggle = createEmojiToggle();
+    initFrequentEmojis();
+    toggle.dispatchEvent(
+      new PointerEvent('pointerover', {
+        bubbles: true,
+        pointerType: 'mouse'
+      })
+    );
+    await vi.advanceTimersByTimeAsync(150);
+    const popover = document.querySelector<HTMLElement>('.ytcq-quick-emoji-popover')!;
+
+    window.dispatchEvent(new Event('blur'));
+
+    expect(popover.classList.contains('ytcq-quick-emoji-popover-closing')).toBe(true);
+    await vi.advanceTimersByTimeAsync(100);
+    expect(document.querySelector('.ytcq-quick-emoji-popover')).toBeNull();
+  });
+
   it('keeps the quick popover fixed when usage refreshes after an insertion', async () => {
     chrome.storage.local.set({
       ytcqEmojiUsage: [emoji({ count: 3, text: '🙂' })]
