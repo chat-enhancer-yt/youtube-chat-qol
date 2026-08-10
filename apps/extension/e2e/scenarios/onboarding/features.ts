@@ -16,6 +16,22 @@ export const onboardingFeaturePreviewScenario: ExtensionScenario = async ({ cont
       'color',
       'rgb(62, 166, 255)'
     );
+    await onboarding.locator('#previewLiteIcon').hover();
+    await expect(onboarding.locator('#previewLiteIcon')).toHaveCSS(
+      'color',
+      'rgb(62, 166, 255)'
+    );
+    await expect(onboarding.locator('#previewLiteIcon')).toHaveCSS(
+      'background-color',
+      'rgba(0, 0, 0, 0.2)'
+    );
+    await expect(onboarding.locator('#previewGamesIcon')).toHaveCSS('color', 'rgb(15, 15, 15)');
+    await onboarding.locator('#previewGamesIcon').hover();
+    await expect(onboarding.locator('#previewGamesIcon')).toHaveCSS('color', 'rgb(15, 15, 15)');
+    await expect(onboarding.locator('#previewGamesIcon')).toHaveCSS(
+      'background-color',
+      'rgba(0, 0, 0, 0.2)'
+    );
     await onboarding.locator('#onboardingChatSkin').selectOption('aero');
 
     await expect(onboarding.locator('#previewGamesIcon')).toBeVisible();

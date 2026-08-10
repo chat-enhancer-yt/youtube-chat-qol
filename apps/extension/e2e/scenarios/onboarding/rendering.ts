@@ -178,6 +178,46 @@ export const onboardingRenderingScenario: ExtensionScenario = async ({ context }
         return Math.round(emoji.x + emoji.width / 2 - (translation.x + translation.width / 2));
       })
       .toBe(34);
+    const draftTranslator = onboarding.locator('#previewComposerTranslateIcon');
+    await expect(draftTranslator).toHaveCSS('color', 'rgba(17, 17, 17, 0.6)');
+    await draftTranslator.hover();
+    await expect(draftTranslator).toHaveCSS('color', 'rgb(15, 15, 15)');
+    const nativeLightIcons = [
+      onboarding.locator('#previewLiteIcon'),
+      onboarding.locator('#previewInboxIcon'),
+      onboarding.locator('.preview-native-header-icon').first(),
+      onboarding.locator('.preview-native-header-icon').last(),
+      onboarding.locator('.preview-emoji')
+    ];
+    for (const icon of nativeLightIcons) {
+      await expect(icon).toHaveCSS('color', 'rgb(15, 15, 15)');
+      await icon.hover();
+      await expect(icon).toHaveCSS('color', 'rgb(15, 15, 15)');
+    }
+    await onboarding.locator('#previewLiteIcon').hover();
+    await expect(onboarding.locator('#previewLiteIcon')).toHaveCSS(
+      'background-color',
+      'rgba(0, 0, 0, 0.2)'
+    );
+    await onboarding.locator('#previewInboxIcon').hover();
+    await expect(onboarding.locator('#previewInboxIcon')).toHaveCSS(
+      'background-color',
+      'rgba(0, 0, 0, 0.2)'
+    );
+    await onboarding.locator('.preview-native-header-icon').first().hover();
+    await expect(onboarding.locator('.preview-native-header-icon').first()).toHaveCSS(
+      'background-color',
+      'rgba(0, 0, 0, 0.2)'
+    );
+    await expect(onboarding.locator('.preview-top-chat')).toHaveCSS('color', 'rgb(15, 15, 15)');
+    await expect(onboarding.locator('.preview-top-chat svg')).toHaveCSS(
+      'fill',
+      'rgb(15, 15, 15)'
+    );
+    await expect(onboarding.locator('.preview-send button')).toHaveCSS(
+      'color',
+      'rgb(144, 144, 144)'
+    );
     await expect
       .poll(() =>
         onboarding
@@ -189,6 +229,55 @@ export const onboardingRenderingScenario: ExtensionScenario = async ({ context }
     await expect(onboarding.locator('.preview-native-header-icon path').first()).toHaveCSS(
       'fill',
       'rgb(15, 15, 15)'
+    );
+
+    await onboarding.emulateMedia({ colorScheme: 'dark' });
+    await expect(onboarding.locator('#chatPreview')).toHaveAttribute('data-chat-theme', 'dark');
+    await expect(draftTranslator).toHaveCSS('color', 'rgba(255, 255, 255, 0.7)');
+    await draftTranslator.hover();
+    await expect(draftTranslator).toHaveCSS('color', 'rgb(255, 255, 255)');
+    const darkPrimaryIcons = [
+      onboarding.locator('#previewLiteIcon'),
+      onboarding.locator('#previewInboxIcon'),
+      onboarding.locator('.preview-emoji')
+    ];
+    for (const icon of darkPrimaryIcons) {
+      await expect(icon).toHaveCSS('color', 'rgb(255, 255, 255)');
+      await icon.hover();
+      await expect(icon).toHaveCSS('color', 'rgb(255, 255, 255)');
+    }
+    await onboarding.locator('#previewLiteIcon').hover();
+    await expect(onboarding.locator('#previewLiteIcon')).toHaveCSS(
+      'background-color',
+      'rgba(255, 255, 255, 0.2)'
+    );
+    await onboarding.locator('#previewInboxIcon').hover();
+    await expect(onboarding.locator('#previewInboxIcon')).toHaveCSS(
+      'background-color',
+      'rgba(255, 255, 255, 0.2)'
+    );
+    const darkNativeIcons = onboarding.locator('.preview-native-header-icon');
+    for (const icon of await darkNativeIcons.all()) {
+      await expect(icon).toHaveCSS('color', 'rgb(241, 241, 241)');
+      await icon.hover();
+      await expect(icon).toHaveCSS('color', 'rgb(241, 241, 241)');
+    }
+    await darkNativeIcons.first().hover();
+    await expect(darkNativeIcons.first()).toHaveCSS(
+      'background-color',
+      'rgba(255, 255, 255, 0.2)'
+    );
+    await expect(onboarding.locator('.preview-top-chat')).toHaveCSS(
+      'color',
+      'rgb(255, 255, 255)'
+    );
+    await expect(onboarding.locator('.preview-top-chat svg')).toHaveCSS(
+      'fill',
+      'rgb(241, 241, 241)'
+    );
+    await expect(onboarding.locator('.preview-send button')).toHaveCSS(
+      'color',
+      'rgb(113, 113, 113)'
     );
   });
 };

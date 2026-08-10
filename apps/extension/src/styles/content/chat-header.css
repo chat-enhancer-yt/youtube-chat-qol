@@ -34,7 +34,7 @@ yt-live-chat-header-renderer .ytcq-games-button:hover,
 yt-live-chat-header-renderer .ytcq-games-button:focus,
 yt-live-chat-header-renderer .ytcq-lite-mode-button:hover,
 yt-live-chat-header-renderer .ytcq-lite-mode-button:focus {
-  background: var(--yt-spec-touch-response, var(--yt-spec-10-percent-layer, rgba(128, 128, 128, 0.16)));
+  background: var(--ytcq-chat-header-icon-hover-background);
   outline: none;
 }
 

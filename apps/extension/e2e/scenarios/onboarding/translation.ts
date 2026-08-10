@@ -14,6 +14,15 @@ export const onboardingTranslationPreviewScenario: ExtensionScenario = async ({ 
       'animation-name',
       'preview-icon-enter'
     );
+    await expect(onboarding.locator('#previewInlineTranslateIcon')).toHaveCSS(
+      'color',
+      'rgb(62, 166, 255)'
+    );
+    await onboarding.locator('#previewInlineTranslateIcon').hover();
+    await expect(onboarding.locator('#previewInlineTranslateIcon')).toHaveCSS(
+      'color',
+      'rgb(62, 166, 255)'
+    );
     await expect(onboarding.locator('#previewPrimaryText')).toHaveText(
       '今はうまく機能しているようです'
     );

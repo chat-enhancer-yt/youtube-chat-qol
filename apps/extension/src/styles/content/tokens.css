@@ -3,6 +3,7 @@
  * and rounded surface defaults.
  */
 :root {
+  --ytcq-chat-header-icon-hover-background: rgba(0, 0, 0, 0.2);
   --ytcq-hover-background: var(--yt-spec-touch-response, var(--yt-spec-10-percent-layer, rgba(128, 128, 128, 0.16)));
   --ytcq-hover-background-strong: var(--yt-spec-10-percent-layer, rgba(128, 128, 128, 0.22));
   --ytcq-control-border: rgba(128, 128, 128, 0.42);
@@ -16,6 +17,10 @@
   --ytcq-squircle-radius-surface: 12px;
   --ytcq-squircle-radius-bubble: 10px;
   --ytcq-squircle-radius-effect: 22px;
+}
+
+:root[dark] {
+  --ytcq-chat-header-icon-hover-background: rgba(255, 255, 255, 0.2);
 }
 
 @supports (corner-shape: superellipse(2)) {

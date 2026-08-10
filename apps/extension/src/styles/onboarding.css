@@ -500,7 +500,27 @@ optgroup {
     box-shadow 220ms ease;
 }
 
+.chat-preview[data-chat-skin="system"] {
+  --yt-spec-call-to-action: #3ea6ff;
+  --yt-spec-touch-response: rgba(128, 128, 128, 0.16);
+}
+
+.chat-preview[data-chat-skin="system"][data-chat-theme="dark"] {
+  --yt-spec-text-primary: #fff;
+  --yt-spec-text-secondary: rgba(255, 255, 255, 0.7);
+  --yt-live-chat-primary-text-color: #fff;
+  --yt-live-chat-secondary-text-color: rgba(255, 255, 255, 0.7);
+  --ytcq-chat-header-icon-hover-background: rgba(255, 255, 255, 0.2);
+  --preview-native-icon: #f1f1f1;
+  --preview-disabled-icon: #717171;
+  color-scheme: dark;
+}
+
 .chat-preview[data-chat-skin="system"][data-chat-theme="light"] {
+  --yt-spec-text-primary: #0f0f0f;
+  --yt-spec-text-secondary: rgba(17, 17, 17, 0.6);
+  --yt-live-chat-primary-text-color: #0f0f0f;
+  --yt-live-chat-secondary-text-color: rgba(17, 17, 17, 0.6);
   --preview-bg: #fff;
   --preview-field: #f2f2f2;
   --preview-text: #0f0f0f;
@@ -512,6 +532,9 @@ optgroup {
   --preview-callout-bg: rgba(255, 255, 255, 0.98);
   --preview-callout-border: #d7d7d7;
   --preview-callout-shadow: 0 7px 20px rgba(0, 0, 0, 0.14);
+  --ytcq-chat-header-icon-hover-background: rgba(0, 0, 0, 0.2);
+  --preview-native-icon: #0f0f0f;
+  --preview-disabled-icon: #909090;
   color-scheme: light;
 }
 
@@ -775,6 +798,10 @@ optgroup {
   fill: currentColor;
 }
 
+.chat-preview[data-chat-skin="system"] .preview-top-chat svg {
+  color: var(--preview-native-icon);
+}
+
 .preview-header-actions {
   display: flex;
   align-items: center;
@@ -839,8 +866,14 @@ optgroup {
 .preview-native-header-icon,
 .preview-native-header-icon svg,
 .preview-native-header-icon path {
-  color: var(--preview-text) !important;
+  color: var(--preview-native-icon, var(--preview-text)) !important;
   fill: currentColor !important;
+}
+
+.chat-preview[data-chat-skin="system"] .preview-native-header-icon:hover,
+.chat-preview[data-chat-skin="system"] .preview-native-header-icon:focus {
+  background: var(--ytcq-chat-header-icon-hover-background);
+  outline: none;
 }
 
 .preview-header-icon.preview-icon-active {
@@ -1176,6 +1209,10 @@ optgroup {
   fill: currentColor;
 }
 
+.chat-preview[data-chat-skin="system"] .preview-emoji {
+  color: var(--yt-live-chat-primary-text-color);
+}
+
 .preview-composer-actions svg {
   width: 24px;
   height: 24px;
@@ -1189,6 +1226,10 @@ optgroup {
   height: 40px;
   color: #979797;
   fill: currentColor;
+}
+
+.chat-preview[data-chat-skin="system"] .preview-send {
+  color: var(--preview-disabled-icon);
 }
 
 .preview-send button {
