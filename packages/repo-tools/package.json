@@ -30,6 +30,7 @@
     "publish:safari": "node scripts/submit-safari-app-store.ts",
     "release:bump-version": "node scripts/bump-version.ts",
     "release:create-tag": "node scripts/create-release-tag.ts",
+    "release:retry": "node scripts/create-release-tag.ts --retry",
     "release:validate-tag": "node scripts/validate-release-tag.ts",
     "release:zip": "node scripts/zip.ts --all",
     "safari:build-app": "node scripts/build-safari-app.ts",

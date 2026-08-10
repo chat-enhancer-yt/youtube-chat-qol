@@ -4,77 +4,99 @@ import path from 'node:path';
 import * as readline from 'node:readline/promises';
 import { fileURLToPath } from 'node:url';
 
-const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
+const scriptPath = fileURLToPath(import.meta.url);
+const root = path.resolve(path.dirname(scriptPath), '..', '..', '..');
 const packageJsonPath = path.join(root, 'package.json');
-const args = parseArgs(process.argv.slice(2));
 
-if (args.help) {
-  printUsage();
-  process.exit(0);
+if (process.argv[1] && path.resolve(process.argv[1]) === scriptPath) {
+  await main();
 }
 
-const packageJson = JSON.parse(await readFile(packageJsonPath, 'utf8'));
-const version = String(packageJson.version || '');
-if (!/^\d+\.\d+\.\d+$/.test(version)) {
-  throw new Error(`Expected package.json version to be exact semver X.Y.Z, got "${packageJson.version}".`);
+async function main() {
+  const args = parseReleaseTagArgs(process.argv.slice(2));
+
+  if (args.help) {
+    printUsage();
+    return;
+  }
+
+  const packageJson = JSON.parse(await readFile(packageJsonPath, 'utf8'));
+  const version = String(packageJson.version || '');
+  if (!/^\d+\.\d+\.\d+$/.test(version)) {
+    throw new Error(`Expected package.json version to be exact semver X.Y.Z, got "${packageJson.version}".`);
+  }
+
+  const tagName = `v${version}`;
+  const tagRef = `refs/tags/${tagName}`;
+  const branch = gitOutput(['branch', '--show-current']);
+  if (!branch) {
+    throw new Error('Cannot create a release tag while Git is detached from a branch.');
+  }
+
+  const dirtyFiles = gitOutput(['status', '--porcelain']);
+  if (dirtyFiles) {
+    throw new Error([
+      `Refusing to ${args.retry ? 'retry' : 'create'} a release tag with uncommitted changes.`,
+      'Commit the release changes first, then run this command again.'
+    ].join('\n'));
+  }
+
+  const localTagOid = getLocalTagOid(tagRef);
+  const remoteTag = getRemoteTag(args.remote, tagRef);
+  const headOid = gitOutput(['rev-parse', 'HEAD']);
+
+  if (args.retry) {
+    validateRetry(tagName, remoteTag, headOid);
+  } else {
+    validateNewTag(tagName, args.remote, localTagOid, remoteTag);
+  }
+
+  const releasePreview = getReleasePreview(tagName);
+  if (args.retry) {
+    printRetryPreview(tagName, remoteTag, headOid);
+  }
+  printReleasePreview(tagName, releasePreview);
+
+  if (args.dryRun) {
+    console.log(`Would push ${branch} to ${args.remote}.`);
+    if (args.retry) {
+      console.log(`Would replace annotated tag ${tagName} on ${args.remote} with a tag at ${shortOid(headOid)}.`);
+      console.log('Would trigger a new release workflow for the replacement tag.');
+    } else {
+      console.log(`Would create annotated tag ${tagName}.`);
+      console.log(`Would push ${tagName} to ${args.remote}.`);
+    }
+    return;
+  }
+
+  const confirmed = args.retry
+    ? await confirmRetry(tagName)
+    : await confirmRelease(tagName);
+  if (!confirmed) {
+    console.log(`Aborted ${tagName}.`);
+    return;
+  }
+
+  git(['push', args.remote, `HEAD:${branch}`]);
+
+  if (args.retry) {
+    replaceReleaseTag(tagName, args.remote, remoteTag, localTagOid);
+    console.log(`Moved and pushed ${tagName} to ${shortOid(headOid)}. A new release workflow should start.`);
+    return;
+  }
+
+  git(['tag', '-a', tagName, '-m', `Release ${tagName}`]);
+  git(['push', args.remote, tagName]);
+
+  console.log(`Created and pushed ${tagName}.`);
 }
 
-const tagName = `v${version}`;
-const branch = gitOutput(['branch', '--show-current']);
-if (!branch) {
-  throw new Error('Cannot create a release tag while Git is detached from a branch.');
-}
-
-const dirtyFiles = gitOutput(['status', '--porcelain']);
-if (dirtyFiles) {
-  throw new Error([
-    'Refusing to create a release tag with uncommitted changes.',
-    'Commit the version bump first, then run this command again.'
-  ].join('\n'));
-}
-
-const existingLocalTag = spawnGit(['rev-parse', '--verify', '--quiet', `refs/tags/${tagName}`]);
-if (existingLocalTag.status === 0) {
-  throw new Error(`Tag ${tagName} already exists locally.`);
-}
-if (existingLocalTag.status !== 1) {
-  throw new Error(`Could not check whether ${tagName} exists locally.`);
-}
-
-const existingRemoteTag = spawnGit(['ls-remote', '--exit-code', '--tags', args.remote, `refs/tags/${tagName}`]);
-if (existingRemoteTag.status === 0) {
-  throw new Error(`Tag ${tagName} already exists on ${args.remote}.`);
-}
-if (existingRemoteTag.status !== 2) {
-  throw new Error(`Could not check whether ${tagName} exists on ${args.remote}.`);
-}
-
-const releasePreview = getReleasePreview(tagName);
-printReleasePreview(tagName, releasePreview);
-
-if (args.dryRun) {
-  console.log(`Would push ${branch} to ${args.remote}.`);
-  console.log(`Would create annotated tag ${tagName}.`);
-  console.log(`Would push ${tagName} to ${args.remote}.`);
-  process.exit(0);
-}
-
-if (!(await confirmRelease(tagName))) {
-  console.log(`Aborted ${tagName}.`);
-  process.exit(0);
-}
-
-git(['push', args.remote, `HEAD:${branch}`]);
-git(['tag', '-a', tagName, '-m', `Release ${tagName}`]);
-git(['push', args.remote, tagName]);
-
-console.log(`Created and pushed ${tagName}.`);
-
-function parseArgs(argv) {
+export function parseReleaseTagArgs(argv: string[]) {
   const parsed = {
     dryRun: false,
     help: false,
-    remote: 'origin'
+    remote: 'origin',
+    retry: false
   };
 
   for (let index = 0; index < argv.length; index += 1) {
@@ -85,6 +107,10 @@ function parseArgs(argv) {
     }
     if (arg === '--help' || arg === '-h') {
       parsed.help = true;
+      continue;
+    }
+    if (arg === '--retry') {
+      parsed.retry = true;
       continue;
     }
     if (arg === '--remote') {
@@ -103,15 +129,126 @@ function parseArgs(argv) {
   return parsed;
 }
 
+export function parseRemoteTagOutput(output: string, tagRef: string) {
+  let refOid = '';
+  let peeledOid = '';
+
+  for (const line of output.split('\n')) {
+    const [oid = '', ref = ''] = line.trim().split(/\s+/);
+    if (ref === tagRef) refOid = oid;
+    if (ref === `${tagRef}^{}`) peeledOid = oid;
+  }
+
+  if (!refOid) return null;
+
+  return {
+    refOid,
+    targetOid: peeledOid || refOid
+  };
+}
+
+function validateNewTag(tagName, remote, localTagOid, remoteTag) {
+  if (localTagOid) {
+    throw new Error([
+      `Tag ${tagName} already exists locally.`,
+      `If the previous release failed before publication, run npm run release:retry instead.`
+    ].join('\n'));
+  }
+  if (remoteTag) {
+    throw new Error([
+      `Tag ${tagName} already exists on ${remote}.`,
+      `If the previous release failed before publication, run npm run release:retry instead.`
+    ].join('\n'));
+  }
+}
+
+function validateRetry(tagName, remoteTag, headOid) {
+  if (!remoteTag) {
+    throw new Error([
+      `Cannot retry ${tagName} because it does not exist on the remote.`,
+      'Create it with npm run release:tag instead.'
+    ].join('\n'));
+  }
+
+  if (remoteTag.targetOid === headOid) {
+    throw new Error([
+      `${tagName} already points to the current commit ${shortOid(headOid)}.`,
+      'There is no newer fix to release. Re-run the failed workflow from GitHub Actions instead.'
+    ].join('\n'));
+  }
+
+  const targetExists = spawnGit(['cat-file', '-e', `${remoteTag.targetOid}^{commit}`]);
+  if (targetExists.status !== 0) {
+    throw new Error([
+      `The current ${tagName} target is not available in this clone.`,
+      'Fetch the remote tags and try again.'
+    ].join('\n'));
+  }
+
+  const isForwardMove = spawnGit(['merge-base', '--is-ancestor', remoteTag.targetOid, 'HEAD']);
+  if (isForwardMove.status === 1) {
+    throw new Error([
+      `Refusing to move ${tagName} to an unrelated or older commit.`,
+      'A release retry must move the tag forward from its existing target.'
+    ].join('\n'));
+  }
+  if (isForwardMove.status !== 0) {
+    throwGitError(['merge-base', '--is-ancestor', remoteTag.targetOid, 'HEAD'], isForwardMove);
+  }
+}
+
+function replaceReleaseTag(tagName, remote, remoteTag, previousLocalOid) {
+  const tagRef = `refs/tags/${tagName}`;
+  git(['tag', '-f', '-a', tagName, '-m', `Release ${tagName}`]);
+
+  try {
+    git([
+      'push',
+      `--force-with-lease=${tagRef}:${remoteTag.refOid}`,
+      remote,
+      `${tagRef}:${tagRef}`
+    ]);
+  } catch (error) {
+    const rollbackArgs = previousLocalOid
+      ? ['update-ref', tagRef, previousLocalOid]
+      : ['update-ref', '-d', tagRef];
+    const rollback = spawnGit(rollbackArgs);
+    if (rollback.status !== 0) {
+      throw new Error(`${String(error)}\nThe remote tag was preserved, but restoring the local tag also failed.`);
+    }
+    throw error;
+  }
+}
+
+function getLocalTagOid(tagRef) {
+  const result = spawnGit(['rev-parse', '--verify', '--quiet', tagRef]);
+  if (result.status === 0) return result.stdout.trim();
+  if (result.status === 1) return '';
+  throwGitError(['rev-parse', '--verify', '--quiet', tagRef], result);
+}
+
+function getRemoteTag(remote, tagRef) {
+  const gitArgs = ['ls-remote', '--tags', remote, tagRef, `${tagRef}^{}`];
+  const result = spawnGit(gitArgs);
+  if (result.status !== 0) throwGitError(gitArgs, result);
+  return parseRemoteTagOutput(result.stdout, tagRef);
+}
+
 function printUsage() {
   console.log([
-    'Usage: npm run release:tag -- [--remote <name>] [--dry-run]',
+    'Usage:',
+    '  npm run release:tag -- [--remote <name>] [--dry-run]',
+    '  npm run release:retry -- [--remote <name>] [--dry-run]',
     '',
-    'Pushes the current branch, creates an annotated vX.Y.Z tag from package.json,',
-    'then pushes the tag. The worktree must be clean.',
+    'release:tag pushes the current branch, creates the version tag from',
+    'package.json, and pushes it to start the release workflow.',
     '',
-    'Before tagging, prints the commits entering the release and asks for',
-    'confirmation. Press Enter or type Y to continue; type N to abort.'
+    'release:retry is for a failed, unpublished release after its fix has been',
+    'committed. It moves the existing version tag forward to HEAD with a guarded',
+    'force-push, which starts a new release workflow for the same version.',
+    '',
+    'Both commands require a clean worktree and show the release commits before',
+    'asking for confirmation.'
   ].join('\n'));
 }
 
@@ -138,6 +275,16 @@ function getPreviousReleaseTag(tagName) {
   return releaseTags[0] || '';
 }
 
+function printRetryPreview(tagName, remoteTag, headOid) {
+  console.log(`Retry ${tagName}:`);
+  console.log(`Current remote target: ${formatCommit(remoteTag.targetOid)}`);
+  console.log(`Replacement target:    ${formatCommit(headOid)}`);
+  console.log('');
+  console.log('Only retry a version that has not already been accepted or published by a store.');
+  console.log('If any store accepted this version, bump the version instead of replacing its tag.');
+  console.log('');
+}
+
 function printReleasePreview(tagName, preview) {
   console.log(`Release ${tagName} commit preview:`);
   if (preview.previousTag) {
@@ -161,17 +308,7 @@ function printReleasePreview(tagName, preview) {
 }
 
 async function confirmRelease(tagName) {
-  if (!process.stdin.isTTY || !process.stdout.isTTY) {
-    throw new Error([
-      'Release confirmation requires an interactive terminal.',
-      'Run this command from a terminal so you can type Y or N.'
-    ].join('\n'));
-  }
-
-  const prompt = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout
-  });
+  const prompt = createPrompt();
 
   try {
     for (;;) {
@@ -191,16 +328,54 @@ async function confirmRelease(tagName) {
   }
 }
 
+async function confirmRetry(tagName) {
+  const prompt = createPrompt();
+
+  try {
+    const answer = (await prompt.question(
+      `Type ${tagName} to replace its remote tag and rebuild the release: `
+    )).trim();
+    return answer === tagName;
+  } finally {
+    prompt.close();
+  }
+}
+
+function createPrompt() {
+  if (!process.stdin.isTTY || !process.stdout.isTTY) {
+    throw new Error([
+      'Release confirmation requires an interactive terminal.',
+      'Run this command from a terminal so you can confirm it.'
+    ].join('\n'));
+  }
+
+  return readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+  });
+}
+
+function formatCommit(oid) {
+  return gitOutput(['log', '-1', '--format=%h %s', oid]);
+}
+
+function shortOid(oid) {
+  return oid.slice(0, 8);
+}
+
 function git(args) {
   const result = spawnGit(args);
-  if (result.status !== 0) {
-    throw new Error(`git ${args.join(' ')} failed.`);
-  }
+  if (result.status !== 0) throwGitError(args, result);
   return result;
 }
 
 function gitOutput(args) {
   return git(args).stdout.trim();
+}
+
+function throwGitError(args, result) {
+  if (result.stderr) process.stderr.write(result.stderr);
+  throw new Error(`git ${args.join(' ')} failed.`);
 }
 
 function spawnGit(args) {
@@ -212,9 +387,6 @@ function spawnGit(args) {
 
   if (result.error) {
     throw result.error;
-  }
-  if (result.status !== 0 && result.stderr) {
-    process.stderr.write(result.stderr);
   }
   return result;
 }
