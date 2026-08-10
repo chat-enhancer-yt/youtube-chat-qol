@@ -7,7 +7,6 @@
 import { t } from '../../shared/i18n';
 import { createCloseIcon } from '../../shared/icons';
 import { jsx, el } from '../../shared/jsx-dom';
-import { dismissOnFrameBlur } from '../../shared/dismiss-on-frame-blur';
 import {
   captureScrollPosition,
   restoreScrollPositionAfterRender,
@@ -77,7 +76,6 @@ export function initFocusMode(): void {
   const options = { capture: true, signal: focusModeListeners.signal };
   document.addEventListener('keydown', handleDocumentKeydown, options);
   document.addEventListener('click', handleDocumentClick, options);
-  dismissOnFrameBlur(closeFocusMode, focusModeListeners.signal);
   unsubscribeUserMessages ||= onUserMessagesChanged(handleUserMessagesChanged);
 }
 

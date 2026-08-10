@@ -150,22 +150,6 @@ describe('chat commands entrypoint', () => {
     expect(toastMocks.showToast).toHaveBeenCalledWith('Press Tab to run this command.');
   });
 
-  it('closes command surfaces when the chat frame loses focus', () => {
-    initChatCommands(vi.fn());
-
-    window.dispatchEvent(new Event('blur'));
-
-    expect(autocompleteMocks.close).toHaveBeenCalledOnce();
-    expect(cardsMocks.close).toHaveBeenCalledOnce();
-
-    cleanupStaleChatCommandSurfaces();
-    autocompleteMocks.close.mockClear();
-    cardsMocks.close.mockClear();
-    window.dispatchEvent(new Event('blur'));
-    expect(autocompleteMocks.close).not.toHaveBeenCalled();
-    expect(cardsMocks.close).not.toHaveBeenCalled();
-  });
-
   it('ignores composing, prevented, and outside key events', () => {
     initChatCommands(vi.fn());
     chatState.text = '/help';

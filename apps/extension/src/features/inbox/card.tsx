@@ -5,7 +5,6 @@
  * jump-to-message buttons while state changes stay in the coordinator.
  */
 import { t } from '../../shared/i18n';
-import { dismissOnFrameBlur } from '../../shared/dismiss-on-frame-blur';
 import { createCloseIcon, createOpenInNewIcon } from '../../shared/icons';
 import { jsx, el } from '../../shared/jsx-dom';
 import {
@@ -131,8 +130,6 @@ export function openInboxCardView(
     cardListeners.abort();
     scrollFadeCleanup();
   };
-  dismissOnFrameBlur(closeInboxCard, cardListeners.signal);
-
   window.setTimeout(() => {
     const options = { capture: true, signal: cardListeners.signal };
     document.addEventListener('click', handleOutsideClick, options);

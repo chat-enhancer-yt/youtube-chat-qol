@@ -275,7 +275,7 @@ describe('composer translation', () => {
     expect(document.querySelector('.ytcq-toast')?.textContent).toBe('Could not translate that text.');
   });
 
-  it('opens draft translation and closes it outside, with Escape, or on frame blur', async () => {
+  it('opens draft translation and closes it outside or with Escape', async () => {
     vi.useFakeTimers();
     document.body.replaceChildren();
     const saveOptions = vi.fn();
@@ -306,10 +306,6 @@ describe('composer translation', () => {
 
     document.querySelector<HTMLButtonElement>('.ytcq-composer-translate-button')?.click();
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
-    expect(panel.hidden).toBe(true);
-
-    document.querySelector<HTMLButtonElement>('.ytcq-composer-translate-button')?.click();
-    window.dispatchEvent(new Event('blur'));
     expect(panel.hidden).toBe(true);
   });
 

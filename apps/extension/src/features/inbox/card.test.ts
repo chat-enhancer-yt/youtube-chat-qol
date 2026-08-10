@@ -311,7 +311,7 @@ describe('inbox card view', () => {
     expect(document.querySelector('.ytcq-profile-card-jump')).toBeNull();
   });
 
-  it('closes from outside click, Escape, or frame blur while ignoring the inbox button', async () => {
+  it('closes from outside click or Escape while ignoring the inbox button', async () => {
     vi.useFakeTimers();
     openInboxCardView(undefined, callbacksForCard());
     await vi.runOnlyPendingTimersAsync();
@@ -330,10 +330,6 @@ describe('inbox card view', () => {
     expect(isInboxCardOpen()).toBe(true);
 
     document.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, key: 'Escape' }));
-    expect(isInboxCardOpen()).toBe(false);
-
-    openInboxCardView(undefined, callbacksForCard());
-    window.dispatchEvent(new Event('blur'));
     expect(isInboxCardOpen()).toBe(false);
 
     openInboxCardView(undefined, callbacksForCard());

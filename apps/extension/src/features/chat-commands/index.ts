@@ -6,7 +6,6 @@
  * Unknown slash-prefixed text is left to YouTube.
  */
 import { t } from '../../shared/i18n';
-import { dismissOnFrameBlur } from '../../shared/dismiss-on-frame-blur';
 import { cleanText } from '../../shared/text';
 import { showToast } from '../../shared/toast';
 import {
@@ -77,7 +76,6 @@ export function initChatCommands(saveOptions: SaveOptions): void {
   document.addEventListener('mousedown', commandAutocomplete.handlePointerDown, options);
   document.addEventListener('click', handleChatCommandSendClick, options);
   window.addEventListener('resize', commandAutocomplete.scheduleUpdate, options);
-  dismissOnFrameBlur(closeChatCommandSurfaces, commandListeners.signal);
 }
 
 export function resetChatCommandsState(): void {
@@ -236,11 +234,6 @@ function showChatCommandHelp(): void {
 
 function closeChatCommandHelp(): void {
   commandCards.close();
-}
-
-function closeChatCommandSurfaces(): void {
-  commandAutocomplete.close();
-  closeChatCommandHelp();
 }
 
 function getCommandDescription(command: ChatCommandDefinition): string {

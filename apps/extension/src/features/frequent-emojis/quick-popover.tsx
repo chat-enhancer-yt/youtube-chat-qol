@@ -6,7 +6,6 @@
  * it, while usage tracking and insertion remain owned by the feature entrypoint.
  */
 import { t } from '../../shared/i18n';
-import { dismissOnFrameBlur } from '../../shared/dismiss-on-frame-blur';
 import { jsx, el } from '../../shared/jsx-dom';
 import { createFrequentEmojiButton, getFrequentEmojiRenderKey } from './row';
 import type { EmojiUsage } from './types';
@@ -53,7 +52,6 @@ export function initQuickEmojiPopover(
   document.addEventListener('focusin', handleFocusIn, options);
   document.addEventListener('focusout', handleFocusOut, options);
   document.addEventListener('keydown', handleKeydown, options);
-  dismissOnFrameBlur(closeQuickEmojiPopover, listeners.signal);
 }
 
 export function resetQuickEmojiPopover(): void {

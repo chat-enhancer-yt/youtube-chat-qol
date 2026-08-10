@@ -157,6 +157,9 @@ export async function expectProfileChannelButtonOpensChannel(
             timeout: isMockPageSurface(chat) ? 5_000 : 15_000
           })
           .toMatch(/^https:\/\/www\.youtube\.com\/(?:@|channel\/)/);
+        await expect(
+          chat.locator('.ytcq-profile-card:not(.ytcq-inbox-card)')
+        ).toBeVisible();
       } finally {
         await popup.close().catch(() => undefined);
       }

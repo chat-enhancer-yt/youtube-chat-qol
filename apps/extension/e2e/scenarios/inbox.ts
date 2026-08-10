@@ -28,7 +28,7 @@ export const inboxOpensFromHeaderScenario: BrowserScenario = async ({ chat }) =>
   await closeInboxPanel(chat);
 };
 
-export const inboxClosesOnWatchPageClickScenario: BrowserScenario = async ({ chat, page }) => {
+export const inboxStaysOpenOnWatchPageClickScenario: BrowserScenario = async ({ chat, page }) => {
   await expectInboxButtonAttached(chat);
   await openInboxPanel(chat);
 
@@ -51,7 +51,8 @@ export const inboxClosesOnWatchPageClickScenario: BrowserScenario = async ({ cha
 
   try {
     await page.locator(`#${outsideTargetId}`).click();
-    await expect(chat.locator('.ytcq-inbox-card')).toHaveCount(0);
+    await expect(chat.locator('.ytcq-inbox-card')).toBeVisible();
+    await closeInboxPanel(chat);
   } finally {
     await page.evaluate((id) => document.getElementById(id)?.remove(), outsideTargetId);
   }
