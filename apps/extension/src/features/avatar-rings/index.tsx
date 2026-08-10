@@ -1,4 +1,4 @@
-/** Browser-local avatar rings selected explicitly from recent-message profiles. */
+/** Browser-local remembered users shown with avatar rings and matching author colors. */
 import { registerFeature, type FeatureMessageContext } from '../../content/dispatcher';
 import {
   AVATAR_RINGS_STORAGE_KEY,
@@ -16,7 +16,12 @@ import { createAvatarRingIcon } from '../../shared/icons';
 import { getUiLocale, t } from '../../shared/i18n';
 import { jsx, el } from '../../shared/jsx-dom';
 import { cleanText } from '../../shared/text';
-import { getAuthorChannelId, getAuthorName, getMessageStableId } from '../../youtube/messages';
+import {
+  getAuthorChannelId,
+  getAuthorName,
+  getAuthorNameElement,
+  getMessageStableId
+} from '../../youtube/messages';
 import { requestRenderedYouTubeChatFeedRecord } from '../../youtube/chat-feed/records';
 import {
   getParticipantAuthorName,
@@ -40,7 +45,7 @@ registerFeature({
     init: initAvatarRings,
     cleanup: cleanupAvatarRings
   },
-  message: renderMessageAvatarRing,
+  message: renderRememberedMessage,
   participant: renderParticipantAvatarRing
 });
 
@@ -114,18 +119,33 @@ export function createAvatarRingToggleButton(source: AvatarRingSource): HTMLButt
 }
 
 export function applyAvatarRing(target: HTMLElement | null, identity: AvatarRingIdentity): void {
+  applyRememberedUserTarget(target, identity, 'avatar');
+}
+
+export function applyRememberedAuthorColor(
+  target: HTMLElement | null,
+  identity: AvatarRingIdentity
+): void {
+  applyRememberedUserTarget(target, identity, 'author');
+}
+
+function applyRememberedUserTarget(
+  target: HTMLElement | null,
+  identity: AvatarRingIdentity,
+  kind: 'author' | 'avatar'
+): void {
   if (!target) return;
 
   const normalized = normalizeAvatarRingIdentity(identity);
   if (!normalized) {
-    clearAvatarRing(target);
+    clearRememberedUserTarget(target);
     return;
   }
 
   const match = findAvatarRing(normalized);
   const key = match?.[0] || getAvatarRingKey(normalized);
   if (!key) {
-    clearAvatarRing(target);
+    clearRememberedUserTarget(target);
     return;
   }
 
@@ -133,8 +153,10 @@ export function applyAvatarRing(target: HTMLElement | null, identity: AvatarRing
   target.dataset.ytcqAvatarRingName = normalized.authorName || key;
   target.dataset.ytcqAvatarRingChannelId = normalized.channelId || '';
   target.style.setProperty('--ytcq-avatar-ring-color', getAvatarRingColor(normalized));
-  target.classList.add('ytcq-avatar-ring-target');
-  target.classList.toggle('ytcq-avatar-ring-active', Boolean(match));
+  target.classList.add(
+    kind === 'avatar' ? 'ytcq-avatar-ring-target' : 'ytcq-remembered-author-target'
+  );
+  updateRememberedUserTargetState(target, Boolean(match));
 }
 
 export function refreshAvatarRings(): void {
@@ -142,7 +164,7 @@ export function refreshAvatarRings(): void {
     const identity = getAvatarRingTargetIdentity(target);
     const normalized = normalizeAvatarRingIdentity(identity);
     if (!normalized) {
-      clearAvatarRing(target);
+      clearRememberedUserTarget(target);
       return;
     }
 
@@ -152,7 +174,7 @@ export function refreshAvatarRings(): void {
       '--ytcq-avatar-ring-color',
       getAvatarRingColor(match?.[1] || normalized)
     );
-    target.classList.toggle('ytcq-avatar-ring-active', Boolean(match));
+    updateRememberedUserTargetState(target, Boolean(match));
   });
 
   document.querySelectorAll<HTMLButtonElement>('.ytcq-avatar-ring-toggle').forEach((button) => {
@@ -171,9 +193,15 @@ export function cleanupAvatarRings(): void {
   }
   document
     .querySelectorAll<HTMLElement>(
-      '[data-ytcq-avatar-ring-key], .ytcq-avatar-ring-target, .ytcq-avatar-ring-active'
+      [
+        '[data-ytcq-avatar-ring-key]',
+        '.ytcq-avatar-ring-target',
+        '.ytcq-avatar-ring-active',
+        '.ytcq-remembered-author-target',
+        '.ytcq-remembered-author-active'
+      ].join(', ')
     )
-    .forEach(clearAvatarRing);
+    .forEach(clearRememberedUserTarget);
 }
 
 export function getAvatarRingIdentityFromMessage(message: HTMLElement): AvatarRingIdentity | null {
@@ -194,7 +222,7 @@ function getAvatarRingIdentityFromParticipant(participant: HTMLElement): AvatarR
   };
 }
 
-function renderMessageAvatarRing(
+function renderRememberedMessage(
   message: HTMLElement,
   { record }: Pick<FeatureMessageContext, 'record'> = {}
 ): void {
@@ -205,20 +233,24 @@ function renderMessageAvatarRing(
       }
     : getAvatarRingIdentityFromMessage(message);
   const avatar = message.querySelector<HTMLElement>('#author-photo');
-  if (!identity || !avatar) return;
+  const author = getAuthorNameElement(message);
+  if (!identity || (!avatar && !author)) return;
 
   applyAvatarRing(avatar, identity);
+  applyRememberedAuthorColor(author, identity);
   if (record) return;
 
   const messageId = getMessageStableId(message);
   if (!messageId) return;
   void requestRenderedYouTubeChatFeedRecord(message).then((record) => {
-    if (!avatarRingsActive || !message.isConnected || !avatar.isConnected || !record) return;
+    if (!avatarRingsActive || !message.isConnected || !record) return;
     if (record.id !== messageId || getMessageStableId(message) !== messageId) return;
-    applyAvatarRing(avatar, {
+    const resolvedIdentity = {
       authorName: record.author?.name || identity.authorName,
       channelId: record.author?.channelId || identity.channelId
-    });
+    };
+    applyAvatarRing(message.querySelector<HTMLElement>('#author-photo'), resolvedIdentity);
+    applyRememberedAuthorColor(getAuthorNameElement(message), resolvedIdentity);
   });
 }
 
@@ -332,8 +364,24 @@ function getAvatarRingTargetIdentity(target: HTMLElement): AvatarRingIdentity {
   };
 }
 
-function clearAvatarRing(target: HTMLElement): void {
-  target.classList.remove('ytcq-avatar-ring-target', 'ytcq-avatar-ring-active');
+function updateRememberedUserTargetState(target: HTMLElement, enabled: boolean): void {
+  target.classList.toggle(
+    'ytcq-avatar-ring-active',
+    enabled && target.classList.contains('ytcq-avatar-ring-target')
+  );
+  target.classList.toggle(
+    'ytcq-remembered-author-active',
+    enabled && target.classList.contains('ytcq-remembered-author-target')
+  );
+}
+
+function clearRememberedUserTarget(target: HTMLElement): void {
+  target.classList.remove(
+    'ytcq-avatar-ring-target',
+    'ytcq-avatar-ring-active',
+    'ytcq-remembered-author-target',
+    'ytcq-remembered-author-active'
+  );
   target.style.removeProperty('--ytcq-avatar-ring-color');
   delete target.dataset.ytcqAvatarRingChannelId;
   delete target.dataset.ytcqAvatarRingKey;

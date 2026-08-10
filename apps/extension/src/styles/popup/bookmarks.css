@@ -271,6 +271,14 @@
   white-space: nowrap;
 }
 
+.bookmark-name-remembered {
+  color: color-mix(
+    in srgb,
+    var(--ytcq-popup-avatar-ring-color, var(--ytcq-popup-action)) 58%,
+    var(--ytcq-popup-text)
+  );
+}
+
 .bookmark-name-button {
   display: block;
   padding: 0;

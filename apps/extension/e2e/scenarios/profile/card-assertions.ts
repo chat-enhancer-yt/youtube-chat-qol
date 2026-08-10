@@ -63,13 +63,28 @@ export async function expectProfileAvatarRingToggle(
   await test.step('Add and remove an avatar ring from the profile header', async () => {
     const profileCard = chat.locator('.ytcq-profile-card:not(.ytcq-inbox-card)');
     const toggle = profileCard.locator('.ytcq-avatar-ring-toggle');
-    const sourceAvatar = getProfileSourceMessage(chat, source).locator('#author-photo').first();
+    const sourceMessage = getProfileSourceMessage(chat, source);
+    const sourceAvatar = sourceMessage.locator('#author-photo').first();
+    const sourceAuthor = sourceMessage.locator('#author-name').first();
+    const profileAuthor = profileCard.locator('.ytcq-profile-card-author');
+    const initialAuthorColors = isMockPageSurface(chat)
+      ? {
+          profile: await profileAuthor.evaluate((element) => getComputedStyle(element).color),
+          source: await sourceAuthor.evaluate((element) => getComputedStyle(element).color)
+        }
+      : null;
 
     await expect(toggle).toHaveAttribute('aria-pressed', 'false');
     await toggle.click();
     await expect(toggle).toHaveAttribute('aria-pressed', 'true');
     await expect(toggle).toHaveAttribute('title', /Forget user\nUser remembered .+/);
     await expect(sourceAvatar).toHaveClass(/ytcq-avatar-ring-active/);
+    await expect(sourceAuthor).toHaveClass(/ytcq-remembered-author-active/);
+    await expect(profileAuthor).toHaveClass(/ytcq-remembered-author-active/);
+    if (initialAuthorColors) {
+      await expect(sourceAuthor).not.toHaveCSS('color', initialAuthorColors.source);
+      await expect(profileAuthor).not.toHaveCSS('color', initialAuthorColors.profile);
+    }
 
     await profileCard.locator('.ytcq-profile-card-title').hover();
     await expect
@@ -83,6 +98,12 @@ export async function expectProfileAvatarRingToggle(
     await toggle.click();
     await expect(toggle).toHaveAttribute('aria-pressed', 'false');
     await expect(sourceAvatar).not.toHaveClass(/ytcq-avatar-ring-active/);
+    await expect(sourceAuthor).not.toHaveClass(/ytcq-remembered-author-active/);
+    await expect(profileAuthor).not.toHaveClass(/ytcq-remembered-author-active/);
+    if (initialAuthorColors) {
+      await expect(sourceAuthor).toHaveCSS('color', initialAuthorColors.source);
+      await expect(profileAuthor).toHaveCSS('color', initialAuthorColors.profile);
+    }
   });
 }
 

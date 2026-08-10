@@ -53,7 +53,8 @@ const bookmarkMocks = vi.hoisted(() => ({
 }));
 
 const avatarRingMocks = vi.hoisted(() => ({
-  applyAvatarRing: vi.fn()
+  applyAvatarRing: vi.fn(),
+  applyRememberedAuthorColor: vi.fn()
 }));
 
 const channelPopupMocks = vi.hoisted(() => ({
@@ -166,6 +167,10 @@ describe('inbox card view', () => {
     expect(card.querySelector('.ytcq-profile-card-subtitle')?.textContent).toBe('1 new message');
     expect(row.querySelector('time')?.textContent).toBe('9:30 PM');
     expect(row.querySelector<HTMLElement>('.ytcq-inbox-author')?.dir).toBe('auto');
+    expect(avatarRingMocks.applyRememberedAuthorColor).toHaveBeenCalledWith(
+      row.querySelector('.ytcq-inbox-author'),
+      records[0]
+    );
     expect(row.querySelector('.ytcq-inbox-message-body')?.textContent).toContain('@ViewerOne hello inbox');
     expect(row.querySelector('.ytcq-profile-card-message-actions .ytcq-bookmark-toggle')).not.toBeNull();
     expect(bookmarkMocks.createBookmarkToggleButton).toHaveBeenCalledWith(records[0]);

@@ -348,7 +348,7 @@ function createBookmarkRow(
     !hasAvatarRing && Boolean(previousAvatarRingColor)
   );
   const copy = el<HTMLSpanElement>(<span class="bookmark-copy" />);
-  copy.append(createBookmarkHeader(record, channelUrl));
+  copy.append(createBookmarkHeader(record, channelUrl, hasAvatarRing));
 
   if (record.message) {
     const message = el<HTMLDivElement>(<div class="bookmark-message" dir="auto" />);
@@ -408,7 +408,7 @@ function createAvatarRingRow(
     !active && Boolean(previousAvatarRingColor)
   );
   const copy = el<HTMLSpanElement>(<span class="bookmark-copy avatar-ring-copy" />);
-  copy.append(createAvatarRingHeader(record, channelUrl));
+  copy.append(createAvatarRingHeader(record, channelUrl, active));
   copy.append(
     el<HTMLSpanElement>(
       <span class="avatar-ring-label">{getExtensionMessage('rememberedUser')}</span>
@@ -444,15 +444,23 @@ function createAvatarRingRow(
   return row;
 }
 
-function createBookmarkHeader(record: BookmarkRecord, channelUrl: string): HTMLElement {
-  const header = createSavedItemHeader(record.authorName, channelUrl);
+function createBookmarkHeader(
+  record: BookmarkRecord,
+  channelUrl: string,
+  remembered: boolean
+): HTMLElement {
+  const header = createSavedItemHeader(record.authorName, channelUrl, remembered);
   const postedTime = createBookmarkPostedTime(record.message);
   if (postedTime) header.append(postedTime);
   return header;
 }
 
-function createAvatarRingHeader(record: AvatarRingRecord, channelUrl: string): HTMLElement {
-  const header = createSavedItemHeader(record.authorName, channelUrl);
+function createAvatarRingHeader(
+  record: AvatarRingRecord,
+  channelUrl: string,
+  remembered: boolean
+): HTMLElement {
+  const header = createSavedItemHeader(record.authorName, channelUrl, remembered);
   const fullAddedTime = formatFullDateTime(record.addedAt);
   const tooltip = getExtensionMessage('userRememberedDate', fullAddedTime);
   const time = el<HTMLTimeElement>(
@@ -469,13 +477,18 @@ function createAvatarRingHeader(record: AvatarRingRecord, channelUrl: string): H
   return header;
 }
 
-function createSavedItemHeader(authorName: string, channelUrl: string): HTMLElement {
+function createSavedItemHeader(
+  authorName: string,
+  channelUrl: string,
+  remembered: boolean
+): HTMLElement {
   const name = authorName || getExtensionMessage('unknownUser');
+  const nameClass = `bookmark-name${remembered ? ' bookmark-name-remembered' : ''}`;
   const nameElement = channelUrl
     ? el<HTMLButtonElement>(
         <button
           type="button"
-          class="bookmark-name bookmark-name-button"
+          class={`${nameClass} bookmark-name-button`}
           dir="auto"
           title={getExtensionMessage('openChannel')}
           aria-label={getExtensionMessage('openChannel')}
@@ -485,7 +498,7 @@ function createSavedItemHeader(authorName: string, channelUrl: string): HTMLElem
         </button>
       )
     : el<HTMLElement>(
-        <strong class="bookmark-name" dir="auto">
+        <strong class={nameClass} dir="auto">
           {name}
         </strong>
       );

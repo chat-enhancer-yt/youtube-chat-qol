@@ -23,7 +23,11 @@ import {
 } from '../user-message-history';
 import { registerFeature, type FeatureMessageContext } from '../../content/dispatcher';
 import { mentionAuthorName } from '../reply';
-import { applyAvatarRing, createAvatarRingToggleButton } from '../avatar-rings';
+import {
+  applyAvatarRing,
+  applyRememberedAuthorColor,
+  createAvatarRingToggleButton
+} from '../avatar-rings';
 import {
   createTranslationPriorityScope,
   type TranslationPriorityScope
@@ -339,6 +343,7 @@ function showProfileCard(source: ProfileSource, anchor: HTMLElement): void {
       {source.authorName}
     </button>
   );
+  applyRememberedAuthorColor(title, source.identity);
   const channelButton = source.profileUrl ? createProfileChannelButton(source.profileUrl) : null;
   const closeButton = el<HTMLButtonElement>(
     <button

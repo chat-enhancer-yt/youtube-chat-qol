@@ -17,7 +17,11 @@ import {
 import { findChatInput, getChatInputText, replaceChatInput } from '../../youtube/chat-input';
 import { PANEL_PAGES_SELECTOR, SEND_BUTTON_SELECTOR } from '../../youtube/selectors';
 import { getChannelUrl, openChannelWindow } from '../channel-popup';
-import { applyAvatarRing, createAvatarRingToggleButton } from '../avatar-rings';
+import {
+  applyAvatarRing,
+  applyRememberedAuthorColor,
+  createAvatarRingToggleButton
+} from '../avatar-rings';
 import { createBookmarkToggleButton } from '../bookmarks';
 import { isCurrentUserAuthorName } from '../mention-detection';
 import { canJumpToChatMessage, createJumpToMessageIcon, jumpToChatMessage } from '../message-jump';
@@ -410,14 +414,13 @@ function stopFocusTranslationPriority(): void {
 }
 
 function createFocusAuthor(source: FocusSource, channelUrl = ''): HTMLElement {
-  const content = [
-    createFocusAvatar(source),
-    el<HTMLSpanElement>(
-      <span class="ytcq-focus-author-name" dir="auto">
-        {source.authorName}
-      </span>
-    )
-  ];
+  const authorName = el<HTMLSpanElement>(
+    <span class="ytcq-focus-author-name" dir="auto">
+      {source.authorName}
+    </span>
+  );
+  applyRememberedAuthorColor(authorName, source);
+  const content = [createFocusAvatar(source), authorName];
 
   if (channelUrl) {
     const author = el<HTMLButtonElement>(

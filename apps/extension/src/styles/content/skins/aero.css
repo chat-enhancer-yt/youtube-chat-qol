@@ -1990,6 +1990,15 @@
   --ytcq-aero-avatar-ring-glow: color-mix(in srgb, var(--ytcq-avatar-ring-color, #67bd3b) 42%, transparent);
 }
 
+:root[data-ytcq-chat-skin="aero"] :where(
+  #author-name,
+  .ytcq-profile-card-author,
+  .ytcq-focus-author-name,
+  .ytcq-inbox-author
+).ytcq-remembered-author-target {
+  --ytcq-remembered-author-base-color: var(--ytcq-aero-accent-strong);
+}
+
 :root[data-ytcq-chat-skin="aero"][data-ytcq-chat-skin-theme="dark"],
 :root[data-ytcq-chat-skin="aero"][data-ytcq-chat-skin-theme="dark"] body,
 :root[data-ytcq-chat-skin="aero"][data-ytcq-chat-skin-theme="dark"] :where(

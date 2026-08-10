@@ -70,6 +70,14 @@ describe('popup bookmark filter', () => {
     const filter = document.querySelector<HTMLInputElement>('#bookmarksFilter')!;
     const bookmarkRow = document.querySelector<HTMLElement>('.bookmark-row:not(.avatar-ring-row)')!;
     const rememberedUserRow = document.querySelector<HTMLElement>('.avatar-ring-row')!;
+    expect(
+      bookmarkRow.querySelector('.bookmark-name')?.classList.contains('bookmark-name-remembered')
+    ).toBe(false);
+    expect(
+      rememberedUserRow
+        .querySelector('.bookmark-name')
+        ?.classList.contains('bookmark-name-remembered')
+    ).toBe(true);
 
     filter.value = 'LAUNCH WINDOW OPENS';
     filter.dispatchEvent(new Event('input'));
@@ -182,6 +190,11 @@ describe('popup bookmark filter', () => {
       getRememberedUserRow('@BetaViewer')?.querySelector('.avatar-ring-avatar-in')
     ).not.toBeNull();
     expect(getBookmarkRow('@BetaViewer')?.querySelector('.avatar-ring-avatar-in')).not.toBeNull();
+    expect(
+      getBookmarkRow('@BetaViewer')
+        ?.querySelector('.bookmark-name')
+        ?.classList.contains('bookmark-name-remembered')
+    ).toBe(true);
 
     getRememberedUserRow('@AlphaViewer')
       ?.querySelector<HTMLButtonElement>('.avatar-ring-action-button')

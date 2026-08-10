@@ -205,6 +205,7 @@ async function expectFocusHeaderActionsAndRingToggle(chat: ChatSurface): Promise
     const channelButton = panel.locator('.ytcq-focus-channel');
     const closeButton = panel.locator('.ytcq-focus-close');
     const avatar = panel.locator('.ytcq-focus-avatar');
+    const author = panel.locator('.ytcq-focus-author-name');
     const initialState = await toggle.getAttribute('aria-pressed');
     const nextState = initialState === 'true' ? 'false' : 'true';
 
@@ -218,8 +219,10 @@ async function expectFocusHeaderActionsAndRingToggle(chat: ChatSurface): Promise
     await expect(toggle).toHaveAttribute('aria-pressed', nextState);
     if (nextState === 'true') {
       await expect(avatar).toHaveClass(/ytcq-avatar-ring-active/);
+      await expect(author).toHaveClass(/ytcq-remembered-author-active/);
     } else {
       await expect(avatar).not.toHaveClass(/ytcq-avatar-ring-active/);
+      await expect(author).not.toHaveClass(/ytcq-remembered-author-active/);
     }
 
     await toggle.click();

@@ -238,7 +238,22 @@ export const bookmarkPopupRenderingScenario: BrowserScenario = async ({ context 
           await expect(noMatches).toBeHidden();
           await expect(popup.locator('.bookmark-search-highlight')).toHaveCount(0);
         });
-        await test.step('Animate remembered-author rings on and off every affected row', async () => {
+        await test.step('Color remembered authors and animate their rings on and off', async () => {
+          await expect(
+            popup.locator('.bookmark-row:not(.avatar-ring-row) .bookmark-name')
+          ).toHaveClass(/bookmark-name-remembered/);
+          await expect(
+            popup.locator('.avatar-ring-row:not(.avatar-ring-row-removed) .bookmark-name')
+          ).toHaveClass(/bookmark-name-remembered/);
+          const rememberedLabelColor = await popup
+            .locator('.avatar-ring-row:not(.avatar-ring-row-removed) .avatar-ring-label')
+            .evaluate((element) => getComputedStyle(element).color);
+          await expect(
+            popup.locator('.bookmark-row:not(.avatar-ring-row) .bookmark-name')
+          ).toHaveCSS('color', rememberedLabelColor);
+          await expect(
+            popup.locator('.avatar-ring-row:not(.avatar-ring-row-removed) .bookmark-name')
+          ).toHaveCSS('color', rememberedLabelColor);
           const avatar = popup.locator(
             '.bookmark-row:not(.avatar-ring-row) .avatar-ring-avatar'
           );
@@ -270,6 +285,12 @@ export const bookmarkPopupRenderingScenario: BrowserScenario = async ({ context 
             'ytcq-popup-avatar-ring-out'
           );
           await expect(departingAvatar).toHaveCSS('animation-duration', '0.16s');
+          await expect(
+            popup.locator('.bookmark-row:not(.avatar-ring-row) .bookmark-name')
+          ).not.toHaveClass(/bookmark-name-remembered/);
+          await expect(
+            popup.locator('.avatar-ring-row-removed .bookmark-name')
+          ).not.toHaveClass(/bookmark-name-remembered/);
         });
 
         const dimensions = await message.evaluate((element) => ({

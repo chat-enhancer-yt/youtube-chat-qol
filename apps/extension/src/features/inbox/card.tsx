@@ -15,7 +15,7 @@ import {
   wireScrollEdgeFades
 } from '../../shared/scroll';
 import { appendRichMessageText } from '../../youtube/rich-text';
-import { applyAvatarRing } from '../avatar-rings';
+import { applyAvatarRing, applyRememberedAuthorColor } from '../avatar-rings';
 import { createBookmarkToggleButton } from '../bookmarks';
 import { canJumpToChatMessage, createJumpToMessageIcon, jumpToChatMessage } from '../message-jump';
 import { mentionAuthorName, quoteAuthorRichText } from '../reply';
@@ -236,6 +236,7 @@ function renderInboxList(list: HTMLElement): void {
         {record.authorName}
       </button>
     );
+    applyRememberedAuthorColor(author, record);
     highlightInboxAuthorMatches(author, record);
 
     const spacer = document.createTextNode(' ');

@@ -44,18 +44,28 @@ describe('avatar rings', () => {
     await flushAsyncWork();
 
     const avatar = document.createElement('span');
-    document.body.append(avatar);
+    const author = document.createElement('span');
+    document.body.append(avatar, author);
     feature.applyAvatarRing(avatar, {
       authorName: '@ViewerOne',
       channelId: 'viewer-channel'
     });
+    feature.applyRememberedAuthorColor(author, {
+      authorName: '@ViewerOne',
+      channelId: 'viewer-channel'
+    });
     expect(avatar.classList.contains('ytcq-avatar-ring-active')).toBe(false);
+    expect(author.classList.contains('ytcq-remembered-author-active')).toBe(false);
 
     await expect(
       feature.toggleAvatarRing({ authorName: '@ViewerOne', channelId: 'viewer-channel' })
     ).resolves.toBe(true);
 
     expect(avatar.classList.contains('ytcq-avatar-ring-active')).toBe(true);
+    expect(author.classList.contains('ytcq-remembered-author-active')).toBe(true);
+    expect(author.style.getPropertyValue('--ytcq-avatar-ring-color')).toBe(
+      feature.getAvatarRingColor({ authorName: '@ViewerOne' })
+    );
     expect(avatar.style.getPropertyValue('--ytcq-avatar-ring-color')).toBe(
       feature.getAvatarRingColor({ authorName: '@ViewerOne' })
     );
@@ -181,8 +191,11 @@ describe('avatar rings', () => {
     await flushAsyncWork();
 
     const avatar = message.querySelector<HTMLElement>('#author-photo')!;
+    const author = message.querySelector<HTMLElement>('#author-name')!;
     expect(avatar.dataset.ytcqAvatarRingKey).toBe('channel:viewer-channel');
     expect(avatar.classList.contains('ytcq-avatar-ring-active')).toBe(true);
+    expect(author.dataset.ytcqAvatarRingKey).toBe('channel:viewer-channel');
+    expect(author.classList.contains('ytcq-remembered-author-active')).toBe(true);
   });
 
   it('uses a Lite row record without re-reading its author or requesting feed data', async () => {
@@ -197,7 +210,10 @@ describe('avatar rings', () => {
 
     const message = document.createElement('article');
     message.className = 'ytcq-lite-message';
-    message.innerHTML = '<span id="author-photo"></span>';
+    message.innerHTML = `
+      <span id="author-photo"></span>
+      <button id="author-name" class="ytcq-lite-author-name">@LiteViewer</button>
+    `;
     document.body.append(message);
 
     lifecycle.handleFeatureMessage(message, {
@@ -216,8 +232,11 @@ describe('avatar rings', () => {
     });
 
     const avatar = message.querySelector<HTMLElement>('#author-photo')!;
+    const author = message.querySelector<HTMLElement>('#author-name')!;
     expect(avatar.dataset.ytcqAvatarRingKey).toBe('channel:lite-viewer-channel');
     expect(avatar.classList.contains('ytcq-avatar-ring-active')).toBe(true);
+    expect(author.dataset.ytcqAvatarRingKey).toBe('channel:lite-viewer-channel');
+    expect(author.classList.contains('ytcq-remembered-author-active')).toBe(true);
     expect(chatFeedRecordMocks.requestRenderedYouTubeChatFeedRecord).not.toHaveBeenCalled();
   });
 

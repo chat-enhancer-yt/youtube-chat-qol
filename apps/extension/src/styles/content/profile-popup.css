@@ -356,6 +356,28 @@
     0 0 0 4px color-mix(in srgb, var(--ytcq-avatar-ring-color, #3ea6ff) 22%, transparent);
 }
 
+#author-name.ytcq-remembered-author-target {
+  --ytcq-remembered-author-base-color: var(
+    --ytcq-lite-author-color,
+    var(
+      --yt-live-chat-author-name-color,
+      var(--yt-live-chat-secondary-text-color, var(--yt-spec-text-secondary, #606060))
+    )
+  );
+}
+
+.ytcq-remembered-author-active:not(.owner):not([type="owner"]),
+#author-name.ytcq-remembered-author-active:not(.owner):not([type="owner"]) {
+  color: color-mix(
+    in srgb,
+    var(--ytcq-avatar-ring-color, var(--yt-spec-call-to-action, #3ea6ff)) 58%,
+    var(
+      --ytcq-remembered-author-base-color,
+      var(--yt-spec-text-primary, var(--yt-live-chat-primary-text-color, #0f0f0f))
+    )
+  ) !important;
+}
+
 .ytcq-inbox-keyword-toggle {
   position: relative;
 }

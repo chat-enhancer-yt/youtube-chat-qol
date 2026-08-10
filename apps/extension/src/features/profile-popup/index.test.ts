@@ -80,6 +80,7 @@ const replyMocks = vi.hoisted(() => ({
 
 const avatarRingMocks = vi.hoisted(() => ({
   applyAvatarRing: vi.fn(),
+  applyRememberedAuthorColor: vi.fn(),
   createAvatarRingToggleButton: vi.fn(() => {
     const button = document.createElement('button');
     button.className = 'ytcq-avatar-ring-toggle';
@@ -182,6 +183,10 @@ describe('profile popup coordinator', () => {
       expect.objectContaining({ left: 0, right: 0, top: 0 })
     );
     expect(avatarRingMocks.applyAvatarRing).toHaveBeenCalledWith(expect.any(HTMLElement), {
+      authorName: '@ViewerOne',
+      channelId: 'viewer-channel'
+    });
+    expect(avatarRingMocks.applyRememberedAuthorColor).toHaveBeenCalledWith(author, {
       authorName: '@ViewerOne',
       channelId: 'viewer-channel'
     });

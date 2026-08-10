@@ -62,6 +62,7 @@ const jumpMocks = vi.hoisted(() => ({
 
 const avatarRingMocks = vi.hoisted(() => ({
   applyAvatarRing: vi.fn(),
+  applyRememberedAuthorColor: vi.fn(),
   createAvatarRingToggleButton: vi.fn(() => {
     const button = document.createElement('button');
     button.className = 'ytcq-avatar-ring-toggle';
@@ -151,6 +152,10 @@ describe('focus mode entrypoint', () => {
     expect(collapsed.textContent).toContain('@ViewerOne');
     expect(avatarRingMocks.applyAvatarRing).toHaveBeenCalledWith(
       expect.any(HTMLElement),
+      expect.objectContaining({ authorName: '@ViewerOne', channelId: 'viewer-channel' })
+    );
+    expect(avatarRingMocks.applyRememberedAuthorColor).toHaveBeenCalledWith(
+      expect.objectContaining({ textContent: '@ViewerOne' }),
       expect.objectContaining({ authorName: '@ViewerOne', channelId: 'viewer-channel' })
     );
 
