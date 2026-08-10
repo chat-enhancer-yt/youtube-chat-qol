@@ -339,6 +339,15 @@
     "onboardingDraftTranslatorTooltip": {
       "message": "Dit is de conceptvertaler. Klik erop en kies een taal om alles wat je in het chatvak typt te vertalen voordat je het verzendt."
     },
+    "onboardingEmojiPickerTooltip": {
+      "message": "Ga over deze emoji-knop en je meestgebruikte reacties verschijnen boven het berichtveld. Klik erop om YouTubes volledige emoji-kiezer te openen."
+    },
+    "onboardingFeatureBreakdownBefore": {
+      "message": "Ga naar"
+    },
+    "onboardingFeatureBreakdownAfter": {
+      "message": "voor een volledig overzicht van de functies."
+    },
     "onboardingEnableLiteMode": {
       "message": "Lite-modus inschakelen"
     },

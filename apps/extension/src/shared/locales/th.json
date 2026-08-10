@@ -339,6 +339,15 @@
     "onboardingDraftTranslatorTooltip": {
       "message": "นี่คือตัวแปลฉบับร่าง คลิกแล้วเลือกภาษาเพื่อแปลสิ่งที่คุณพิมพ์ในช่องแชทก่อนส่ง"
     },
+    "onboardingEmojiPickerTooltip": {
+      "message": "วางเมาส์เหนือปุ่มอีโมจินี้ แล้วรีแอ็กชันที่ใช้บ่อยจะปรากฏเหนือช่องข้อความ คลิกเพื่อเปิดตัวเลือกอีโมจิแบบเต็มของ YouTube"
+    },
+    "onboardingFeatureBreakdownBefore": {
+      "message": "ไปที่"
+    },
+    "onboardingFeatureBreakdownAfter": {
+      "message": "เพื่อดูรายละเอียดฟีเจอร์ทั้งหมด"
+    },
     "onboardingEnableLiteMode": {
       "message": "เปิดใช้โหมด Lite"
     },

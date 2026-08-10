@@ -130,7 +130,9 @@ export const onboardingFeaturePreviewScenario: ExtensionScenario = async ({ cont
               Math.abs(pathStart.y - expectedStartY) < 2 &&
               Math.abs(pathEnd.x - expectedEndX) < 2 &&
               Math.abs(pathEnd.y - expectedEndY) < 2 &&
-              Number.parseFloat(getComputedStyle(path).opacity) > 0.7
+              getComputedStyle(path).strokeDasharray === 'none' &&
+              Number.parseFloat(getComputedStyle(path).strokeWidth) >= 3 &&
+              Number.parseFloat(getComputedStyle(path).opacity) === 1
             );
           });
         })

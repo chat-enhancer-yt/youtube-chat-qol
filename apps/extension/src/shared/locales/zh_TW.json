@@ -339,6 +339,15 @@
     "onboardingDraftTranslatorTooltip": {
       "message": "這是草稿翻譯器。按一下並選擇語言，即可在傳送前翻譯你在聊天室輸入框中輸入的內容。"
     },
+    "onboardingEmojiPickerTooltip": {
+      "message": "把滑鼠移到這個表情符號按鈕上，最常用的反應就會出現在訊息框上方。按一下即可開啟 YouTube 的完整表情符號選擇器。"
+    },
+    "onboardingFeatureBreakdownBefore": {
+      "message": "造訪"
+    },
+    "onboardingFeatureBreakdownAfter": {
+      "message": "查看完整的功能介紹。"
+    },
     "onboardingEnableLiteMode": {
       "message": "啟用 Lite 模式"
     },

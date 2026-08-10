@@ -339,6 +339,15 @@
     "onboardingDraftTranslatorTooltip": {
       "message": "זהו מתרגם הטיוטות. יש ללחוץ עליו ולבחור שפה כדי לתרגם את כל מה שמוקלד בתיבת הצ׳אט לפני השליחה."
     },
+    "onboardingEmojiPickerTooltip": {
+      "message": "רחפו מעל כפתור האימוג'י הזה והתגובות הנפוצות שלכם יופיעו מעל תיבת ההודעה. לחצו עליו כדי לפתוח את בורר האימוג'י המלא של YouTube."
+    },
+    "onboardingFeatureBreakdownBefore": {
+      "message": "בקרו בכתובת"
+    },
+    "onboardingFeatureBreakdownAfter": {
+      "message": "לקבלת פירוט מלא של התכונות."
+    },
     "onboardingEnableLiteMode": {
       "message": "הפעלת מצב Lite"
     },

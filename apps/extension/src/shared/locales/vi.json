@@ -339,6 +339,15 @@
     "onboardingDraftTranslatorTooltip": {
       "message": "Đây là trình dịch bản nháp. Nhấp vào rồi chọn ngôn ngữ để dịch nội dung bạn nhập trong hộp trò chuyện trước khi gửi."
     },
+    "onboardingEmojiPickerTooltip": {
+      "message": "Rê chuột lên nút emoji này và những phản ứng dùng nhiều nhất sẽ xuất hiện phía trên ô tin nhắn. Nhấp vào nút để mở bộ chọn emoji đầy đủ của YouTube."
+    },
+    "onboardingFeatureBreakdownBefore": {
+      "message": "Truy cập"
+    },
+    "onboardingFeatureBreakdownAfter": {
+      "message": "để xem thông tin chi tiết về tất cả tính năng."
+    },
     "onboardingEnableLiteMode": {
       "message": "Bật chế độ Lite"
     },

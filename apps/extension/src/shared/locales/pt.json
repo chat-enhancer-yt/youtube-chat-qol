@@ -340,6 +340,15 @@
     "onboardingDraftTranslatorTooltip": {
       "message": "Este é o tradutor de rascunhos. Clique nele e escolha um idioma para traduzir o que você digitar na caixa de chat antes de enviar."
     },
+    "onboardingEmojiPickerTooltip": {
+      "message": "Passe o cursor sobre este botão de emojis e as reações mais usadas aparecem acima da caixa de mensagem. Clique nele para abrir o seletor completo de emojis do YouTube."
+    },
+    "onboardingFeatureBreakdownBefore": {
+      "message": "Visite"
+    },
+    "onboardingFeatureBreakdownAfter": {
+      "message": "para ver uma descrição completa dos recursos."
+    },
     "onboardingEnableLiteMode": {
       "message": "Ativar modo Lite"
     },

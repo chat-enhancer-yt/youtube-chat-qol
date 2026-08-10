@@ -339,6 +339,15 @@
     "onboardingDraftTranslatorTooltip": {
       "message": "Este es el traductor de borradores. Haz clic en él y elige un idioma para traducir lo que escribas en el cuadro de chat antes de enviarlo."
     },
+    "onboardingEmojiPickerTooltip": {
+      "message": "Pasa el cursor sobre este botón de emojis y tus reacciones más usadas aparecerán sobre el cuadro de mensaje. Haz clic para abrir el selector de emojis completo de YouTube."
+    },
+    "onboardingFeatureBreakdownBefore": {
+      "message": "Visita"
+    },
+    "onboardingFeatureBreakdownAfter": {
+      "message": "para ver un resumen completo de las funciones."
+    },
     "onboardingEnableLiteMode": {
       "message": "Activar el modo Lite"
     },

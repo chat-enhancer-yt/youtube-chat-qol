@@ -80,6 +80,21 @@ export const onboardingRenderingScenario: ExtensionScenario = async ({ context }
     );
     await expect(onboarding.locator('.preview-hover-hint')).toHaveCSS('color', 'rgb(96, 96, 96)');
     await expect(onboarding.locator('.preview-hover-hint')).toHaveCSS('font-size', '13px');
+    await expect(onboarding.locator('.preview-feature-breakdown')).toHaveText(
+      'Visit chatenhancer.com for a full breakdown of the features.'
+    );
+    await expect(onboarding.locator('.preview-feature-breakdown a')).toHaveAttribute(
+      'href',
+      'https://www.chatenhancer.com/'
+    );
+    await expect(onboarding.locator('.preview-feature-breakdown a')).toHaveAttribute(
+      'target',
+      '_blank'
+    );
+    await expect(onboarding.locator('.preview-feature-breakdown a')).toHaveAttribute(
+      'rel',
+      'noopener noreferrer'
+    );
     await expect
       .poll(async () => {
         const [title, hint, preview] = await Promise.all([
@@ -89,6 +104,16 @@ export const onboardingRenderingScenario: ExtensionScenario = async ({ context }
         ]);
         if (!title || !hint || !preview) return false;
         return hint.y >= title.y + title.height && hint.y + hint.height <= preview.y;
+      })
+      .toBe(true);
+    await expect
+      .poll(async () => {
+        const [preview, breakdown] = await Promise.all([
+          onboarding.locator('#chatPreview').boundingBox(),
+          onboarding.locator('.preview-feature-breakdown').boundingBox()
+        ]);
+        if (!preview || !breakdown) return false;
+        return breakdown.y >= preview.y + preview.height;
       })
       .toBe(true);
     await expect(onboarding.locator('.preview-title img')).toHaveCSS('object-fit', 'contain');
@@ -105,8 +130,10 @@ export const onboardingRenderingScenario: ExtensionScenario = async ({ context }
     await expect(onboarding.locator('#previewGamesIcon')).toBeHidden();
     await expect(onboarding.locator('#previewLiteCallout')).toBeHidden();
     await expect(onboarding.locator('#previewPlaygroundCallout')).toBeHidden();
+    await expect(onboarding.locator('#previewLiteModeTooltip')).toBeHidden();
     await expect(onboarding.locator('#previewInboxTooltip')).toBeHidden();
     await expect(onboarding.locator('#previewDraftTranslatorTooltip')).toBeHidden();
+    await expect(onboarding.locator('#previewEmojiPickerTooltip')).toBeHidden();
     await expect(onboarding.locator('#previewLiteIcon')).not.toHaveClass(/preview-icon-active/u);
     await expect(onboarding.locator('.preview-top-chat')).toHaveCSS('font-size', '16px');
     await expect(onboarding.locator('.preview-top-chat')).toHaveCSS('font-weight', '300');

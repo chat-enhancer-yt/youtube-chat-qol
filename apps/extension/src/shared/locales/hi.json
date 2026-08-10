@@ -340,6 +340,15 @@
     "onboardingDraftTranslatorTooltip": {
       "message": "यह ड्राफ़्ट अनुवादक है। इस पर क्लिक करें और चैट बॉक्स में लिखी गई सामग्री को भेजने से पहले अनुवाद करने के लिए कोई भाषा चुनें।"
     },
+    "onboardingEmojiPickerTooltip": {
+      "message": "इस इमोजी बटन पर कर्सर ले जाएँ और आपके सबसे ज़्यादा इस्तेमाल किए गए रिएक्शन मैसेज बॉक्स के ऊपर दिखाई देंगे। YouTube का पूरा इमोजी पिकर खोलने के लिए इस पर क्लिक करें।"
+    },
+    "onboardingFeatureBreakdownBefore": {
+      "message": "सभी सुविधाओं की पूरी जानकारी के लिए"
+    },
+    "onboardingFeatureBreakdownAfter": {
+      "message": "पर जाएँ।"
+    },
     "onboardingEnableLiteMode": {
       "message": "Lite मोड चालू करें"
     },

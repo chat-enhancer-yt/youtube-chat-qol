@@ -339,6 +339,15 @@
     "onboardingDraftTranslatorTooltip": {
       "message": "Це перекладач чернетки. Натисніть його та виберіть мову, щоб перекласти все, що ви вводите в полі чату, до надсилання."
     },
+    "onboardingEmojiPickerTooltip": {
+      "message": "Наведіть вказівник на цю кнопку емодзі, і найуживаніші реакції з’являться над полем повідомлення. Натисніть її, щоб відкрити повний список емодзі YouTube."
+    },
+    "onboardingFeatureBreakdownBefore": {
+      "message": "Відвідайте"
+    },
+    "onboardingFeatureBreakdownAfter": {
+      "message": "щоб переглянути повний опис функцій."
+    },
     "onboardingEnableLiteMode": {
       "message": "Увімкнути режим Lite"
     },

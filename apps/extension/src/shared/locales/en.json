@@ -340,6 +340,15 @@
     "onboardingDraftTranslatorTooltip": {
       "message": "This is the draft translator. Click it and choose a language to translate whatever you type in the chat box before you send it."
     },
+    "onboardingEmojiPickerTooltip": {
+      "message": "Hover over this emoji button and your most-used reactions appear above the message box. Click it to open YouTube’s full emoji picker."
+    },
+    "onboardingFeatureBreakdownBefore": {
+      "message": "Visit"
+    },
+    "onboardingFeatureBreakdownAfter": {
+      "message": "for a full breakdown of the features."
+    },
     "onboardingEnableLiteMode": {
       "message": "Enable Lite mode"
     },

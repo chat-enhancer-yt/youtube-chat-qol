@@ -340,6 +340,15 @@
     "onboardingDraftTranslatorTooltip": {
       "message": "これは下書き翻訳です。クリックして言語を選ぶと、チャットボックスに入力した内容を送信前に翻訳できます。"
     },
+    "onboardingEmojiPickerTooltip": {
+      "message": "この絵文字ボタンにカーソルを合わせると、よく使うリアクションが入力欄の上に表示されます。クリックするとYouTubeの完全な絵文字ピッカーが開きます。"
+    },
+    "onboardingFeatureBreakdownBefore": {
+      "message": "全機能の詳しい説明は"
+    },
+    "onboardingFeatureBreakdownAfter": {
+      "message": "をご覧ください。"
+    },
     "onboardingEnableLiteMode": {
       "message": "Lite モードを有効にする"
     },

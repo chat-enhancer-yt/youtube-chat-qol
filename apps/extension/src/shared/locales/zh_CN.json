@@ -340,6 +340,15 @@
     "onboardingDraftTranslatorTooltip": {
       "message": "这是草稿翻译器。点击它并选择一种语言，即可在发送前翻译你在聊天框中输入的内容。"
     },
+    "onboardingEmojiPickerTooltip": {
+      "message": "将鼠标悬停在这个表情按钮上，最常用的反应就会出现在消息框上方。点击即可打开 YouTube 的完整表情选择器。"
+    },
+    "onboardingFeatureBreakdownBefore": {
+      "message": "访问"
+    },
+    "onboardingFeatureBreakdownAfter": {
+      "message": "查看完整的功能介绍。"
+    },
     "onboardingEnableLiteMode": {
       "message": "启用 Lite 模式"
     },

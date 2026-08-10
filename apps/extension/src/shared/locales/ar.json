@@ -340,6 +340,15 @@
     "onboardingDraftTranslatorTooltip": {
       "message": "هذا هو مترجم المسودة. انقر عليه واختر لغة لترجمة كل ما تكتبه في مربع الدردشة قبل إرساله."
     },
+    "onboardingEmojiPickerTooltip": {
+      "message": "مرّر المؤشر فوق زر الرموز التعبيرية هذا لتظهر تفاعلاتك الأكثر استخدامًا فوق مربع الرسالة. انقر عليه لفتح منتقي الرموز التعبيرية الكامل في YouTube."
+    },
+    "onboardingFeatureBreakdownBefore": {
+      "message": "تفضّل بزيارة"
+    },
+    "onboardingFeatureBreakdownAfter": {
+      "message": "للاطلاع على شرح كامل للميزات."
+    },
     "onboardingEnableLiteMode": {
       "message": "تفعيل الوضع الخفيف"
     },

@@ -266,8 +266,8 @@
           </yt-live-chat-renderer>
 
           <svg id="previewCalloutConnectors" class="preview-callout-connectors" aria-hidden="true" focusable="false">
-            <path id="previewLiteCalloutConnector" class="preview-callout-connector preview-lite-callout-connector" pathLength="1"></path>
-            <path id="previewPlaygroundCalloutConnector" class="preview-callout-connector preview-playground-callout-connector" pathLength="1"></path>
+            <path id="previewLiteCalloutConnector" class="preview-callout-connector preview-lite-callout-connector"></path>
+            <path id="previewPlaygroundCalloutConnector" class="preview-callout-connector preview-playground-callout-connector"></path>
           </svg>
 
           <div class="preview-feature-callouts">
@@ -283,14 +283,23 @@
           </div>
 
           <div class="preview-tooltip-layer" aria-hidden="true">
+            <div id="previewLiteModeTooltip" class="preview-tooltip preview-lite-mode-tooltip"><span data-i18n="liteMode">Lite mode</span><span data-i18n="onboardingLiteModeCallout">, when enabled, will make live chat use less resources. You can always switch back to native by clicking this toggle.</span></div>
             <div id="previewInboxTooltip" class="preview-tooltip preview-inbox-tooltip" data-i18n="onboardingInboxTooltip">
               This opens your Inbox. When people mention you in chat, their messages appear here so you don’t miss them. You can also set up custom Inbox keywords to watch for.
             </div>
             <div id="previewDraftTranslatorTooltip" class="preview-tooltip preview-draft-translator-tooltip" data-i18n="onboardingDraftTranslatorTooltip">
               This is the draft translator. Click it and choose a language to translate whatever you type in the chat box before you send it.
             </div>
+            <div id="previewEmojiPickerTooltip" class="preview-tooltip preview-emoji-picker-tooltip" data-i18n="onboardingEmojiPickerTooltip">
+              Hover over this emoji button and your most-used reactions appear above the message box. Click it to open YouTube’s full emoji picker.
+            </div>
           </div>
         </div>
+        <p class="preview-feature-breakdown">
+          <span data-i18n="onboardingFeatureBreakdownBefore">Visit</span>
+          <a href="https://www.chatenhancer.com/" target="_blank" rel="noopener noreferrer">chatenhancer.com</a>
+          <span data-i18n="onboardingFeatureBreakdownAfter">for a full breakdown of the features.</span>
+        </p>
       </section>
     </main>
     <script src="onboarding.js"></script>

@@ -339,6 +339,15 @@
     "onboardingDraftTranslatorTooltip": {
       "message": "Voici le traducteur de brouillon. Cliquez dessus et choisissez une langue pour traduire ce que vous saisissez dans le champ de chat avant de l’envoyer."
     },
+    "onboardingEmojiPickerTooltip": {
+      "message": "Survolez ce bouton emoji et vos réactions les plus utilisées apparaissent au-dessus du champ de message. Cliquez dessus pour ouvrir le sélecteur d’emojis complet de YouTube."
+    },
+    "onboardingFeatureBreakdownBefore": {
+      "message": "Consultez"
+    },
+    "onboardingFeatureBreakdownAfter": {
+      "message": "pour découvrir toutes les fonctionnalités en détail."
+    },
     "onboardingEnableLiteMode": {
       "message": "Activer le mode Lite"
     },

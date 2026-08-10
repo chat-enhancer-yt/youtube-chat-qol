@@ -339,6 +339,15 @@
     "onboardingDraftTranslatorTooltip": {
       "message": "To jest tłumacz wersji roboczych. Kliknij go i wybierz język, aby przetłumaczyć wszystko, co wpiszesz w polu czatu, zanim to wyślesz."
     },
+    "onboardingEmojiPickerTooltip": {
+      "message": "Najedź na ten przycisk emoji, a najczęściej używane reakcje pojawią się nad polem wiadomości. Kliknij go, aby otworzyć pełny selektor emoji YouTube."
+    },
+    "onboardingFeatureBreakdownBefore": {
+      "message": "Odwiedź"
+    },
+    "onboardingFeatureBreakdownAfter": {
+      "message": "aby poznać pełny opis funkcji."
+    },
     "onboardingEnableLiteMode": {
       "message": "Włącz tryb Lite"
     },

@@ -340,6 +340,15 @@
     "onboardingDraftTranslatorTooltip": {
       "message": "Ini adalah penerjemah draf. Klik lalu pilih bahasa untuk menerjemahkan apa pun yang Anda ketik di kotak chat sebelum dikirim."
     },
+    "onboardingEmojiPickerTooltip": {
+      "message": "Arahkan pointer ke tombol emoji ini dan reaksi yang paling sering Anda gunakan akan muncul di atas kotak pesan. Klik untuk membuka pemilih emoji lengkap YouTube."
+    },
+    "onboardingFeatureBreakdownBefore": {
+      "message": "Kunjungi"
+    },
+    "onboardingFeatureBreakdownAfter": {
+      "message": "untuk penjelasan lengkap tentang fitur-fiturnya."
+    },
     "onboardingEnableLiteMode": {
       "message": "Aktifkan mode Lite"
     },

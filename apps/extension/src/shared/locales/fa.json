@@ -339,6 +339,15 @@
     "onboardingDraftTranslatorTooltip": {
       "message": "این مترجم پیش‌نویس است. روی آن کلیک کنید و زبانی را انتخاب کنید تا هرچه در کادر گفت‌وگو می‌نویسید پیش از ارسال ترجمه شود."
     },
+    "onboardingEmojiPickerTooltip": {
+      "message": "نشانگر را روی این دکمهٔ ایموجی نگه دارید تا واکنش‌های پراستفاده بالای کادر پیام ظاهر شوند. روی آن کلیک کنید تا انتخابگر کامل ایموجی YouTube باز شود."
+    },
+    "onboardingFeatureBreakdownBefore": {
+      "message": "به"
+    },
+    "onboardingFeatureBreakdownAfter": {
+      "message": "سر بزنید تا شرح کامل ویژگی‌ها را ببینید."
+    },
     "onboardingEnableLiteMode": {
       "message": "فعال‌کردن حالت Lite"
     },

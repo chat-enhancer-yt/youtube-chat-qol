@@ -440,6 +440,32 @@ optgroup {
   text-align: center;
 }
 
+.preview-feature-breakdown {
+  width: min(465px, 100%);
+  margin: 12px 0 0;
+  color: var(--onboarding-muted);
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.preview-feature-breakdown a {
+  color: var(--onboarding-action);
+  font-weight: 500;
+  text-underline-offset: 2px;
+}
+
+.preview-feature-breakdown a:hover {
+  text-decoration-thickness: 2px;
+}
+
+.preview-feature-breakdown a:focus-visible {
+  border-radius: 3px;
+  outline: 2px solid var(--onboarding-action);
+  outline-offset: 2px;
+}
+
 .chat-preview {
   --preview-bg: #282828;
   --preview-field: #363636;
@@ -519,23 +545,19 @@ optgroup {
 .preview-callout-connector {
   fill: none;
   stroke: var(--preview-action);
-  stroke-width: 1.5px;
+  stroke-width: 3px;
   stroke-linecap: round;
   stroke-linejoin: round;
-  stroke-dasharray: 1;
-  stroke-dashoffset: 1;
   vector-effect: non-scaling-stroke;
   opacity: 0;
   transition:
     stroke 220ms ease,
-    stroke-dashoffset 260ms ease,
     opacity 180ms ease;
 }
 
 .chat-preview[data-lite-mode-enabled="true"] .preview-lite-callout-connector,
 .chat-preview[data-playground-enabled="true"] .preview-playground-callout-connector {
-  stroke-dashoffset: 0;
-  opacity: 0.78;
+  opacity: 1;
 }
 
 .preview-feature-callouts {
@@ -659,6 +681,29 @@ optgroup {
     border-color 220ms ease;
 }
 
+.preview-lite-mode-tooltip {
+  top: 56px;
+  inset-inline-end: 14px;
+  transform: translateY(-4px) scale(0.985);
+  transform-origin: 50% top;
+}
+
+.preview-lite-mode-tooltip::before {
+  top: -5px;
+  inset-inline-end: 139px;
+  border-top: 1px solid var(--preview-callout-border);
+  border-left: 1px solid var(--preview-callout-border);
+  transform: rotate(45deg);
+}
+
+.chat-preview[data-playground-enabled="true"] .preview-lite-mode-tooltip {
+  transform-origin: 38.75% top;
+}
+
+.chat-preview[data-playground-enabled="true"] .preview-lite-mode-tooltip::before {
+  inset-inline-end: 170px;
+}
+
 .preview-inbox-tooltip {
   top: 56px;
   inset-inline-end: 14px;
@@ -689,8 +734,25 @@ optgroup {
   transform: rotate(45deg);
 }
 
+.preview-emoji-picker-tooltip {
+  inset-inline-end: 55px;
+  bottom: 66px;
+  transform: translateY(4px) scale(0.985);
+  transform-origin: 90% bottom;
+}
+
+.preview-emoji-picker-tooltip::before {
+  inset-inline-end: 25.5px;
+  bottom: -5px;
+  border-right: 1px solid var(--preview-callout-border);
+  border-bottom: 1px solid var(--preview-callout-border);
+  transform: rotate(45deg);
+}
+
+.chat-preview[data-lite-mode-enabled="false"]:has(#previewLiteIcon:hover) .preview-lite-mode-tooltip,
 .chat-preview:has(#previewInboxIcon:hover) .preview-inbox-tooltip,
-.chat-preview:has(#previewComposerTranslateIcon:hover) .preview-draft-translator-tooltip {
+.chat-preview:has(#previewComposerTranslateIcon:hover) .preview-draft-translator-tooltip,
+.chat-preview:has(#emoji-picker-button:hover) .preview-emoji-picker-tooltip {
   visibility: visible;
   opacity: 1;
   transform: translateY(0) scale(1);

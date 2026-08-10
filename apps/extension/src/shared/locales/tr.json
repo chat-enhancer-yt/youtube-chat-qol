@@ -340,6 +340,15 @@
     "onboardingDraftTranslatorTooltip": {
       "message": "Bu, taslak çevirmenidir. Göndermeden önce sohbet kutusuna yazdıklarınızı çevirmek için tıklayın ve bir dil seçin."
     },
+    "onboardingEmojiPickerTooltip": {
+      "message": "Bu emoji düğmesinin üzerine gelince en sık kullandığınız tepkiler mesaj kutusunun üstünde görünür. YouTube’un tam emoji seçicisini açmak için düğmeye tıklayın."
+    },
+    "onboardingFeatureBreakdownBefore": {
+      "message": "Özelliklerin tüm ayrıntıları için"
+    },
+    "onboardingFeatureBreakdownAfter": {
+      "message": "adresini ziyaret edin."
+    },
     "onboardingEnableLiteMode": {
       "message": "Lite modu etkinleştir"
     },

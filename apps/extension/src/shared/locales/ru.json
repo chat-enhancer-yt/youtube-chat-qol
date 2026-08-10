@@ -340,6 +340,15 @@
     "onboardingDraftTranslatorTooltip": {
       "message": "Это переводчик черновика. Нажмите его и выберите язык, чтобы перевести всё, что вы вводите в поле чата, до отправки."
     },
+    "onboardingEmojiPickerTooltip": {
+      "message": "Наведите указатель на эту кнопку эмодзи, и частые реакции появятся над полем сообщения. Нажмите её, чтобы открыть полный список эмодзи YouTube."
+    },
+    "onboardingFeatureBreakdownBefore": {
+      "message": "Посетите"
+    },
+    "onboardingFeatureBreakdownAfter": {
+      "message": "для полного обзора функций."
+    },
     "onboardingEnableLiteMode": {
       "message": "Включить облегчённый режим"
     },

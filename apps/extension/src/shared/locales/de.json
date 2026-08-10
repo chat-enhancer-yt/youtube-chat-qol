@@ -339,6 +339,15 @@
     "onboardingDraftTranslatorTooltip": {
       "message": "Dies ist der Entwurfsübersetzer. Klicke darauf und wähle eine Sprache aus, um alles, was du in das Chatfeld eingibst, vor dem Senden zu übersetzen."
     },
+    "onboardingEmojiPickerTooltip": {
+      "message": "Fahre über diese Emoji-Schaltfläche und deine meistgenutzten Reaktionen erscheinen über dem Nachrichtenfeld. Klicke darauf, um YouTubes vollständige Emoji-Auswahl zu öffnen."
+    },
+    "onboardingFeatureBreakdownBefore": {
+      "message": "Besuche"
+    },
+    "onboardingFeatureBreakdownAfter": {
+      "message": "für eine vollständige Übersicht der Funktionen."
+    },
     "onboardingEnableLiteMode": {
       "message": "Lite-Modus aktivieren"
     },
