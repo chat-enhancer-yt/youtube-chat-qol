@@ -97,6 +97,7 @@ async function expectBelowDisplayMode({
 }): Promise<void> {
   return test.step('Render translation below the original message', async () => {
     return withTranslationEnabled({
+      chat,
       context,
       targetLanguage: DISPLAY_TARGET_LANGUAGE,
       translationDisplay: 'below',
@@ -133,6 +134,7 @@ async function expectReplaceDisplayMode({
 }): Promise<void> {
   await test.step('Render translation as a message replacement', async () => {
     await withTranslationEnabled({
+      chat,
       context,
       targetLanguage: DISPLAY_TARGET_LANGUAGE,
       translationDisplay: 'replace',
@@ -175,6 +177,7 @@ async function expectReplacedTranslationToggleSurfaces({
     await withMockedTranslationEndpoint(context, TOGGLE_TRANSLATED_TEXT, async () => {
       await withTranslationCleared({ chat, context, targetLanguage: TOGGLE_TARGET_LANGUAGE, callback: async () => {
         await withTranslationEnabled({
+          chat,
           context,
           targetLanguage: TOGGLE_TARGET_LANGUAGE,
           translationDisplay: 'replace',

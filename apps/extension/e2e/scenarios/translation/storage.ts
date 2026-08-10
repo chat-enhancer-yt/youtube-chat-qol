@@ -1,6 +1,7 @@
 /** Temporary extension-storage state used by translation scenarios. */
 import { expect, test, type BrowserContext } from '@playwright/test';
 import { withExtensionStorageValues } from '../../support/extension-storage';
+import { closeOpenMenus, openSettingsMenu } from '../../support/menu-openers';
 import { NORMAL_CHAT_MESSAGE_SELECTOR, type ChatSurface } from '../types';
 
 type TranslationDisplayMode = 'below' | 'replace';
@@ -25,6 +26,7 @@ export async function withTranslationCleared<T>({
       translationDisplay: 'below'
     },
     async () => {
+      await waitForTranslationSettingState(chat, false);
       await waitForTranslationsCleared(chat);
       return callback();
     }
@@ -32,11 +34,13 @@ export async function withTranslationCleared<T>({
 }
 
 export async function withTranslationEnabled<T>({
+  chat,
   context,
   targetLanguage,
   translationDisplay,
   callback
 }: {
+  chat: ChatSurface;
   context: BrowserContext;
   targetLanguage: string;
   translationDisplay: TranslationDisplayMode;
@@ -50,8 +54,31 @@ export async function withTranslationEnabled<T>({
       lastTranslationTarget: targetLanguage,
       translationDisplay
     },
-    callback
+    async () => {
+      await waitForTranslationSettingState(chat, true);
+      return callback();
+    }
   );
+}
+
+async function waitForTranslationSettingState(
+  chat: ChatSurface,
+  enabled: boolean
+): Promise<void> {
+  await test.step(`Wait for Translate setting to become ${enabled ? 'enabled' : 'disabled'}`, async () => {
+    const menu = await openSettingsMenu(chat);
+    try {
+      const translateItem = menu
+        .locator('.ytcq-settings-item[data-ytcq-setting="targetLanguage"]')
+        .first();
+      // Both translation fields are written together and applied by one storage-change handler.
+      await expect(translateItem).toHaveAttribute('aria-checked', String(enabled), {
+        timeout: 10_000
+      });
+    } finally {
+      await closeOpenMenus(chat);
+    }
+  });
 }
 
 export async function waitForTranslationsCleared(chat: ChatSurface): Promise<void> {

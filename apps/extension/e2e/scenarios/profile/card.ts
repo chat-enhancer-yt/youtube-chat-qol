@@ -1,5 +1,5 @@
 /** Browser scenarios for profile card behavior. */
-import { expect, test } from '@playwright/test';
+import { expect, test, type Locator } from '@playwright/test';
 import { requireControlledChat } from '../../support/controlled-chat';
 import { centerLocatorInViewport } from '../../support/locator';
 import { NORMAL_CHAT_MESSAGE_SELECTOR, type BrowserScenario } from '../types';
@@ -74,30 +74,34 @@ export const profileCardHistoryPagingScenario: BrowserScenario = async ({
     await expect(records).toHaveCount(12);
     await expect(originRecord).toHaveClass(/ytcq-profile-card-message-origin/);
     await expect(originRecord).toBeVisible();
-    await list.evaluate(
-      () =>
-        new Promise<void>((resolve) =>
-          window.requestAnimationFrame(() => window.requestAnimationFrame(() => resolve()))
-        )
-    );
 
-    await list.evaluate((element) => {
-      element.scrollTop = 0;
-      element.dispatchEvent(new Event('scroll'));
-    });
-    await expect(records).toHaveCount(21);
+    await pageProfileHistoryToEdge(list, records, 'start', 21);
     await expect(records.first()).toContainText('Profile history 0');
-    await list.evaluate(
-      () => new Promise<void>((resolve) => window.requestAnimationFrame(() => resolve()))
-    );
 
-    await list.evaluate((element) => {
-      element.scrollTop = element.scrollHeight;
-      element.dispatchEvent(new Event('scroll'));
-    });
-    await expect(records).toHaveCount(30);
+    await pageProfileHistoryToEdge(list, records, 'end', 30);
     await expect(records.last()).toContainText('Profile history 29');
 
     await closeProfileCard(chat);
   });
 };
+
+async function pageProfileHistoryToEdge(
+  list: Locator,
+  records: Locator,
+  edge: 'end' | 'start',
+  expectedCount: number
+): Promise<void> {
+  await expect.poll(async () => {
+    await list.evaluate((element, targetEdge) => {
+      element.scrollTop = targetEdge === 'start' ? 0 : element.scrollHeight;
+      element.dispatchEvent(new Event('scroll'));
+    }, edge);
+    await list.evaluate(
+      () => new Promise<void>((resolve) => window.requestAnimationFrame(() => resolve()))
+    );
+    return records.count();
+  }, {
+    message: `Expected profile history to page toward the ${edge}.`,
+    timeout: 15_000
+  }).toBe(expectedCount);
+}

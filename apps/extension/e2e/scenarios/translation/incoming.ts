@@ -68,6 +68,7 @@ async function enableTranslationAndExpectRendered({
 
     await test.step(`Enable translation to ${targetLanguage}`, async () => {
       await withTranslationEnabled({
+        chat,
         context,
         targetLanguage,
         translationDisplay: 'below',
@@ -92,6 +93,7 @@ async function expectMockedReplacedTranslationToggle({
         await reloadChatForMockedTranslation(chat);
         const { sourceMessage, sourceText } = await findTranslatableSourceMessage(chat);
         await withTranslationEnabled({
+          chat,
           context,
           targetLanguage: TOGGLE_TARGET_LANGUAGE,
           translationDisplay: 'replace',

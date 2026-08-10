@@ -131,7 +131,7 @@ async function releaseMessageTarget(message: Locator): Promise<void> {
   }, MESSAGE_TARGET_ATTRIBUTE).catch(() => undefined);
 }
 
-async function closeOpenMenus(chat: ChatSurface): Promise<void> {
+export async function closeOpenMenus(chat: ChatSurface): Promise<void> {
   for (let attempt = 0; attempt < 3; attempt += 1) {
     const menu = await findVisibleNativeMenu(chat);
     if (!menu) return;

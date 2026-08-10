@@ -5,7 +5,10 @@
  * scenarios center rows before user-like clicks instead of relying on
  * Playwright's nearest-edge auto-scroll.
  */
-import type { Locator } from '@playwright/test';
+import { expect, type Locator } from '@playwright/test';
+
+const OBSERVED_CLASS_ATTRIBUTE = 'data-ytcq-test-observed-class';
+let nextClassObservationId = 0;
 
 export async function centerLocatorInViewport(locator: Locator): Promise<void> {
   await locator
@@ -32,6 +35,67 @@ export async function clickLocatorAtCurrentCenter(locator: Locator): Promise<boo
 
   await locator.page().mouse.click(clickPoint.x, clickPoint.y);
   return true;
+}
+
+export async function expectClassAddedDuringAction(
+  locator: Locator,
+  className: string,
+  action: () => Promise<void>,
+  timeout = 2_000
+): Promise<void> {
+  const observationId = `${Date.now()}-${nextClassObservationId += 1}`;
+  await locator.evaluate((element, { attribute, expectedClass, id }) => {
+    if (!(element instanceof HTMLElement)) {
+      throw new Error('Class observation requires an HTML element.');
+    }
+    if (element.classList.contains(expectedClass)) {
+      throw new Error(`Expected ${expectedClass} to be absent before the action.`);
+    }
+
+    const observed = element as HTMLElement & {
+      ytcqTestClassObserver?: MutationObserver;
+    };
+    observed.ytcqTestClassObserver?.disconnect();
+    const observer = new MutationObserver(() => {
+      if (!observed.classList.contains(expectedClass)) return;
+      observed.setAttribute(attribute, id);
+      observer.disconnect();
+      delete observed.ytcqTestClassObserver;
+    });
+    observed.ytcqTestClassObserver = observer;
+    observer.observe(observed, {
+      attributeFilter: ['class'],
+      attributes: true
+    });
+  }, {
+    attribute: OBSERVED_CLASS_ATTRIBUTE,
+    expectedClass: className,
+    id: observationId
+  });
+
+  try {
+    await action();
+    await expect(locator).toHaveAttribute(
+      OBSERVED_CLASS_ATTRIBUTE,
+      observationId,
+      { timeout }
+    );
+  } finally {
+    await locator.evaluate((element, { attribute, id }) => {
+      if (!(element instanceof HTMLElement)) return;
+      const observed = element as HTMLElement & {
+        ytcqTestClassObserver?: MutationObserver;
+      };
+      observed.ytcqTestClassObserver?.disconnect();
+      delete observed.ytcqTestClassObserver;
+      if (observed.getAttribute(attribute) === id) {
+        observed.removeAttribute(attribute);
+      }
+    }, {
+      attribute: OBSERVED_CLASS_ATTRIBUTE,
+      id: observationId
+    }).catch(() => undefined);
+  }
 }
 
 async function getLocatorCenterInViewport(

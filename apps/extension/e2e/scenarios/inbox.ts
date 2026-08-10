@@ -15,6 +15,7 @@ import {
   prefetchMockReplayFixtureMessage,
   setMockReplayPlayerProgress
 } from '../support/mock-page';
+import { expectClassAddedDuringAction } from '../support/locator';
 import type { BrowserScenario, ChatSurface } from './types';
 
 const INBOX_KEYWORD = 'browser-inbox-keyword';
@@ -242,8 +243,11 @@ async function jumpToInboxRecord(
     const jumpButton = record.locator('.ytcq-profile-card-jump');
     await jumpButton.focus();
     await expect(jumpButton).toHaveCSS('opacity', '1');
-    await jumpButton.press('Enter');
+    await expectClassAddedDuringAction(
+      sourceMessage,
+      'ytcq-message-jump-target',
+      () => jumpButton.press('Enter')
+    );
     await expect(chat.locator('.ytcq-inbox-card')).toHaveCount(0);
-    await expect(sourceMessage).toHaveClass(/ytcq-message-jump-target/, { timeout: 2_000 });
   });
 }

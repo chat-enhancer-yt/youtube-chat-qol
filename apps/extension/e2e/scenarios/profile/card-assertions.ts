@@ -1,7 +1,10 @@
 /** Profile-card interactions and user-visible assertions. */
 import { expect, test, type BrowserContext, type Locator } from '@playwright/test';
 import type { ControlledChat } from '../../support/controlled-chat';
-import { centerLocatorInViewport } from '../../support/locator';
+import {
+  centerLocatorInViewport,
+  expectClassAddedDuringAction
+} from '../../support/locator';
 import { isMockPageSurface } from '../../support/mock-page';
 import type { ChatSurface } from '../types';
 import {
@@ -156,8 +159,11 @@ export async function expectProfileCardJumpToMessage(
     const jumpButton = record.locator('.ytcq-profile-card-jump');
     await jumpButton.focus();
     await expect(jumpButton).toHaveCSS('opacity', '1');
-    await jumpButton.press('Enter');
-    await expect(sourceMessage).toHaveClass(/ytcq-message-jump-target/, { timeout: 2_000 });
+    await expectClassAddedDuringAction(
+      sourceMessage,
+      'ytcq-message-jump-target',
+      () => jumpButton.press('Enter')
+    );
   });
 }
 
