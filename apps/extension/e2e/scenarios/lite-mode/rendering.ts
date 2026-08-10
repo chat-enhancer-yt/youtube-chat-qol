@@ -184,7 +184,7 @@ export const liteModeMockRenderingAndFallbackScenario: BrowserScenario = async (
         await clearChatComposerIfVisible(chat);
       });
 
-      await test.step('Release the live edge on a small upward wheel step', async () => {
+      await test.step('Page away from and back toward the live edge with wheel input', async () => {
         await dispatchLiteBatch(
           chat,
           createBatch(
@@ -233,6 +233,13 @@ export const liteModeMockRenderingAndFallbackScenario: BrowserScenario = async (
 
         await scroller.hover();
         await page.mouse.wheel(0, 20);
+        await expect(chat.locator(LITE_ROOT_SELECTOR)).toHaveAttribute(
+          'data-ytcq-following-live-edge',
+          'false'
+        );
+        await expect(chat.locator(`[data-message-id="${afterReleaseId}"]`)).toBeAttached();
+
+        await page.mouse.wheel(0, 1_000);
         await expect(chat.locator(LITE_ROOT_SELECTOR)).toHaveAttribute(
           'data-ytcq-following-live-edge',
           'true'

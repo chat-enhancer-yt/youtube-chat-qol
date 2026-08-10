@@ -3,7 +3,8 @@
  *
  * Rows are plain HTML with a small native-compatible slot shape. That keeps
  * existing message adapters useful without creating private YouTube custom
- * elements. The renderer mounts at most a bounded window and freezes that
+ * elements. The renderer mounts a bounded window, pages through retained
+ * history in either direction, and keeps incoming messages from moving the
  * window while the user is reading older chat.
  */
 import { jsx, el } from '../../shared/jsx-dom';
@@ -38,7 +39,7 @@ const LIVE_PRESENTATION_MIN_INTERVAL_MS = 80;
 const LIVE_PRESENTATION_MAX_INTERVAL_MS = 1_000;
 const LIVE_PRESENTATION_INTERVAL_SAMPLE_LIMIT = 5;
 const MAX_PENDING_MESSAGE_COUNT = 999;
-const SCROLLBACK_LOAD_THRESHOLD_PX = 48;
+const PAGE_LOAD_THRESHOLD_PX = 48;
 const LIVE_EDGE_SCROLL_INTENT_MS = 500;
 const POINTER_SCROLL_DRAG_THRESHOLD_PX = 4;
 
@@ -83,6 +84,7 @@ export function createLiteChatRenderer(
   options: CreateLiteChatRendererOptions = {}
 ): LiteChatRenderer {
   const renderLimit = normalizeRenderLimit(options.renderLimit);
+  const pageSize = Math.max(1, Math.floor(renderLimit / 2));
   const rowsById = new Map<string, HTMLElement>();
   const renderedRecords = new Map<string, YouTubeChatMessageRecord>();
   const dispatchedRecordIds = new Set<string>();
@@ -555,9 +557,12 @@ export function createLiteChatRenderer(
 
   function handleScroll(): void {
     updatePointerScrollIntent();
-    const atLiveEdge = isAtLiveEdge(scroller);
-    if (returnIntentPending && !followingLiveEdge && atLiveEdge) {
-      scrollToLiveEdge();
+    if (
+      returnIntentPending &&
+      !followingLiveEdge &&
+      isNearScrollEnd(scroller) &&
+      advanceTowardLiveEdge()
+    ) {
       return;
     }
     scheduleScrollStateUpdate();
@@ -628,8 +633,8 @@ export function createLiteChatRenderer(
   }
 
   function requestLiveEdgeRelease(): void {
-    if (!followingLiveEdge || scroller.scrollHeight <= scroller.clientHeight) return;
     clearReturnIntent();
+    if (!followingLiveEdge || scroller.scrollHeight <= scroller.clientHeight) return;
     leaveLiveEdge();
   }
 
@@ -638,19 +643,22 @@ export function createLiteChatRenderer(
 
     clearReturnIntent();
     returnIntentPending = true;
-    if (isAtLiveEdge(scroller)) {
-      scrollToLiveEdge();
+    if (isNearScrollEnd(scroller) && advanceTowardLiveEdge()) {
       return;
     }
 
     returnIntentTimer = window.setTimeout(() => {
       returnIntentTimer = 0;
       const shouldReturn = returnIntentPending;
-      returnIntentPending = false;
-      if (shouldReturn && !followingLiveEdge && isAtLiveEdge(scroller)) {
-        scrollToLiveEdge();
+      if (
+        shouldReturn &&
+        !followingLiveEdge &&
+        isNearScrollEnd(scroller) &&
+        advanceTowardLiveEdge()
+      ) {
         return;
       }
+      returnIntentPending = false;
       scheduleScrollStateUpdate();
     }, LIVE_EDGE_SCROLL_INTENT_MS);
   }
@@ -667,8 +675,12 @@ export function createLiteChatRenderer(
     scrollFrame = window.requestAnimationFrame(() => {
       scrollFrame = 0;
       const atLiveEdge = isAtLiveEdge(scroller);
-      if (atLiveEdge && !followingLiveEdge && returnIntentPending) {
-        scrollToLiveEdge();
+      if (
+        !followingLiveEdge &&
+        returnIntentPending &&
+        isNearScrollEnd(scroller) &&
+        advanceTowardLiveEdge()
+      ) {
         return;
       } else if (atLiveEdge) {
         if (followingLiveEdge) setFollowingLiveEdge(true);
@@ -678,7 +690,7 @@ export function createLiteChatRenderer(
         // explicitly releases the live edge.
         pinScrollToBottom();
       }
-      if (!followingLiveEdge && scroller.scrollTop <= SCROLLBACK_LOAD_THRESHOLD_PX) {
+      if (!followingLiveEdge && scroller.scrollTop <= PAGE_LOAD_THRESHOLD_PX) {
         loadEarlierRecords();
       }
     });
@@ -693,7 +705,6 @@ export function createLiteChatRenderer(
     if (firstIndex <= 0 || endIndex <= 0) return;
 
     const anchorTop = firstRow?.getBoundingClientRect().top || 0;
-    const pageSize = Math.max(1, Math.floor(renderLimit / 2));
     const nextEndIndex = endIndex - Math.min(pageSize, firstIndex);
     frozenEndId = records[nextEndIndex]?.id || frozenEndId;
     renderRecords(null);
@@ -702,6 +713,36 @@ export function createLiteChatRenderer(
     if (nextAnchor) {
       scroller.scrollTop += nextAnchor.getBoundingClientRect().top - anchorTop;
     }
+  }
+
+  function advanceTowardLiveEdge(): boolean {
+    if (loadLaterRecords()) {
+      clearReturnIntent();
+      return true;
+    }
+    if (!isAtLiveEdge(scroller)) return false;
+    scrollToLiveEdge();
+    return true;
+  }
+
+  function loadLaterRecords(): boolean {
+    const records = store.getRecords();
+    const renderedRows = items.querySelectorAll<HTMLElement>('.ytcq-lite-message');
+    const lastRow = renderedRows.item(renderedRows.length - 1);
+    const lastId = lastRow?.dataset.messageId || '';
+    const endIndex = records.findIndex((record) => record.id === frozenEndId);
+    if (endIndex < 0 || endIndex >= records.length - 1) return false;
+
+    const anchorTop = lastRow?.getBoundingClientRect().top || 0;
+    const nextEndIndex = Math.min(records.length - 1, endIndex + pageSize);
+    frozenEndId = records[nextEndIndex]?.id || frozenEndId;
+    renderRecords(null);
+
+    const nextAnchor = rowsById.get(lastId);
+    if (nextAnchor) {
+      scroller.scrollTop += nextAnchor.getBoundingClientRect().top - anchorTop;
+    }
+    return true;
   }
 
   function revealMessage(id: string): HTMLElement | null {
@@ -1255,6 +1296,12 @@ export function argbToCss(value: number | undefined): string {
 function isAtLiveEdge(scroller: HTMLElement): boolean {
   return (
     scroller.scrollTop + scroller.clientHeight >= scroller.scrollHeight - LIVE_EDGE_TOLERANCE_PX
+  );
+}
+
+function isNearScrollEnd(scroller: HTMLElement): boolean {
+  return (
+    scroller.scrollTop + scroller.clientHeight >= scroller.scrollHeight - PAGE_LOAD_THRESHOLD_PX
   );
 }
 

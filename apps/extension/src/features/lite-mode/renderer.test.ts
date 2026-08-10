@@ -305,6 +305,56 @@ describe('Lite chat renderer', () => {
     renderer.destroy();
   });
 
+  it('pages forward through retained records before returning to the live edge', async () => {
+    const store = createLiteChatStore({ renderLimit: 4, storeLimit: 20 });
+    store.apply(
+      Array.from({ length: 10 }, (_value, index) => ({
+        type: 'upsert' as const,
+        record: createRecord(`message-${index}`, `Message ${index}`)
+      }))
+    );
+    const renderer = createLiteChatRenderer(store, { renderLimit: 4 });
+    document.body.append(renderer.root);
+    const scroller = renderer.root.querySelector<HTMLElement>('.ytcq-lite-scroller')!;
+    Object.defineProperties(scroller, {
+      clientHeight: { configurable: true, value: 100 },
+      scrollHeight: { configurable: true, value: 500 },
+      scrollTop: { configurable: true, value: 400, writable: true }
+    });
+
+    renderer.revealMessage('message-1');
+    expect(getRenderedMessageIds(renderer.root)).toEqual([
+      'message-0',
+      'message-1',
+      'message-2',
+      'message-3'
+    ]);
+
+    const forwardPages = [
+      ['message-2', 'message-3', 'message-4', 'message-5'],
+      ['message-4', 'message-5', 'message-6', 'message-7'],
+      ['message-6', 'message-7', 'message-8', 'message-9']
+    ];
+    for (const expectedIds of forwardPages) {
+      scrollReaderDownTo(scroller, 400);
+      await waitForAnimationFrame();
+      expect(getRenderedMessageIds(renderer.root)).toEqual(expectedIds);
+      expect(renderer.root.dataset.ytcqFollowingLiveEdge).toBe('false');
+    }
+
+    scroller.scrollTop = 380;
+    scrollReaderDownTo(scroller, 390);
+    await waitForAnimationFrame();
+    expect(renderer.root.dataset.ytcqFollowingLiveEdge).toBe('false');
+
+    scroller.scrollTop = 400;
+    scroller.dispatchEvent(new Event('scroll'));
+    await waitForAnimationFrame();
+    expect(getRenderedMessageIds(renderer.root)).toEqual(forwardPages.at(-1));
+    expect(renderer.root.dataset.ytcqFollowingLiveEdge).toBe('true');
+    renderer.destroy();
+  });
+
   it('classifies preloaded and initial-reset rows as existing', () => {
     const preloadedStore = createLiteChatStore();
     preloadedStore.apply([
@@ -689,7 +739,7 @@ describe('Lite chat renderer', () => {
     renderer.destroy();
   });
 
-  it('stops live announcements while reading older messages and offers a bounded jump', async () => {
+  it('stops live announcements while reading older messages and offers a jump to live', async () => {
     const store = createLiteChatStore();
     store.apply([{ type: 'upsert', record: createRecord('first', 'First') }]);
     const renderer = createLiteChatRenderer(store);
@@ -711,10 +761,7 @@ describe('Lite chat renderer', () => {
     const jump = renderer.root.querySelector<HTMLButtonElement>('.ytcq-lite-new-messages')!;
     expect(jump.hidden).toBe(false);
 
-    scroller.dispatchEvent(new WheelEvent('wheel', { deltaY: 20 }));
-    scroller.scrollTop = 400;
-    scroller.dispatchEvent(new Event('scroll'));
-    await waitForAnimationFrame();
+    jump.click();
     expect(renderer.root.getAttribute('aria-live')).toBe('polite');
     expect(jump.hidden).toBe(true);
     renderer.destroy();
@@ -1080,6 +1127,12 @@ function createScrollableRenderer(): {
 
 function scrollReaderTo(scroller: HTMLElement, scrollTop: number): void {
   scroller.dispatchEvent(new WheelEvent('wheel', { deltaY: -20 }));
+  scroller.scrollTop = scrollTop;
+  scroller.dispatchEvent(new Event('scroll'));
+}
+
+function scrollReaderDownTo(scroller: HTMLElement, scrollTop: number): void {
+  scroller.dispatchEvent(new WheelEvent('wheel', { deltaY: 20 }));
   scroller.scrollTop = scrollTop;
   scroller.dispatchEvent(new Event('scroll'));
 }
