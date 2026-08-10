@@ -66,7 +66,7 @@ describe('Lite mode header button', () => {
     expect(icon.classList.contains('ytcq-bolt-redraw')).toBe(true);
 
     refreshLiteModeButton();
-    await vi.advanceTimersByTimeAsync(750);
+    await vi.advanceTimersByTimeAsync(550);
     expect(icon.classList.contains('ytcq-bolt-redraw')).toBe(false);
 
     button.click();

@@ -10,6 +10,12 @@ export const onboardingFeaturePreviewScenario: ExtensionScenario = async ({ cont
     await onboarding.locator('#onboardingTranslationDisplay').selectOption('below');
     await onboarding.locator('#onboardingPlaygroundEnabled').check();
     await onboarding.locator('#onboardingLiteModeEnabled').check();
+    await expect(onboarding.locator('#chatPreview')).toHaveAttribute('data-chat-skin', 'system');
+    await expect(onboarding.locator('#chatPreview')).toHaveAttribute('data-chat-theme', 'light');
+    await expect(onboarding.locator('#previewLiteIcon')).toHaveCSS(
+      'color',
+      'rgb(62, 166, 255)'
+    );
     await onboarding.locator('#onboardingChatSkin').selectOption('aero');
 
     await expect(onboarding.locator('#previewGamesIcon')).toBeVisible();

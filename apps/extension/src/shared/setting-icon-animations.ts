@@ -20,7 +20,7 @@ export const SETTING_ICON_ANIMATIONS = {
   },
   liteMode: {
     className: 'ytcq-bolt-redraw',
-    durationMs: 750
+    durationMs: 550
   },
   playgroundJoystick: {
     className: 'ytcq-playground-joystick-wiggle',

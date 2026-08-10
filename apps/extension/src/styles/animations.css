@@ -146,15 +146,15 @@
 }
 
 .lite-mode-icon.ytcq-bolt-redraw .lite-mode-bolt-fill {
-  animation: ytcq-bolt-redraw-original 650ms ease-in-out both;
+  animation: ytcq-bolt-redraw-original 480ms ease-in-out both;
 }
 
 .lite-mode-icon.ytcq-bolt-redraw .lite-mode-bolt-draw-mask-main {
-  animation: ytcq-bolt-redraw-mask-main 650ms linear both;
+  animation: ytcq-bolt-redraw-mask-main 480ms linear both;
 }
 
 .lite-mode-icon.ytcq-bolt-redraw .lite-mode-bolt-draw-mask-end {
-  animation: ytcq-bolt-redraw-mask-end 650ms linear both;
+  animation: ytcq-bolt-redraw-mask-end 480ms linear both;
 }
 
 @keyframes ytcq-bell-ring {
