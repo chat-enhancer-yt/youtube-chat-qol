@@ -28,6 +28,10 @@ import {
   getNormalizedHandle,
   getUserKeyFromIdentity
 } from './identity';
+import {
+  MAX_USER_MESSAGE_HISTORY_RECORDS,
+  type UserMessageRecordsRemoval
+} from './pinned-records';
 import type {
   MessageRecord,
   RecentUserMatch,
@@ -43,7 +47,6 @@ export { getUserKeyFromIdentity } from './identity';
 
 const RECENT_MESSAGE_LIMIT = 12;
 const RECENT_USER_LIMIT = 160;
-const MAX_HISTORY_RECORDS = RECENT_MESSAGE_LIMIT * RECENT_USER_LIMIT;
 
 interface ElementRecord {
   key: string;
@@ -56,11 +59,13 @@ interface FeedMessageLocation {
 }
 
 type UserMessageListener = (key: string) => void;
+type UserMessageRecordsRemovalListener = (removal: UserMessageRecordsRemoval) => void;
 
 const recordsByUser = new Map<string, MessageRecord[]>();
 const feedMessagesById = new Map<string, FeedMessageLocation>();
 let recordsByElement = new WeakMap<HTMLElement, ElementRecord>();
 const userMessageListeners = new Set<UserMessageListener>();
+const userMessageRecordsRemovalListeners = new Set<UserMessageRecordsRemovalListener>();
 const pendingUserMessageNotificationKeys = new Set<string>();
 let nextRecordId = 1;
 let userMessageNotificationBatchDepth = 0;
@@ -105,10 +110,13 @@ function applyUserMessageFeedUpdates(updates: readonly UserMessageFeedUpdate[]):
     updates.forEach((update) => {
       if (update.type === 'reset') {
         clearUserMessageHistory();
+        notifyUserMessageRecordsRemoval({ type: 'reset' });
       } else if (update.type === 'remove') {
         removeFeedMessage(update.messageId);
+        notifyUserMessageRecordsRemoval({ messageId: update.messageId, type: 'message' });
       } else if (update.type === 'remove-author') {
         removeFeedMessagesByAuthor(update.channelId);
+        notifyUserMessageRecordsRemoval({ channelId: update.channelId, type: 'author' });
       } else {
         upsertFeedMessage(update.record);
       }
@@ -360,6 +368,19 @@ export function onUserMessagesChanged(listener: UserMessageListener): () => void
   };
 }
 
+export function onUserMessageRecordsRemoved(
+  listener: UserMessageRecordsRemovalListener
+): () => void {
+  userMessageRecordsRemovalListeners.add(listener);
+  return () => {
+    userMessageRecordsRemovalListeners.delete(listener);
+  };
+}
+
+function notifyUserMessageRecordsRemoval(removal: UserMessageRecordsRemoval): void {
+  userMessageRecordsRemovalListeners.forEach((listener) => listener(removal));
+}
+
 function removeRecord(key: string, id: number): void {
   const records = recordsByUser.get(key);
   if (!records) return;
@@ -385,7 +406,7 @@ function getRecordsByAuthorName(authorName: string | undefined): MessageRecord[]
 
 function pruneOldMessages(): Set<string> {
   const changedKeys = new Set<string>();
-  while (storedRecordCount > MAX_HISTORY_RECORDS) {
+  while (storedRecordCount > MAX_USER_MESSAGE_HISTORY_RECORDS) {
     let oldestKey = '';
     let oldestRecord: MessageRecord | null = null;
     for (const [key, records] of recordsByUser) {

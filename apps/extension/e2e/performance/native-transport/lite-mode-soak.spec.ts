@@ -50,9 +50,15 @@ interface LiteMemoryDiagnostics {
   nativeTickerElements: number;
   pendingLiveActionBytes: number;
   pendingLiveActions: number;
+  pinnedRecords: number;
   renderedRows: number;
   storeBytes: number;
   storeSize: number;
+}
+
+interface LiteAnchorSnapshot {
+  messageId: string;
+  top: number;
 }
 
 test('youtube-native performance: Lite mode heap plateaus across 11,000+ messages', async ({
@@ -85,15 +91,32 @@ test('youtube-native performance: Lite mode heap plateaus across 11,000+ message
       const liveHeapMb = await collectHeapMb(cdp);
       const liveDiagnostics = await getLiteMemoryDiagnostics(chat);
 
-      await leaveLiteLiveEdge(chat);
+      const detachedAnchor = await leaveLiteLiveEdge(chat);
       await deliverLiteMessages(
         transport,
         WARMUP_MESSAGES + LIVE_EDGE_MESSAGES,
         SCROLLED_MESSAGES
       );
       await waitForLiteBacklogToDrain(chat);
+      const retainedAnchor = await getLiteAnchorSnapshot(chat, detachedAnchor.messageId);
+      const detachedAnchorDrift = Math.abs(retainedAnchor.top - detachedAnchor.top);
       const scrolledHeapMb = await collectHeapMb(cdp);
       const scrolledDiagnostics = await getLiteMemoryDiagnostics(chat);
+      await pageLiteToPinnedStart(chat);
+      await expect(chat.locator(`${LITE_ROOT_SELECTOR} .ytcq-lite-message`).first()).toContainText(
+        `Lite soak message ${Math.max(
+          0,
+          WARMUP_MESSAGES + LIVE_EDGE_MESSAGES - DEFAULT_LITE_CHAT_STORE_LIMIT
+        )}`
+      );
+      await chat.locator(`${LITE_ROOT_SELECTOR} .ytcq-lite-new-messages`).click();
+      await expect(chat.locator(LITE_ROOT_SELECTOR)).toHaveAttribute(
+        'data-ytcq-following-live-edge',
+        'true'
+      );
+      await expect(chat.locator(`${LITE_ROOT_SELECTOR} .ytcq-lite-message`).last()).toContainText(
+        `Lite soak message ${TOTAL_MESSAGES - 1}`
+      );
       const probe = await stopNativeChatPerfProbe(chat);
       const ingressMs = performance.now() - ingressStartedAt;
       await cdp.detach();
@@ -138,6 +161,16 @@ test('youtube-native performance: Lite mode heap plateaus across 11,000+ message
             label: 'Scrolled rendered rows',
             value: scrolledDiagnostics.renderedRows,
             budget: `<= ${DEFAULT_LITE_CHAT_RENDER_LIMIT}`
+          },
+          {
+            label: 'Detached anchor drift',
+            value: `${detachedAnchorDrift.toFixed(2)} px`,
+            budget: '<= 1 px'
+          },
+          {
+            label: 'Pinned detached records',
+            value: scrolledDiagnostics.pinnedRecords,
+            budget: `<= ${DEFAULT_LITE_CHAT_STORE_LIMIT}`
           },
           {
             label: 'Retained records',
@@ -187,6 +220,11 @@ test('youtube-native performance: Lite mode heap plateaus across 11,000+ message
       expect(ingressMs).toBeLessThanOrEqual(BUDGETS.totalIngressMs);
       assertBoundedLiteDiagnostics(liveDiagnostics);
       assertBoundedLiteDiagnostics(scrolledDiagnostics);
+      expect(retainedAnchor.messageId).toBe(detachedAnchor.messageId);
+      expect(detachedAnchorDrift).toBeLessThanOrEqual(1);
+      expect(scrolledDiagnostics.pinnedRecords).toBe(
+        Math.min(DEFAULT_LITE_CHAT_STORE_LIMIT, WARMUP_MESSAGES + LIVE_EDGE_MESSAGES)
+      );
       expect(liveHeapGrowthMb).toBeLessThanOrEqual(BUDGETS.phaseHeapGrowthMb);
       expect(scrolledHeapGrowthMb).toBeLessThanOrEqual(BUDGETS.phaseHeapGrowthMb);
       expect(totalHeapGrowthMb).toBeLessThanOrEqual(BUDGETS.totalHeapGrowthMb);
@@ -237,7 +275,7 @@ async function waitForLiteBacklogToDrain(chat: FrameLocator): Promise<void> {
     .toBe(0);
 }
 
-async function leaveLiteLiveEdge(chat: FrameLocator): Promise<void> {
+async function leaveLiteLiveEdge(chat: FrameLocator): Promise<LiteAnchorSnapshot> {
   const scroller = chat.locator(`${LITE_ROOT_SELECTOR} .ytcq-lite-scroller`);
   await scroller.evaluate((element) => {
     element.dispatchEvent(new WheelEvent('wheel', { deltaY: -120 }));
@@ -248,6 +286,45 @@ async function leaveLiteLiveEdge(chat: FrameLocator): Promise<void> {
     'data-ytcq-following-live-edge',
     'false'
   );
+  return getLiteAnchorSnapshot(chat);
+}
+
+async function getLiteAnchorSnapshot(
+  chat: FrameLocator,
+  messageId = ''
+): Promise<LiteAnchorSnapshot> {
+  return chat.locator(LITE_ROOT_SELECTOR).evaluate((root, expectedMessageId) => {
+    const scroller = root.querySelector<HTMLElement>('.ytcq-lite-scroller');
+    const rows = Array.from(root.querySelectorAll<HTMLElement>('.ytcq-lite-message'));
+    if (!scroller || !rows.length) throw new Error('Lite chat does not expose a readable anchor.');
+
+    const scrollerRect = scroller.getBoundingClientRect();
+    const row = expectedMessageId
+      ? rows.find((candidate) => candidate.dataset.messageId === expectedMessageId)
+      : rows.find((candidate) => candidate.getBoundingClientRect().bottom > scrollerRect.top);
+    const resolvedMessageId = row?.dataset.messageId || '';
+    if (!row || !resolvedMessageId) throw new Error('Lite chat anchor was not retained.');
+    return {
+      messageId: resolvedMessageId,
+      top: row.getBoundingClientRect().top - scrollerRect.top
+    };
+  }, messageId);
+}
+
+async function pageLiteToPinnedStart(chat: FrameLocator): Promise<void> {
+  const scroller = chat.locator(`${LITE_ROOT_SELECTOR} .ytcq-lite-scroller`);
+  const pageSize = Math.max(1, Math.floor(DEFAULT_LITE_CHAT_RENDER_LIMIT / 2));
+  const pageCount = Math.ceil(
+    (DEFAULT_LITE_CHAT_STORE_LIMIT - DEFAULT_LITE_CHAT_RENDER_LIMIT) / pageSize
+  );
+  for (let page = 0; page < pageCount; page += 1) {
+    await scroller.evaluate((element) => {
+      element.dispatchEvent(new WheelEvent('wheel', { deltaY: -120 }));
+      element.scrollTop = 0;
+      element.dispatchEvent(new Event('scroll', { bubbles: true }));
+    });
+    await delay(25);
+  }
 }
 
 async function getLiteMemoryDiagnostics(chat: FrameLocator): Promise<LiteMemoryDiagnostics> {
@@ -259,6 +336,7 @@ async function getLiteMemoryDiagnostics(chat: FrameLocator): Promise<LiteMemoryD
       nativeTickerElements: Number(element.dataset.ytcqLiteNativeTickerElements || 0),
       pendingLiveActionBytes: Number(element.dataset.ytcqLitePendingLiveActionBytes || 0),
       pendingLiveActions: Number(element.dataset.ytcqLitePendingLiveActions || 0),
+      pinnedRecords: Number(element.dataset.ytcqLitePinnedRecords || 0),
       renderedRows: element.querySelectorAll('.ytcq-lite-message').length,
       storeBytes: Number(element.dataset.ytcqLiteStoreBytes || 0),
       storeSize: Number(element.dataset.ytcqLiteStoreSize || 0)
@@ -268,6 +346,7 @@ async function getLiteMemoryDiagnostics(chat: FrameLocator): Promise<LiteMemoryD
 
 function assertBoundedLiteDiagnostics(diagnostics: LiteMemoryDiagnostics): void {
   expect(diagnostics.renderedRows).toBeLessThanOrEqual(DEFAULT_LITE_CHAT_RENDER_LIMIT);
+  expect(diagnostics.pinnedRecords).toBeLessThanOrEqual(DEFAULT_LITE_CHAT_STORE_LIMIT);
   expect(diagnostics.storeSize).toBeLessThanOrEqual(DEFAULT_LITE_CHAT_STORE_LIMIT);
   expect(diagnostics.storeBytes).toBeLessThanOrEqual(DEFAULT_LITE_CHAT_STORE_BYTE_LIMIT);
   expect(diagnostics.pendingLiveActions).toBe(0);

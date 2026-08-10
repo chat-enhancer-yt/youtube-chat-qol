@@ -5,6 +5,13 @@ const profileTestState = vi.hoisted(() => ({
   messageSource: null as unknown,
   participantSource: null as unknown,
   recentMessages: [] as MessageRecord[],
+  userMessageRecordsRemoved: null as
+    | ((removal: {
+        channelId?: string;
+        messageId?: string;
+        type: 'author' | 'message' | 'reset';
+      }) => void)
+    | null,
   userMessagesChanged: null as ((key: string) => void) | null
 }));
 
@@ -24,6 +31,12 @@ const historyMocks = vi.hoisted(() => ({
     const authorName = (identity.authorName || '').trim().toLowerCase();
     return authorName ? `author:${authorName}` : '';
   }),
+  onUserMessageRecordsRemoved: vi.fn(
+    (listener: NonNullable<typeof profileTestState.userMessageRecordsRemoved>) => {
+      profileTestState.userMessageRecordsRemoved = listener;
+      return vi.fn();
+    }
+  ),
   onUserMessagesChanged: vi.fn((listener: (key: string) => void) => {
     profileTestState.userMessagesChanged = listener;
     return vi.fn();
@@ -131,6 +144,7 @@ describe('profile popup coordinator', () => {
     profileTestState.recentMessages = [record()];
     profileTestState.messageSource = source();
     profileTestState.participantSource = source({ authorName: '@Participant' });
+    profileTestState.userMessageRecordsRemoved = null;
     profileTestState.userMessagesChanged = null;
     Object.defineProperty(globalThis, 'ResizeObserver', {
       configurable: true,
@@ -726,6 +740,33 @@ describe('profile popup coordinator', () => {
     closeProfileCard();
     profileTestState.recentMessages = [];
     expect(openProfileCardForIdentity({ authorName: '@Missing' })).toBe(false);
+  });
+
+  it('pins an open recent-message view while reconciling explicit removals', () => {
+    expect(
+      openProfileCardForIdentity({ authorName: '@ViewerOne', channelId: 'viewer-channel' })
+    ).toBe(true);
+
+    profileTestState.recentMessages = [];
+    profileTestState.userMessagesChanged?.('channel:viewer-channel');
+    expect(document.querySelector('.ytcq-profile-card-messages')?.textContent).toContain(
+      'hello from history'
+    );
+
+    profileTestState.userMessageRecordsRemoved?.({
+      messageId: 'message-1',
+      type: 'message'
+    });
+    expect(document.querySelector('.ytcq-profile-card-message')).toBeNull();
+  });
+
+  it('clears an open pinned recent-message view when the feed resets', () => {
+    expect(
+      openProfileCardForIdentity({ authorName: '@ViewerOne', channelId: 'viewer-channel' })
+    ).toBe(true);
+
+    profileTestState.userMessageRecordsRemoved?.({ type: 'reset' });
+    expect(document.querySelector('.ytcq-profile-card-message')).toBeNull();
   });
 
   it('cleans profile cards and wiring markers', () => {

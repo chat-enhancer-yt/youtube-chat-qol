@@ -25,6 +25,7 @@ import type {
   YouTubeChatRichRun
 } from '../../youtube/chat-feed/protocol';
 import {
+  areLiteChatRecordsEqual,
   DEFAULT_LITE_CHAT_RENDER_LIMIT,
   type LiteChatStore,
   type LiteChatStoreChange
@@ -67,6 +68,8 @@ export interface CreateLiteChatRendererOptions {
 export interface LiteChatRenderer {
   destroy(): void;
   getMessageElement(id: string): HTMLElement | null;
+  getPinnedRecordCount(): number;
+  hasMessage(id: string): boolean;
   rememberActionSources(
     actions: readonly YouTubeChatFeedAction[],
     origin: YouTubeChatFeedBatchSource
@@ -96,6 +99,8 @@ export function createLiteChatRenderer(
   let stagedActionOrigin: YouTubeChatFeedBatchSource | null = null;
   let followingLiveEdge = true;
   let frozenEndId = '';
+  let pinnedRecords: YouTubeChatMessageRecord[] | null = null;
+  let pinnedRenderQueued = false;
   let pendingMessageCount = 0;
   let destroyed = false;
   let scrollFrame = 0;
@@ -211,6 +216,8 @@ export function createLiteChatRenderer(
   return {
     destroy,
     getMessageElement: (id) => rowsById.get(id) || null,
+    getPinnedRecordCount: () => pinnedRecords?.length || 0,
+    hasMessage: (id) => Boolean(store.get(id) || pinnedRecords?.some((record) => record.id === id)),
     rememberActionSources,
     render: () => renderRecords(null),
     revealMessage,
@@ -234,6 +241,40 @@ export function createLiteChatRenderer(
         dispatchedRecordIds.has(action.record.id) ? 'changed' : source
       );
     }
+    reconcilePinnedRecords(actions);
+  }
+
+  function reconcilePinnedRecords(actions: readonly YouTubeChatFeedAction[]): void {
+    if (followingLiveEdge || pinnedRecords === null) return;
+    if (actions.some((action) => action.type === 'reset')) return;
+
+    let nextRecords = pinnedRecords;
+    for (const action of actions) {
+      if (action.type === 'upsert') {
+        const index = nextRecords.findIndex((record) => record.id === action.record.id);
+        if (index < 0 || areLiteChatRecordsEqual(nextRecords[index], action.record)) continue;
+        nextRecords = [...nextRecords];
+        nextRecords[index] = action.record;
+      } else if (action.type === 'remove') {
+        nextRecords = nextRecords.filter((record) => record.id !== action.id);
+      } else if (action.type === 'remove-author') {
+        nextRecords = nextRecords.filter((record) => record.author?.channelId !== action.channelId);
+      }
+    }
+    if (nextRecords === pinnedRecords) return;
+
+    setPinnedRecords(nextRecords);
+    schedulePinnedRender();
+  }
+
+  function schedulePinnedRender(): void {
+    if (pinnedRenderQueued) return;
+    pinnedRenderQueued = true;
+    queueMicrotask(() => {
+      pinnedRenderQueued = false;
+      if (destroyed || followingLiveEdge || pinnedRecords === null) return;
+      renderRecords(null);
+    });
   }
 
   function handleStoreChange(change: LiteChatStoreChange): void {
@@ -249,6 +290,7 @@ export function createLiteChatRenderer(
         frozenEndId = '';
         pendingMessageCount = 0;
       } else {
+        setPinnedRecords(store.getRecords());
         setFollowingLiveEdge(false);
         frozenEndId = previousFrozenEndId;
         pendingMessageCount = getResetPendingMessageCount(store.getRecords(), previousFrozenEndId);
@@ -445,9 +487,11 @@ export function createLiteChatRenderer(
     if (change.reset) {
       pendingRowSources.clear();
       dispatchedRecordIds.clear();
-      rowsById.forEach((row) => row.remove());
-      rowsById.clear();
-      renderedRecords.clear();
+      if (followingLiveEdge || pinnedRecords === null) {
+        rowsById.forEach((row) => row.remove());
+        rowsById.clear();
+        renderedRecords.clear();
+      }
     }
 
     for (const id of change.removedIds) {
@@ -529,30 +573,20 @@ export function createLiteChatRenderer(
   }
 
   function getDesiredRecords(): readonly YouTubeChatMessageRecord[] {
-    if (followingLiveEdge || !frozenEndId) {
-      const latest = pendingLivePresentationIdSet.size
-        ? store
-            .getRecords()
-            .filter((record) => !pendingLivePresentationIdSet.has(record.id))
-            .slice(-renderLimit)
-        : store.getLatest(renderLimit);
-      frozenEndId = latest[latest.length - 1]?.id || '';
-      return latest;
+    if (!followingLiveEdge && pinnedRecords !== null) {
+      const endIndex = getPinnedEndIndex();
+      if (endIndex < 0) return [];
+      return getRecordWindow(pinnedRecords, endIndex);
     }
 
-    const records = store.getRecords();
-    let endIndex = records.findIndex((record) => record.id === frozenEndId);
-    if (endIndex < 0) {
-      const renderedIds = new Set(rowsById.keys());
-      for (let index = records.length - 1; index >= 0; index -= 1) {
-        if (!renderedIds.has(records[index].id)) continue;
-        endIndex = index;
-        frozenEndId = records[index].id;
-        break;
-      }
-    }
-    if (endIndex < 0) endIndex = Math.min(records.length - 1, renderLimit - 1);
-    return records.slice(Math.max(0, endIndex - renderLimit + 1), endIndex + 1);
+    const latest = pendingLivePresentationIdSet.size
+      ? store
+          .getRecords()
+          .filter((record) => !pendingLivePresentationIdSet.has(record.id))
+          .slice(-renderLimit)
+      : store.getLatest(renderLimit);
+    frozenEndId = latest[latest.length - 1]?.id || '';
+    return latest;
   }
 
   function handleScroll(): void {
@@ -697,7 +731,7 @@ export function createLiteChatRenderer(
   }
 
   function loadEarlierRecords(): void {
-    const records = store.getRecords();
+    const records = pinnedRecords || store.getRecords();
     const firstRow = items.querySelector<HTMLElement>('.ytcq-lite-message');
     const firstId = firstRow?.dataset.messageId || '';
     const firstIndex = records.findIndex((record) => record.id === firstId);
@@ -726,12 +760,13 @@ export function createLiteChatRenderer(
   }
 
   function loadLaterRecords(): boolean {
-    const records = store.getRecords();
+    const records = pinnedRecords || store.getRecords();
     const renderedRows = items.querySelectorAll<HTMLElement>('.ytcq-lite-message');
     const lastRow = renderedRows.item(renderedRows.length - 1);
     const lastId = lastRow?.dataset.messageId || '';
     const endIndex = records.findIndex((record) => record.id === frozenEndId);
-    if (endIndex < 0 || endIndex >= records.length - 1) return false;
+    if (endIndex < 0) return false;
+    if (endIndex >= records.length - 1) return bridgePinnedRecordsForward();
 
     const anchorTop = lastRow?.getBoundingClientRect().top || 0;
     const nextEndIndex = Math.min(records.length - 1, endIndex + pageSize);
@@ -745,10 +780,32 @@ export function createLiteChatRenderer(
     return true;
   }
 
+  function bridgePinnedRecordsForward(): boolean {
+    if (!pinnedRecords?.length || !frozenEndId) return false;
+    const liveRecords = store.getRecords();
+    const overlapIndex = liveRecords.findIndex((record) => record.id === frozenEndId);
+    if (overlapIndex < 0 || overlapIndex >= liveRecords.length - 1) return false;
+
+    const lastRow = rowsById.get(frozenEndId);
+    const anchorTop = lastRow?.getBoundingClientRect().top || 0;
+    setPinnedRecords(liveRecords);
+    const nextEndIndex = Math.min(liveRecords.length - 1, overlapIndex + pageSize);
+    frozenEndId = liveRecords[nextEndIndex]?.id || frozenEndId;
+    renderRecords(null);
+
+    const nextAnchor = rowsById.get(liveRecords[overlapIndex]?.id || '');
+    if (nextAnchor) {
+      scroller.scrollTop += nextAnchor.getBoundingClientRect().top - anchorTop;
+    }
+    return true;
+  }
+
   function revealMessage(id: string): HTMLElement | null {
-    const records = store.getRecords();
+    const records =
+      !followingLiveEdge && pinnedRecords !== null ? pinnedRecords : store.getRecords();
     const targetIndex = records.findIndex((record) => record.id === id);
     if (targetIndex < 0) return null;
+    if (followingLiveEdge || pinnedRecords === null) setPinnedRecords(records);
 
     const maxStartIndex = Math.max(0, records.length - renderLimit);
     const startIndex = Math.min(
@@ -773,8 +830,9 @@ export function createLiteChatRenderer(
   function leaveLiveEdge(): void {
     clearLivePresentation();
     setFollowingLiveEdge(false);
-    const rendered = Array.from(rowsById.keys());
-    frozenEndId = rendered[rendered.length - 1] || '';
+    setPinnedRecords(store.getRecords());
+    const rendered = getRenderedRecords();
+    frozenEndId = rendered[rendered.length - 1]?.id || '';
     pendingMessageCount = getResetPendingMessageCount(store.getRecords(), frozenEndId);
     refreshNewMessagesButton();
   }
@@ -792,6 +850,7 @@ export function createLiteChatRenderer(
 
   function setFollowingLiveEdge(following: boolean): void {
     followingLiveEdge = following;
+    if (following) pinnedRecords = null;
     root.setAttribute('aria-live', following ? 'polite' : 'off');
     root.dataset.ytcqFollowingLiveEdge = String(following);
   }
@@ -843,7 +902,49 @@ export function createLiteChatRenderer(
     pendingRowSources.clear();
     stagedActionSources.clear();
     stagedActionOrigin = null;
+    pinnedRecords = null;
+    pinnedRenderQueued = false;
     root.remove();
+  }
+
+  function getRenderedRecords(): YouTubeChatMessageRecord[] {
+    return Array.from(items.querySelectorAll<HTMLElement>('.ytcq-lite-message'))
+      .flatMap((row) => {
+        const record = renderedRecords.get(row.dataset.messageId || '');
+        return record ? [record] : [];
+      })
+      .slice(-renderLimit);
+  }
+
+  function getRecordWindow(
+    records: readonly YouTubeChatMessageRecord[],
+    endIndex: number
+  ): YouTubeChatMessageRecord[] {
+    return records.slice(Math.max(0, endIndex - renderLimit + 1), endIndex + 1);
+  }
+
+  function getPinnedEndIndex(): number {
+    const records = pinnedRecords || [];
+    let endIndex = records.findIndex((record) => record.id === frozenEndId);
+    if (endIndex >= 0) return endIndex;
+
+    const renderedIds = Array.from(items.querySelectorAll<HTMLElement>('.ytcq-lite-message')).map(
+      (row) => row.dataset.messageId || ''
+    );
+    for (let index = renderedIds.length - 1; index >= 0; index -= 1) {
+      endIndex = records.findIndex((record) => record.id === renderedIds[index]);
+      if (endIndex < 0) continue;
+      frozenEndId = records[endIndex].id;
+      return endIndex;
+    }
+
+    endIndex = Math.min(records.length - 1, renderLimit - 1);
+    frozenEndId = records[endIndex]?.id || frozenEndId;
+    return endIndex;
+  }
+
+  function setPinnedRecords(records: readonly YouTubeChatMessageRecord[]): void {
+    pinnedRecords = [...records];
   }
 }
 

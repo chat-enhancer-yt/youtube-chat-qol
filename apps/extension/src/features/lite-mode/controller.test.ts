@@ -43,7 +43,7 @@ import {
 } from './controller';
 import { parseYouTubeChatFeedBatchDetail } from '../../youtube/chat-feed/batch';
 import { clearLiteModeSessionCooldown, hasLiteModeSessionCooldown } from './bootstrap';
-import { DEFAULT_LITE_CHAT_RENDER_LIMIT } from './store';
+import { DEFAULT_LITE_CHAT_RENDER_LIMIT, DEFAULT_LITE_CHAT_STORE_LIMIT } from './store';
 
 describe('Lite mode controller', () => {
   beforeEach(() => {
@@ -149,6 +149,19 @@ describe('Lite mode controller', () => {
     expect(
       document.querySelector('.ytcq-lite-root')?.getAttribute('data-ytcq-following-live-edge')
     ).toBe('false');
+
+    dispatchBatch(
+      createBatch(
+        1,
+        Array.from({ length: DEFAULT_LITE_CHAT_STORE_LIMIT }, (_value, index) => ({
+          type: 'upsert' as const,
+          record: createRecord(`message-${index + 180}`, `Message ${index + 180}`)
+        }))
+      )
+    );
+    expect(getLiteModeMessageElement('message-170')).toBeNull();
+    expect(hasRetainedLiteModeMessage('message-170')).toBe(true);
+    expect(revealRetainedLiteModeMessage('message-170')?.dataset.messageId).toBe('message-170');
     expect(hasRetainedLiteModeMessage('missing')).toBe(false);
     expect(revealRetainedLiteModeMessage('missing')).toBeNull();
   });

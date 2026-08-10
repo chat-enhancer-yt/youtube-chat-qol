@@ -298,12 +298,12 @@ export function getLiteModeMessageElement(messageId: string): HTMLElement | null
 
 export function hasRetainedLiteModeMessage(messageId: string): boolean {
   const id = messageId.trim();
-  return active && Boolean(id && store?.get(id));
+  return active && Boolean(id && renderer?.hasMessage(id));
 }
 
 export function revealRetainedLiteModeMessage(messageId: string): HTMLElement | null {
   const id = messageId.trim();
-  if (!active || !id || !store?.get(id)) return null;
+  if (!active || !id || !renderer?.hasMessage(id)) return null;
   return renderer?.revealMessage(id) || null;
 }
 
@@ -735,6 +735,7 @@ function refreshLiteMemoryDiagnostics(sampleNative = false): void {
   const replayDiagnostics = getYouTubeChatFeedReplayDiagnostics();
   root.dataset.ytcqLiteStoreSize = String(store?.getSize() || 0);
   root.dataset.ytcqLiteStoreBytes = String(store?.getRetainedBytes() || 0);
+  root.dataset.ytcqLitePinnedRecords = String(renderer?.getPinnedRecordCount() || 0);
   root.dataset.ytcqLitePendingLiveActions = '0';
   root.dataset.ytcqLitePendingLiveActionBytes = '0';
   root.dataset.ytcqLitePendingReplayActions = String(replayDiagnostics.pendingActions);

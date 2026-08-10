@@ -35,6 +35,13 @@ export interface LiteChatStore {
 
 export type LiteChatStoreListener = (change: LiteChatStoreChange) => void;
 
+export function areLiteChatRecordsEqual(
+  first: YouTubeChatMessageRecord,
+  second: YouTubeChatMessageRecord
+): boolean {
+  return first === second || JSON.stringify(first) === JSON.stringify(second);
+}
+
 export interface CreateLiteChatStoreOptions {
   renderLimit?: number;
   storeByteLimit?: number;
@@ -100,10 +107,10 @@ export function createLiteChatStore(options: CreateLiteChatStoreOptions = {}): L
           const id = cleanId(action.record.id);
           if (!id) break;
           const existingRecord = recordsById.get(id);
+          if (existingRecord && areLiteChatRecordsEqual(existingRecord, action.record)) break;
           const serializedRecord = JSON.stringify(action.record);
 
           if (existingRecord) {
-            if (JSON.stringify(existingRecord) === serializedRecord) break;
             retainedBytes -= recordBytesById.get(id) || 0;
             recordsById.set(id, action.record);
             const nextRecordBytes = serializedRecord.length * 2;

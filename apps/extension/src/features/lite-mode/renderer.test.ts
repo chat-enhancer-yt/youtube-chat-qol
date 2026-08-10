@@ -305,6 +305,142 @@ describe('Lite chat renderer', () => {
     renderer.destroy();
   });
 
+  it('pins the full retained history after its records leave the bounded store', async () => {
+    const store = createLiteChatStore({ renderLimit: 3, storeLimit: 5 });
+    store.apply(
+      Array.from({ length: 5 }, (_value, index) => ({
+        type: 'upsert' as const,
+        record: createRecord(`message-${index}`, `Message ${index}`)
+      }))
+    );
+    const renderer = createLiteChatRenderer(store, { renderLimit: 3 });
+    document.body.append(renderer.root);
+    const scroller = renderer.root.querySelector<HTMLElement>('.ytcq-lite-scroller')!;
+    Object.defineProperties(scroller, {
+      clientHeight: { configurable: true, value: 100 },
+      scrollHeight: { configurable: true, value: 500 },
+      scrollTop: { configurable: true, value: 400, writable: true }
+    });
+
+    scroller.dispatchEvent(new WheelEvent('wheel', { deltaY: -20 }));
+    const pinnedRows = getRenderedMessageIds(renderer.root).map((id) =>
+      renderer.getMessageElement(id)
+    );
+    store.apply(
+      Array.from({ length: 5 }, (_value, index) => ({
+        type: 'upsert' as const,
+        record: createRecord(`message-${index + 5}`, `Message ${index + 5}`)
+      }))
+    );
+
+    expect(store.getRecords().map((record) => record.id)).toEqual([
+      'message-5',
+      'message-6',
+      'message-7',
+      'message-8',
+      'message-9'
+    ]);
+    expect(getRenderedMessageIds(renderer.root)).toEqual(['message-2', 'message-3', 'message-4']);
+    expect(
+      getRenderedMessageIds(renderer.root).map((id) => renderer.getMessageElement(id))
+    ).toEqual(pinnedRows);
+    expect(renderer.getPinnedRecordCount()).toBe(5);
+
+    scrollReaderTo(scroller, 0);
+    await waitForAnimationFrame();
+    expect(getRenderedMessageIds(renderer.root)).toEqual(['message-1', 'message-2', 'message-3']);
+    scrollReaderTo(scroller, 0);
+    await waitForAnimationFrame();
+    expect(getRenderedMessageIds(renderer.root)).toEqual(['message-0', 'message-1', 'message-2']);
+
+    renderer.scrollToLiveEdge();
+    expect(getRenderedMessageIds(renderer.root)).toEqual(['message-7', 'message-8', 'message-9']);
+    expect(renderer.root.dataset.ytcqFollowingLiveEdge).toBe('true');
+    expect(renderer.getPinnedRecordCount()).toBe(0);
+    renderer.destroy();
+  });
+
+  it('keeps byte-identical pinned upserts as no-ops', async () => {
+    const store = createLiteChatStore({ renderLimit: 3, storeLimit: 5 });
+    store.apply(
+      Array.from({ length: 3 }, (_value, index) => ({
+        type: 'upsert' as const,
+        record: createRecord(`message-${index}`, `Message ${index}`)
+      }))
+    );
+    const onRowRendered = vi.fn();
+    const renderer = createLiteChatRenderer(store, { renderLimit: 3, onRowRendered });
+    document.body.append(renderer.root);
+    const scroller = renderer.root.querySelector<HTMLElement>('.ytcq-lite-scroller')!;
+    Object.defineProperties(scroller, {
+      clientHeight: { configurable: true, value: 100 },
+      scrollHeight: { configurable: true, value: 500 },
+      scrollTop: { configurable: true, value: 400, writable: true }
+    });
+    scroller.dispatchEvent(new WheelEvent('wheel', { deltaY: -20 }));
+    const row = renderer.getMessageElement('message-1');
+    const renderedCallCount = onRowRendered.mock.calls.length;
+    const duplicateActions = [
+      { type: 'upsert' as const, record: createRecord('message-1', 'Message 1') }
+    ];
+
+    renderer.rememberActionSources(duplicateActions, 'live');
+    expect(store.apply(duplicateActions)).toEqual({
+      addedIds: [],
+      removedIds: [],
+      reset: false,
+      updatedIds: []
+    });
+    await Promise.resolve();
+
+    expect(renderer.getMessageElement('message-1')).toBe(row);
+    expect(onRowRendered).toHaveBeenCalledTimes(renderedCallCount);
+    renderer.destroy();
+  });
+
+  it('reconciles updates and removals inside an evicted pinned window', async () => {
+    const store = createLiteChatStore({ renderLimit: 3, storeLimit: 5 });
+    store.apply(
+      Array.from({ length: 5 }, (_value, index) => ({
+        type: 'upsert' as const,
+        record: createRecord(`message-${index}`, `Message ${index}`)
+      }))
+    );
+    const renderer = createLiteChatRenderer(store, { renderLimit: 3 });
+    document.body.append(renderer.root);
+    const scroller = renderer.root.querySelector<HTMLElement>('.ytcq-lite-scroller')!;
+    Object.defineProperties(scroller, {
+      clientHeight: { configurable: true, value: 100 },
+      scrollHeight: { configurable: true, value: 500 },
+      scrollTop: { configurable: true, value: 400, writable: true }
+    });
+    scroller.dispatchEvent(new WheelEvent('wheel', { deltaY: -20 }));
+    store.apply(
+      Array.from({ length: 5 }, (_value, index) => ({
+        type: 'upsert' as const,
+        record: createRecord(`message-${index + 5}`, `Message ${index + 5}`)
+      }))
+    );
+
+    const reconciledActions = [
+      { type: 'upsert' as const, record: createRecord('message-0', 'Message 0 revised') },
+      { id: 'message-1', type: 'remove' as const }
+    ];
+    renderer.rememberActionSources(reconciledActions, 'live');
+    store.apply(reconciledActions);
+    await Promise.resolve();
+    expect(getRenderedMessageIds(renderer.root)).toEqual(['message-2', 'message-3', 'message-4']);
+
+    scrollReaderTo(scroller, 0);
+    await waitForAnimationFrame();
+    expect(getRenderedMessageIds(renderer.root)).toEqual(['message-0', 'message-2', 'message-3']);
+    expect(
+      renderer.getMessageElement('message-0')?.querySelector('[id="message"]')?.textContent
+    ).toBe('Message 0 revised');
+    expect(renderer.getMessageElement('message-1')).toBeNull();
+    renderer.destroy();
+  });
+
   it('pages forward through retained records before returning to the live edge', async () => {
     const store = createLiteChatStore({ renderLimit: 4, storeLimit: 20 });
     store.apply(
@@ -352,6 +488,42 @@ describe('Lite chat renderer', () => {
     await waitForAnimationFrame();
     expect(getRenderedMessageIds(renderer.root)).toEqual(forwardPages.at(-1));
     expect(renderer.root.dataset.ytcqFollowingLiveEdge).toBe('true');
+    renderer.destroy();
+  });
+
+  it('hands paging forward to the newer bounded store while histories overlap', async () => {
+    const store = createLiteChatStore({ renderLimit: 4, storeLimit: 10 });
+    store.apply(
+      Array.from({ length: 10 }, (_value, index) => ({
+        type: 'upsert' as const,
+        record: createRecord(`message-${index}`, `Message ${index}`)
+      }))
+    );
+    const renderer = createLiteChatRenderer(store, { renderLimit: 4 });
+    document.body.append(renderer.root);
+    const scroller = renderer.root.querySelector<HTMLElement>('.ytcq-lite-scroller')!;
+    Object.defineProperties(scroller, {
+      clientHeight: { configurable: true, value: 100 },
+      scrollHeight: { configurable: true, value: 500 },
+      scrollTop: { configurable: true, value: 400, writable: true }
+    });
+    scroller.dispatchEvent(new WheelEvent('wheel', { deltaY: -20 }));
+    store.apply([
+      { type: 'upsert', record: createRecord('message-10', 'Message 10') },
+      { type: 'upsert', record: createRecord('message-11', 'Message 11') }
+    ]);
+
+    scrollReaderDownTo(scroller, 400);
+    await waitForAnimationFrame();
+
+    expect(getRenderedMessageIds(renderer.root)).toEqual([
+      'message-8',
+      'message-9',
+      'message-10',
+      'message-11'
+    ]);
+    expect(renderer.root.dataset.ytcqFollowingLiveEdge).toBe('false');
+    expect(renderer.getPinnedRecordCount()).toBe(10);
     renderer.destroy();
   });
 
@@ -681,6 +853,12 @@ describe('Lite chat renderer', () => {
 
     expect(renderer.root.dataset.ytcqFollowingLiveEdge).toBe('false');
     expect(renderer.root.getAttribute('aria-live')).toBe('off');
+    expect(renderer.getPinnedRecordCount()).toBe(7);
+    expect(
+      Array.from(renderer.root.querySelectorAll<HTMLElement>('[id="message"]')).map(
+        (message) => message.textContent
+      )
+    ).toEqual(['Refreshed 2', 'Refreshed 3', 'Refreshed 4']);
     expect(renderer.root.querySelector<HTMLButtonElement>('.ytcq-lite-new-messages')?.hidden).toBe(
       false
     );

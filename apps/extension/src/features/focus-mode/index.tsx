@@ -35,9 +35,16 @@ import {
   getRecentMessagesForKey,
   getUserKeyFromIdentity,
   getUserMessageHistorySnapshot,
+  onUserMessageRecordsRemoved,
   onUserMessagesChanged,
-  recordVisibleUserMessages
+  recordVisibleUserMessages,
+  type MessageRecord
 } from '../user-message-history';
+import {
+  mergePinnedUserMessageRecords,
+  removePinnedUserMessageRecords,
+  type UserMessageRecordsRemoval
+} from '../user-message-history/pinned-records';
 import { createFocusRecordFromHistory } from './records';
 import {
   getAuthorInitial,
@@ -62,7 +69,9 @@ let mentionRestoreTimer = 0;
 let focusModeListeners = new AbortController();
 let historyScanInProgress = false;
 let unsubscribeUserMessages: (() => void) | null = null;
+let unsubscribeUserMessageRemovals: (() => void) | null = null;
 const focusRecords: FocusRecord[] = [];
+const pinnedFocusHistoryRecords: MessageRecord[] = [];
 
 registerFeature({
   page: {
@@ -77,6 +86,7 @@ export function initFocusMode(): void {
   document.addEventListener('keydown', handleDocumentKeydown, options);
   document.addEventListener('click', handleDocumentClick, options);
   unsubscribeUserMessages ||= onUserMessagesChanged(handleUserMessagesChanged);
+  unsubscribeUserMessageRemovals ||= onUserMessageRecordsRemoved(handleUserMessageRecordsRemoved);
 }
 
 export function resetFocusMode(): void {
@@ -88,6 +98,8 @@ export function cleanupStaleFocusMode(): void {
   focusModeListeners = new AbortController();
   unsubscribeUserMessages?.();
   unsubscribeUserMessages = null;
+  unsubscribeUserMessageRemovals?.();
+  unsubscribeUserMessageRemovals = null;
   closeFocusMode();
   document
     .querySelectorAll<HTMLElement>(`.${FOCUS_ANCHOR_CLASS}`)
@@ -143,7 +155,29 @@ function syncFocusRecordsFromHistory(refresh = true): void {
   if (!activeSource) return;
   const source = activeSource;
 
-  const nextRecords = getUserMessageHistorySnapshot()
+  const retainedRecords = getUserMessageHistorySnapshot().filter((record) =>
+    Boolean(createFocusRecordFromHistory(record, source))
+  );
+  const nextPinnedRecords = mergePinnedUserMessageRecords(
+    pinnedFocusHistoryRecords,
+    retainedRecords
+  );
+  pinnedFocusHistoryRecords.splice(0, pinnedFocusHistoryRecords.length, ...nextPinnedRecords);
+  syncFocusRecordsFromPinnedHistory(refresh);
+}
+
+function handleUserMessageRecordsRemoved(removal: UserMessageRecordsRemoval): void {
+  if (!activeExpanded || !activeSource || !activeList) return;
+  const nextPinnedRecords = removePinnedUserMessageRecords(pinnedFocusHistoryRecords, removal);
+  if (nextPinnedRecords.length === pinnedFocusHistoryRecords.length) return;
+  pinnedFocusHistoryRecords.splice(0, pinnedFocusHistoryRecords.length, ...nextPinnedRecords);
+  syncFocusRecordsFromPinnedHistory();
+}
+
+function syncFocusRecordsFromPinnedHistory(refresh = true): void {
+  if (!activeSource) return;
+  const source = activeSource;
+  const nextRecords = pinnedFocusHistoryRecords
     .map((record) => createFocusRecordFromHistory(record, source))
     .filter((record): record is FocusRecord => Boolean(record));
   if (areFocusRecordListsEqual(focusRecords, nextRecords)) return;
@@ -395,6 +429,7 @@ function cleanupActiveScrollFade(): void {
 
 function clearFocusRecords(): void {
   focusRecords.length = 0;
+  pinnedFocusHistoryRecords.length = 0;
 }
 
 function prioritizeFocusMessageTranslations(): void {

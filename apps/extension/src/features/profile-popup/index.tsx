@@ -15,11 +15,17 @@ import {
   getLiveMessageForRecord,
   getUserMessagesForIdentity,
   getUserKeyFromIdentity,
+  onUserMessageRecordsRemoved,
   onUserMessagesChanged,
   recordVisibleUserMessages,
   type MessageRecord,
   type UserIdentity
 } from '../user-message-history';
+import {
+  mergePinnedUserMessageRecords,
+  removePinnedUserMessageRecords,
+  type UserMessageRecordsRemoval
+} from '../user-message-history/pinned-records';
 import { registerFeature, type FeatureMessageContext } from '../../content/dispatcher';
 import { mentionAuthorName } from '../reply';
 import {
@@ -391,6 +397,10 @@ function showProfileCard(source: ProfileSource, anchor: HTMLElement): void {
 
   const translationPriorityScope = createTranslationPriorityScope();
   const messagePager = createProfileMessagePager(source.originMessageId);
+  let pinnedMessages = mergePinnedUserMessageRecords(
+    [],
+    getUserMessagesForIdentity(source.identity)
+  );
   const renderVisibleMessages = (): void => {
     const visibleMessages = [...messagePager.getVisibleMessages()];
     renderProfileMessages(
@@ -402,7 +412,7 @@ function showProfileCard(source: ProfileSource, anchor: HTMLElement): void {
     );
     prioritizeProfileMessageTranslations(translationPriorityScope, visibleMessages);
   };
-  messagePager.updateMessages(getUserMessagesForIdentity(source.identity), {
+  messagePager.updateMessages(pinnedMessages, {
     followLatest: !source.originMessageId
   });
   renderVisibleMessages();
@@ -512,14 +522,10 @@ function showProfileCard(source: ProfileSource, anchor: HTMLElement): void {
     passive: true,
     signal: cardListeners.signal
   });
-  const unsubscribeMessages = onUserMessagesChanged((key) => {
-    if (!isProfileCardOpen(card) || !shouldRefreshProfileMessages(key, source, profileKey)) return;
+  const refreshPinnedMessages = (followLatest: boolean): void => {
     const preservedIntent = pendingScrollIntent;
     const previousOriginRecordId = messagePager.getOriginRecordId();
-    const followLatest =
-      preservedIntent?.type === 'bottom' ||
-      (!preservedIntent && isProfileMessageListAtBottom(list));
-    messagePager.updateMessages(getUserMessagesForIdentity(source.identity), { followLatest });
+    messagePager.updateMessages(pinnedMessages, { followLatest });
     const resolvedOriginRecordId = messagePager.getOriginRecordId();
     const scrollIntent =
       previousOriginRecordId === null && resolvedOriginRecordId !== null
@@ -531,6 +537,27 @@ function showProfileCard(source: ProfileSource, anchor: HTMLElement): void {
     renderVisibleMessages();
     schedulePosition('viewport');
     scheduleScroll(scrollIntent);
+  };
+  const unsubscribeMessages = onUserMessagesChanged((key) => {
+    if (!isProfileCardOpen(card) || !shouldRefreshProfileMessages(key, source, profileKey)) return;
+    const followLatest =
+      pendingScrollIntent?.type === 'bottom' ||
+      (!pendingScrollIntent && isProfileMessageListAtBottom(list));
+    pinnedMessages = mergePinnedUserMessageRecords(
+      pinnedMessages,
+      getUserMessagesForIdentity(source.identity)
+    );
+    refreshPinnedMessages(followLatest);
+  });
+  const unsubscribeRemovals = onUserMessageRecordsRemoved((removal: UserMessageRecordsRemoval) => {
+    if (!isProfileCardOpen(card)) return;
+    const nextPinnedMessages = removePinnedUserMessageRecords(pinnedMessages, removal);
+    if (nextPinnedMessages.length === pinnedMessages.length) return;
+    pinnedMessages = nextPinnedMessages;
+    const followLatest =
+      pendingScrollIntent?.type === 'bottom' ||
+      (!pendingScrollIntent && isProfileMessageListAtBottom(list));
+    refreshPinnedMessages(followLatest);
   });
 
   profileCardCleanups.set(card, () => {
@@ -542,6 +569,7 @@ function showProfileCard(source: ProfileSource, anchor: HTMLElement): void {
     scrollFadeCleanup();
     translationPriorityScope.close();
     unsubscribeMessages();
+    unsubscribeRemovals();
   });
 
   window.setTimeout(() => {

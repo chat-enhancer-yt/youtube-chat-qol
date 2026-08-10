@@ -454,6 +454,8 @@ describe('feed-backed user message history', () => {
 
   it('removes and resets feed-owned history records', async () => {
     const history = await initHistory();
+    const removals = vi.fn();
+    history.onUserMessageRecordsRemoved(removals);
     dispatchActions([upsert(createRecord('message-1', '@FeedViewer', 'first'))]);
     dispatchActions([{ id: 'message-1', type: 'remove' }]);
     expect(history.getUserMessageHistorySnapshot()).toEqual([]);
@@ -461,6 +463,10 @@ describe('feed-backed user message history', () => {
     dispatchActions([upsert(createRecord('message-2', '@FeedViewer', 'second'))]);
     dispatchActions([{ type: 'reset' }], 'replay');
     expect(history.getUserMessageHistorySnapshot()).toEqual([]);
+    expect(removals.mock.calls).toEqual([
+      [{ messageId: 'message-1', type: 'message' }],
+      [{ type: 'reset' }]
+    ]);
   });
 
   async function initHistory(): Promise<typeof import('./index')> {

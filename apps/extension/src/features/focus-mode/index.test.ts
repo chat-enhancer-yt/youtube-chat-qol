@@ -9,6 +9,7 @@ import {
   emitMessageTranslationsCleared
 } from '../translation/events';
 import { recordUserMessage } from '../user-message-history';
+import type { UserMessageFeedUpdate } from '../user-message-history/feed';
 
 const chatState = vi.hoisted(() => ({
   input: null as HTMLElement | null,
@@ -72,18 +73,7 @@ const avatarRingMocks = vi.hoisted(() => ({
 
 const historyFeedMocks = vi.hoisted(() => ({
   nextTimestamp: 0,
-  onBatch: null as ((updates: Array<{
-    record: {
-      authorName: string;
-      channelId: string;
-      contentParts: Array<{ text: string; type: 'text' }>;
-      messageId: string;
-      text: string;
-      timestamp: number;
-      timestampText: string;
-    };
-    type: 'upsert';
-  }>) => void) | null
+  onBatch: null as ((updates: UserMessageFeedUpdate[]) => void) | null
 }));
 
 vi.mock('../../youtube/chat-input', () => ({
@@ -377,6 +367,52 @@ describe('focus mode entrypoint', () => {
     recordFeedMessage(nextMessage);
 
     expect(document.querySelector('.ytcq-focus-bubble')?.textContent).toBe('mutation message');
+  });
+
+  it('pins an open conversation through history pruning and applies later removals', async () => {
+    expect(
+      openFocusModeForAuthor({ authorName: '@PinnedViewer', channelId: 'pinned-channel' })
+    ).toBe(true);
+    await vi.runAllTimersAsync();
+
+    const pinnedMessage = createMessage('@PinnedViewer', 'pinned message', 'pinned-channel');
+    document.body.append(pinnedMessage);
+    recordFeedMessage(pinnedMessage);
+    const baseTimestamp = Date.now() + 1;
+    historyFeedMocks.onBatch?.(
+      Array.from({ length: 1_920 }, (_value, index) => ({
+        record: {
+          authorName: `@OtherViewer${index}`,
+          channelId: `other-channel-${index}`,
+          contentParts: [{ text: `other ${index}`, type: 'text' as const }],
+          messageId: `other-message-${index}`,
+          text: `other ${index}`,
+          timestamp: baseTimestamp + index,
+          timestampText: '9:31 PM'
+        },
+        type: 'upsert' as const
+      }))
+    );
+
+    expect(document.querySelector('.ytcq-focus-bubble')?.textContent).toBe('pinned message');
+
+    historyFeedMocks.onBatch?.([{ messageId: 'pinned-channel-pinned message', type: 'remove' }]);
+    expect(document.querySelector('.ytcq-focus-bubble')).toBeNull();
+  });
+
+  it('clears an open pinned conversation when the feed resets', async () => {
+    expect(
+      openFocusModeForAuthor({ authorName: '@ResetViewer', channelId: 'reset-channel' })
+    ).toBe(true);
+    await vi.runAllTimersAsync();
+
+    const message = createMessage('@ResetViewer', 'before reset', 'reset-channel');
+    document.body.append(message);
+    recordFeedMessage(message);
+    expect(document.querySelector('.ytcq-focus-bubble')?.textContent).toBe('before reset');
+
+    historyFeedMocks.onBatch?.([{ type: 'reset' }]);
+    expect(document.querySelector('.ytcq-focus-bubble')).toBeNull();
   });
 
   it('ignores unrelated message history while expanded', async () => {
