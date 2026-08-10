@@ -16,9 +16,12 @@ import {
 import { findChatInput, getChatInputText, replaceChatInput } from '../../youtube/chat-input';
 import { PANEL_PAGES_SELECTOR, SEND_BUTTON_SELECTOR } from '../../youtube/selectors';
 import { getChannelUrl, openChannelWindow } from '../channel-popup';
-import { applyAvatarRing } from '../avatar-rings';
+import { applyAvatarRing, createAvatarRingToggleButton } from '../avatar-rings';
 import { createBookmarkToggleButton } from '../bookmarks';
 import { isCurrentUserAuthorName } from '../mention-detection';
+import { canJumpToChatMessage, createJumpToMessageIcon, jumpToChatMessage } from '../message-jump';
+import { createProfileChannelButton } from '../profile-popup/elements';
+import { decorateProfileMentions } from '../profile-popup/mentions';
 import { registerFeature } from '../../content/dispatcher';
 import {
   createTranslationPriorityScope,
@@ -42,7 +45,6 @@ import {
 } from './source';
 import { renderFocusMessageText } from './translation';
 import type { FocusRecord, FocusSource } from './types';
-import { decorateProfileMentions } from '../profile-popup/mentions';
 
 const FOCUS_ANCHOR_CLASS = 'ytcq-focus-anchor';
 
@@ -180,7 +182,7 @@ function renderCollapsedFocusPrompt(): void {
   cleanupActiveScrollFade();
   activeCard?.remove();
 
-  const author = createFocusAuthor(activeSource, { openChannel: false });
+  const author = createFocusAuthor(activeSource);
   const openButton = el<HTMLButtonElement>(
     <button type="button" class="ytcq-focus-open" onClick={openCollapsedFocusPanel}>
       {t('open')}
@@ -229,6 +231,14 @@ function openFocusPanel(): void {
   stopFocusTranslationPriority();
   activeTranslationPriorityScope = createTranslationPriorityScope();
 
+  const ringButton = createAvatarRingToggleButton({
+    authorName: activeSource.authorName,
+    avatarUrl: activeSource.avatarSrc,
+    channelId: activeSource.channelId
+  });
+  ringButton.classList.add('ytcq-focus-ring-toggle');
+  const channelUrl = getChannelUrl(activeSource.channelId, activeSource.authorName);
+  const channelButton = channelUrl ? createFocusChannelButton(channelUrl) : null;
   let list!: HTMLDivElement;
   const card = el<HTMLElement>(
     <section
@@ -239,9 +249,13 @@ function openFocusPanel(): void {
       <div class="ytcq-focus-header">
         <div class="ytcq-focus-title">
           <span class="ytcq-focus-label">{t('focusingOn')}</span>
-          {createFocusAuthor(activeSource, { openChannel: true })}
+          {createFocusAuthor(activeSource, channelUrl)}
         </div>
-        {createFocusCloseButton(closeFocusMode)}
+        <div class="ytcq-focus-header-actions">
+          {ringButton}
+          {channelButton}
+          {createFocusCloseButton(closeFocusMode)}
+        </div>
       </div>
       <div ref={(element: HTMLDivElement) => (list = element)} class="ytcq-focus-messages" />
     </section>
@@ -288,10 +302,12 @@ function renderFocusMessages(): void {
       <div class="ytcq-focus-message-meta">{record.timestampText}</div>
     );
     const saveButton = createBookmarkToggleButton(record);
+    const jumpButton = createFocusJumpButton(record);
     const metaRow = el<HTMLDivElement>(
       <div class="ytcq-focus-message-meta-row">
         {meta}
         {saveButton}
+        {jumpButton}
       </div>
     );
 
@@ -302,6 +318,29 @@ function renderFocusMessages(): void {
     item.append(metaRow, bubble);
     activeList?.append(item);
   });
+}
+
+function createFocusJumpButton(record: FocusRecord): HTMLButtonElement | null {
+  const liveMessage = getFocusRecordLiveMessage(record);
+  if (!canJumpToChatMessage(liveMessage, record.messageId)) return null;
+
+  return el<HTMLButtonElement>(
+    <button
+      type="button"
+      class="ytcq-message-row-action ytcq-focus-message-jump"
+      title={t('jumpToMessage')}
+      aria-label={t('jumpToMessage')}
+      onClick={(event: MouseEvent) => {
+        event.preventDefault();
+        event.stopPropagation();
+        const target = getFocusRecordLiveMessage(record);
+        if (!canJumpToChatMessage(target, record.messageId)) return;
+        jumpToChatMessage(target, record.messageId);
+      }}
+    >
+      {createJumpToMessageIcon()}
+    </button>
+  );
 }
 
 function wireFocusMessageQuote(item: HTMLElement, record: FocusRecord): void {
@@ -368,8 +407,7 @@ function stopFocusTranslationPriority(): void {
   activeTranslationPriorityScope = null;
 }
 
-function createFocusAuthor(source: FocusSource, options: { openChannel: boolean }): HTMLElement {
-  const channelUrl = getChannelUrl(source.channelId, source.authorName);
+function createFocusAuthor(source: FocusSource, channelUrl = ''): HTMLElement {
   const content = [
     createFocusAvatar(source),
     el<HTMLSpanElement>(
@@ -379,7 +417,7 @@ function createFocusAuthor(source: FocusSource, options: { openChannel: boolean 
     )
   ];
 
-  if (channelUrl && options.openChannel) {
+  if (channelUrl) {
     const author = el<HTMLButtonElement>(
       <button
         type="button"
@@ -436,6 +474,12 @@ function createFocusCloseButton(onClick: () => void): HTMLButtonElement {
       {createCloseIcon()}
     </button>
   );
+  return button;
+}
+
+function createFocusChannelButton(channelUrl: string): HTMLButtonElement {
+  const button = createProfileChannelButton(channelUrl);
+  button.classList.add('ytcq-focus-channel');
   return button;
 }
 

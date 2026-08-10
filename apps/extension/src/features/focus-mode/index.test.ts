@@ -52,8 +52,21 @@ const bookmarkMocks = vi.hoisted(() => ({
   })
 }));
 
+const jumpMocks = vi.hoisted(() => ({
+  canJumpToChatMessage: vi.fn((target: HTMLElement | null, messageId = '') =>
+    Boolean(target?.isConnected || messageId)
+  ),
+  createJumpToMessageIcon: vi.fn(() => document.createElement('span')),
+  jumpToChatMessage: vi.fn()
+}));
+
 const avatarRingMocks = vi.hoisted(() => ({
-  applyAvatarRing: vi.fn()
+  applyAvatarRing: vi.fn(),
+  createAvatarRingToggleButton: vi.fn(() => {
+    const button = document.createElement('button');
+    button.className = 'ytcq-avatar-ring-toggle';
+    return button;
+  })
 }));
 
 const historyFeedMocks = vi.hoisted(() => ({
@@ -88,6 +101,7 @@ vi.mock('../reply', () => replyMocks);
 vi.mock('../reply/index', () => replyMocks);
 vi.mock('../avatar-rings', () => avatarRingMocks);
 vi.mock('../bookmarks', () => bookmarkMocks);
+vi.mock('../message-jump', () => jumpMocks);
 vi.mock('../user-message-history/feed', () => ({
   startUserMessageFeed: vi.fn((onBatch: NonNullable<typeof historyFeedMocks.onBatch>) => {
     historyFeedMocks.onBatch = onBatch;
@@ -221,9 +235,22 @@ describe('focus mode entrypoint', () => {
     expect(rows[0].classList.contains('ytcq-focus-message-them')).toBe(true);
     expect(rows[1].classList.contains('ytcq-focus-message-us')).toBe(true);
     expect(document.querySelectorAll('.ytcq-focus-message-meta-row .ytcq-bookmark-toggle')).toHaveLength(2);
+    expect(
+      document.querySelectorAll('.ytcq-focus-message-meta-row .ytcq-focus-message-jump')
+    ).toHaveLength(2);
     expect(bookmarkMocks.createBookmarkToggleButton).toHaveBeenCalledWith(
       expect.objectContaining({ authorName: '@ViewerTwo', messageId: expect.any(String) })
     );
+
+    const firstSaveButton = rows[0].querySelector('.ytcq-bookmark-toggle')!;
+    const firstJumpButton = rows[0].querySelector<HTMLButtonElement>('.ytcq-focus-message-jump')!;
+    expect(firstSaveButton.nextElementSibling).toBe(firstJumpButton);
+    firstJumpButton.click();
+    expect(jumpMocks.jumpToChatMessage).toHaveBeenCalledWith(
+      focusedMessage,
+      'viewer-channel-focused message'
+    );
+    expect(replyMocks.quoteAuthorRichText).not.toHaveBeenCalled();
 
     rows[0].click();
     await vi.runAllTimersAsync();
@@ -373,7 +400,7 @@ describe('focus mode entrypoint', () => {
     expect(queueMocks.prioritize).not.toHaveBeenCalled();
   });
 
-  it('opens the focused user channel from the expanded header and closes from the header button', async () => {
+  it('orders the ring, channel, and close actions in the expanded header', async () => {
     expect(
       openFocusModeForAuthor({
         authorName: '@ViewerFive',
@@ -384,14 +411,30 @@ describe('focus mode entrypoint', () => {
     await vi.runAllTimersAsync();
 
     const authorButton = document.querySelector<HTMLButtonElement>('.ytcq-focus-author-button')!;
+    const ringButton = document.querySelector<HTMLButtonElement>('.ytcq-focus-ring-toggle')!;
+    const channelButton = document.querySelector<HTMLButtonElement>('.ytcq-focus-channel')!;
+    const closeButton = document.querySelector<HTMLButtonElement>('.ytcq-focus-close')!;
     expect(document.querySelector('.ytcq-focus-avatar-fallback')).toBeNull();
+    expect(ringButton.closest('.ytcq-focus-header-actions')).not.toBeNull();
+    expect(ringButton.nextElementSibling).toBe(channelButton);
+    expect(channelButton.nextElementSibling).toBe(closeButton);
+    expect(channelButton.title).toBe('Open channel');
+    expect(avatarRingMocks.createAvatarRingToggleButton).toHaveBeenCalledWith({
+      authorName: '@ViewerFive',
+      avatarUrl: 'avatar.png',
+      channelId: 'viewer-channel'
+    });
+    channelButton.click();
+    expect(channelMocks.openChannelWindow).toHaveBeenLastCalledWith(
+      'https://www.youtube.com/@ViewerFive'
+    );
     authorButton.click();
 
     expect(channelMocks.openChannelWindow).toHaveBeenCalledWith(
       'https://www.youtube.com/@ViewerFive'
     );
 
-    document.querySelector<HTMLButtonElement>('.ytcq-focus-close')?.click();
+    closeButton.click();
     expect(document.querySelector('.ytcq-focus-card')).toBeNull();
     expect(queueMocks.close).toHaveBeenCalled();
   });
@@ -405,6 +448,7 @@ describe('focus mode entrypoint', () => {
     const author = document.querySelector<HTMLElement>('.ytcq-focus-author')!;
     expect(author.tagName).toBe('SPAN');
     expect(author.querySelector('.ytcq-focus-avatar-fallback')?.textContent).toBe('N');
+    expect(document.querySelector('.ytcq-focus-channel')).toBeNull();
   });
 
   it('restores the fixed focus mention after Enter or send button sends', async () => {

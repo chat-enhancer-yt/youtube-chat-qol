@@ -44,6 +44,8 @@ export const focusPanelReceivesNewMessagesScenario: BrowserScenario = async ({
   source.channelId = channelId;
   await expandFocusPanel(chat);
   await expectFocusPanelContainsSourceMessage(chat, source);
+  await expectFocusMessageActionsAndJump(chat, source);
+  await expectFocusHeaderActionsAndRingToggle(chat);
   await deliverFocusedAuthorMessageAndVerifyItAppears(chat, incoming, source);
   await cleanUpFocusPanel(chat);
 };
@@ -167,6 +169,61 @@ async function expectFocusPanelContainsSourceMessage(chat: ChatSurface, source: 
     await expect(panel.locator('.ytcq-focus-message-them .ytcq-focus-bubble').filter({
       hasText: source.text
     }).first()).toBeVisible({ timeout: 10_000 });
+  });
+}
+
+async function expectFocusMessageActionsAndJump(
+  chat: ChatSurface,
+  source: MessageSource
+): Promise<void> {
+  await test.step('Jump to the source message from its Focus row', async () => {
+    const row = chat.locator('.ytcq-focus-message-them').filter({
+      has: chat.locator('.ytcq-focus-bubble').filter({ hasText: source.text })
+    }).first();
+    const bookmarkButton = row.locator('.ytcq-bookmark-toggle');
+    const jumpButton = row.locator('.ytcq-bookmark-toggle + .ytcq-focus-message-jump');
+
+    await chat.locator('.ytcq-focus-header').hover();
+    await expect(bookmarkButton).toHaveCSS('opacity', '0');
+    await expect(jumpButton).toHaveCSS('opacity', '0');
+    await row.hover();
+    await expect(bookmarkButton).toHaveCSS('opacity', '1');
+    await expect(jumpButton).toHaveCSS('opacity', '1');
+
+    await jumpButton.click();
+    const sourceMessage = chat.locator(
+      `[${FOCUS_TARGET_ATTRIBUTE}="${escapeCssString(source.targetId)}"]`
+    ).first();
+    await expect(sourceMessage).toHaveClass(/ytcq-message-jump-target/);
+  });
+}
+
+async function expectFocusHeaderActionsAndRingToggle(chat: ChatSurface): Promise<void> {
+  await test.step('Verify the Focus header actions and toggle the author ring', async () => {
+    const panel = chat.locator('.ytcq-focus-card-expanded');
+    const toggle = panel.locator('.ytcq-focus-header-actions .ytcq-avatar-ring-toggle');
+    const channelButton = panel.locator('.ytcq-focus-channel');
+    const closeButton = panel.locator('.ytcq-focus-close');
+    const avatar = panel.locator('.ytcq-focus-avatar');
+    const initialState = await toggle.getAttribute('aria-pressed');
+    const nextState = initialState === 'true' ? 'false' : 'true';
+
+    await expect(toggle).toBeVisible();
+    await expect(channelButton).toHaveAttribute('aria-label', /channel/i);
+    await expect(panel.locator('.ytcq-avatar-ring-toggle + .ytcq-focus-channel')).toBeVisible();
+    await expect(panel.locator('.ytcq-focus-channel + .ytcq-focus-close')).toBeVisible();
+    await expect(closeButton).toBeVisible();
+
+    await toggle.click();
+    await expect(toggle).toHaveAttribute('aria-pressed', nextState);
+    if (nextState === 'true') {
+      await expect(avatar).toHaveClass(/ytcq-avatar-ring-active/);
+    } else {
+      await expect(avatar).not.toHaveClass(/ytcq-avatar-ring-active/);
+    }
+
+    await toggle.click();
+    await expect(toggle).toHaveAttribute('aria-pressed', initialState || 'false');
   });
 }
 

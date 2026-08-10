@@ -7,7 +7,7 @@
  */
 import { t } from '../../shared/i18n';
 import { wireFloatingPanelDrag } from '../../shared/floating-panel-drag';
-import { createChannelIcon, createCloseIcon } from '../../shared/icons';
+import { createCloseIcon } from '../../shared/icons';
 import { jsx, el } from '../../shared/jsx-dom';
 import { updateScrollEdgeFades, wireScrollEdgeFades } from '../../shared/scroll';
 import { findChatInput } from '../../youtube/chat-input';
@@ -20,7 +20,7 @@ import {
   type MessageRecord,
   type UserIdentity
 } from '../user-message-history';
-import { registerFeature } from '../../content/dispatcher';
+import { registerFeature, type FeatureMessageContext } from '../../content/dispatcher';
 import { mentionAuthorName } from '../reply';
 import { applyAvatarRing, createAvatarRingToggleButton } from '../avatar-rings';
 import {
@@ -32,8 +32,12 @@ import {
   onMessageTranslationsCleared,
   onTranslationTextRendered
 } from '../translation/events';
-import { getChannelUrl, openChannelWindow } from '../channel-popup';
-import { createAvatarElement, createProfileAvatarButton } from './elements';
+import { getChannelUrl } from '../channel-popup';
+import {
+  createAvatarElement,
+  createProfileAvatarButton,
+  createProfileChannelButton
+} from './elements';
 import { applyProfileAvatarAccent } from './avatar-accent';
 import { createProfileMessagePager } from './history-pager';
 import {
@@ -59,6 +63,7 @@ const stickyProfileCards = new WeakSet<HTMLElement>();
 const PROFILE_HISTORY_EDGE_TOLERANCE_PX = 12;
 let nextProfileCardZIndex = 10_000;
 let profileWiringListeners = new AbortController();
+let liteProfileRoots = new WeakSet<HTMLElement>();
 let profileMentionListenersWired = false;
 let profileMentionRefreshFrame = 0;
 let profileMentionSurfaceCleanups: Array<() => void> = [];
@@ -73,9 +78,19 @@ registerFeature({
   participant: wireParticipantProfileClick
 });
 
-export function wireProfileClick(message: HTMLElement): void {
+export function wireProfileClick(
+  message: HTMLElement,
+  { record }: Pick<FeatureMessageContext, 'record'> = {}
+): void {
   ensureProfileMentionListeners();
-  decorateChatMessageProfileMentions(message);
+  if (!record || record.plainText.includes('@')) {
+    decorateChatMessageProfileMentions(message);
+  }
+  if (record) {
+    wireLiteProfileRoot(message);
+    return;
+  }
+
   if (message.dataset.ytcqProfileWired === 'true') return;
   message.dataset.ytcqProfileWired = 'true';
 
@@ -96,6 +111,34 @@ export function wireProfileClick(message: HTMLElement): void {
     capture: true,
     signal: profileWiringListeners.signal
   });
+}
+
+function wireLiteProfileRoot(message: HTMLElement): void {
+  const root = message.closest<HTMLElement>('.ytcq-lite-root');
+  if (!root || liteProfileRoots.has(root)) return;
+
+  liteProfileRoots.add(root);
+  root.addEventListener('click', handleLiteProfileClick, {
+    capture: true,
+    signal: profileWiringListeners.signal
+  });
+}
+
+function handleLiteProfileClick(event: MouseEvent): void {
+  const root = event.currentTarget instanceof HTMLElement ? event.currentTarget : null;
+  const avatar =
+    event.target instanceof Element
+      ? event.target.closest<HTMLElement>('[id="author-photo"]')
+      : null;
+  const message = avatar?.closest<HTMLElement>('.ytcq-lite-message') || null;
+  if (!root || !avatar || !message || message.closest('.ytcq-lite-root') !== root) return;
+
+  const source = getMessageProfileSource(message);
+  if (!source) return;
+
+  event.preventDefault();
+  event.stopPropagation();
+  showProfileCard(source, avatar);
 }
 
 export function wireParticipantProfileClick(participant: HTMLElement): void {
@@ -128,6 +171,7 @@ export function wireParticipantProfileClick(participant: HTMLElement): void {
 export function cleanupStaleProfilePopupSurfaces(): void {
   profileWiringListeners.abort();
   profileWiringListeners = new AbortController();
+  liteProfileRoots = new WeakSet();
   profileMentionListenersWired = false;
   profileMentionSurfaceCleanups.forEach((cleanup) => cleanup());
   profileMentionSurfaceCleanups = [];
@@ -501,25 +545,6 @@ function showProfileCard(source: ProfileSource, anchor: HTMLElement): void {
     document.addEventListener('keydown', handleKeydown, options);
     window.addEventListener('resize', handleResize, options);
   }, 0);
-}
-
-function createProfileChannelButton(profileUrl: string): HTMLButtonElement {
-  const channelButton = el<HTMLButtonElement>(
-    <button
-      type="button"
-      class="ytcq-profile-card-header-button ytcq-profile-card-channel"
-      title={t('openChannel')}
-      aria-label={t('openChannel')}
-      onClick={(event: MouseEvent) => {
-        event.preventDefault();
-        event.stopPropagation();
-        openChannelWindow(profileUrl);
-      }}
-    >
-      {createChannelIcon()}
-    </button>
-  );
-  return channelButton;
 }
 
 export function closeProfileCard(card?: HTMLElement): void {

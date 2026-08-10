@@ -212,8 +212,8 @@ export function getLiveInboxMessage(record: InboxRecord): HTMLElement | null {
     .find((candidate) => getMessageStableId(candidate) === record.messageId) || null;
 }
 
-export function attachLiveInboxMessage(message: HTMLElement): boolean {
-  const messageId = getMessageStableId(message);
+export function attachLiveInboxMessage(message: HTMLElement, knownMessageId = ''): boolean {
+  const messageId = knownMessageId || getMessageStableId(message);
   if (!messageId) return false;
 
   const index = records.findIndex((record) => record.messageId === messageId);

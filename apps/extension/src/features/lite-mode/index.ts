@@ -100,11 +100,11 @@ function handleLiteModeMutations(batch: FeatureMutationBatch): void {
 
 function handleLiteModeRowRendered(
   row: HTMLElement,
-  _record: YouTubeChatMessageRecord,
+  record: YouTubeChatMessageRecord,
   source: LiteChatRowSource
 ): void {
   if (!row.isConnected) return;
-  handleFeatureMessage(row, { source });
+  handleFeatureMessage(row, { record, source });
 }
 
 function handleLiteModeFallback(event: Event): void {

@@ -188,6 +188,36 @@ describe('message context menu integration', () => {
     window.removeEventListener(YOUTUBE_CHAT_CONTEXT_MENU_REQUEST_EVENT, pageListener);
   });
 
+  it('delegates Lite menu interactions once per renderer root', () => {
+    const root = document.createElement('section');
+    root.className = 'ytcq-lite-root';
+    const first = createLiteChatMessage();
+    const second = createLiteChatMessage();
+    first.dataset.messageId = 'lite-message-1';
+    second.dataset.messageId = 'lite-message-2';
+    root.append(first, second);
+    document.body.append(root);
+    const addEventListener = vi.spyOn(root, 'addEventListener');
+    const requestedMessageIds: string[] = [];
+    const pageListener = (event: Event): void => {
+      if (!(event instanceof CustomEvent)) return;
+      const request = parseYouTubeChatContextMenuRequest(event.detail);
+      if (request) requestedMessageIds.push(request.messageId);
+    };
+    window.addEventListener(YOUTUBE_CHAT_CONTEXT_MENU_REQUEST_EVENT, pageListener);
+
+    wireMessageContext(first, { record: createMessageRecord('lite-message-1') });
+    wireMessageContext(second, { record: createMessageRecord('lite-message-2') });
+    first.querySelector<HTMLButtonElement>('.ytcq-lite-message-menu-button')!.click();
+    second.querySelector<HTMLButtonElement>('.ytcq-lite-message-menu-button')!.click();
+
+    expect(requestedMessageIds).toEqual(['lite-message-1', 'lite-message-2']);
+    expect(addEventListener).toHaveBeenCalledTimes(3);
+    expect(first.dataset.ytcqContextWired).toBeUndefined();
+    expect(second.dataset.ytcqContextWired).toBeUndefined();
+    window.removeEventListener(YOUTUBE_CHAT_CONTEXT_MENU_REQUEST_EVENT, pageListener);
+  });
+
   it('does not create a fallback menu when YouTube has no endpoint', () => {
     const message = createLiteChatMessage();
     message.dataset.messageId = 'missing-native-message';
@@ -392,6 +422,15 @@ function createLiteChatMessage(): HTMLElement {
     <span id="message">hello chat</span>
   `;
   return message;
+}
+
+function createMessageRecord(id: string) {
+  return {
+    id,
+    kind: 'text' as const,
+    plainText: 'hello chat',
+    runs: []
+  };
 }
 
 function createContextMenu(): HTMLElement {

@@ -9,7 +9,7 @@ import { cleanText, normalizeComparableText } from '../../shared/text';
 import { getMessageStableId } from '../../youtube/messages';
 import { CHAT_MESSAGE_SELECTOR } from '../../youtube/selectors';
 import { requestRenderedYouTubeChatFeedRecord } from '../../youtube/chat-feed/records';
-import { registerFeature } from '../../content/dispatcher';
+import { registerFeature, type FeatureMessageContext } from '../../content/dispatcher';
 import {
   onMessageTranslationCleared,
   onMessageTranslationRendered,
@@ -88,8 +88,11 @@ function initUserMessageHistory(): void {
   startUserMessageHistoryFeed();
 }
 
-export function recordUserMessage(message: HTMLElement): void {
-  bindFeedMessageElement(message);
+export function recordUserMessage(
+  message: HTMLElement,
+  { record }: Pick<FeatureMessageContext, 'record'> = {}
+): void {
+  bindFeedMessageElement(message, record?.id);
 }
 
 function startUserMessageHistoryFeed(): void {
@@ -162,8 +165,8 @@ function removeFeedMessagesByAuthor(channelId: string): void {
   });
 }
 
-function bindFeedMessageElement(message: HTMLElement): void {
-  const messageId = cleanText(getMessageStableId(message));
+function bindFeedMessageElement(message: HTMLElement, knownMessageId = ''): void {
+  const messageId = cleanText(knownMessageId || getMessageStableId(message));
   if (!messageId) return;
 
   const location = feedMessagesById.get(messageId);
@@ -220,7 +223,8 @@ function removeFeedMessage(messageId: string): void {
 }
 
 export function recordVisibleUserMessages(): void {
-  document.querySelectorAll<HTMLElement>(CHAT_MESSAGE_SELECTOR).forEach(recordUserMessage);
+  document.querySelectorAll<HTMLElement>(CHAT_MESSAGE_SELECTOR)
+    .forEach((message) => recordUserMessage(message));
 }
 
 export function getRecentMessagesForKey(key: string, limit = RECENT_MESSAGE_LIMIT): MessageRecord[] {

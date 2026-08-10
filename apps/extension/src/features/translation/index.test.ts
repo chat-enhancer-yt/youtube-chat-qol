@@ -88,6 +88,61 @@ describe('translation feature dispatcher wiring', () => {
     });
   });
 
+  it('forwards parsed Lite message text to the translation queue', () => {
+    const liteMessage = document.createElement('article');
+    liteMessage.classList.add('ytcq-lite-message');
+    setCurrentOptions({ ...DEFAULT_OPTIONS, targetLanguage: 'ja' });
+
+    feature.message?.(liteMessage, {
+      record: {
+        id: 'lite-text-message',
+        kind: 'text',
+        plainText: 'Hola a todos',
+        runs: [{ text: 'Hola a todos', type: 'text' }]
+      },
+      source: 'added'
+    });
+
+    expect(queueMocks.queueMessageTranslation).toHaveBeenCalledWith(liteMessage, {
+      originalText: 'Hola a todos'
+    });
+  });
+
+  it('keeps sticker labels and header-only memberships on the DOM fallback', () => {
+    const sticker = document.createElement('article');
+    const membership = document.createElement('article');
+    sticker.classList.add('ytcq-lite-message');
+    membership.classList.add('ytcq-lite-message');
+    setCurrentOptions({ ...DEFAULT_OPTIONS, targetLanguage: 'ja' });
+
+    feature.message?.(sticker, {
+      record: {
+        id: 'lite-sticker',
+        kind: 'sticker',
+        plainText: 'Celebration sticker',
+        runs: [],
+        sticker: {
+          alt: 'Celebration sticker',
+          amountText: '$5.00',
+          imageUrl: 'https://example.com/sticker.png'
+        }
+      },
+      source: 'added'
+    });
+    feature.message?.(membership, {
+      record: {
+        id: 'lite-membership',
+        kind: 'membership',
+        membership: { headerText: 'New member' },
+        plainText: 'New member',
+        runs: [{ text: 'New member', type: 'text' }]
+      },
+      source: 'added'
+    });
+
+    expect(queueMocks.queueMessageTranslation.mock.calls).toEqual([[sticker], [membership]]);
+  });
+
   it('does not requeue changed messages that already have a translation key', () => {
     const message = document.createElement('yt-live-chat-text-message-renderer');
     message.dataset.ytcqTranslationKey = 'existing-key';

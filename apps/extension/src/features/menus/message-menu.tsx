@@ -18,7 +18,7 @@ import {
 import { jsx, el } from '../../shared/jsx-dom';
 import { getChatBookmarkTitle, isChatBookmarked, toggleChatBookmark } from '../bookmarks';
 import { replyToMessage } from '../reply';
-import { registerFeature } from '../../content/dispatcher';
+import { registerFeature, type FeatureMessageContext } from '../../content/dispatcher';
 import {
   requestYouTubeChatContextMenu,
   type YouTubeChatContextMenuStatus
@@ -30,6 +30,7 @@ let activeContextMessageSnapshot: HTMLElement | null = null;
 let activeContextMessageAt = 0;
 let messageMenuActivationListeners = new AbortController();
 let contextMenuWiringListeners = new AbortController();
+let liteContextRoots = new WeakSet<HTMLElement>();
 let nativeLiteContextMenuCleanup: (() => void) | null = null;
 let nativeLiteContextAnchor: HTMLButtonElement | null = null;
 
@@ -47,7 +48,15 @@ function initMessageMenuActivation(): void {
   document.addEventListener('keydown', handleMessageMenuActivation, options);
 }
 
-export function wireMessageContext(message: HTMLElement): void {
+export function wireMessageContext(
+  message: HTMLElement,
+  { record }: Pick<FeatureMessageContext, 'record'> = {}
+): void {
+  if (record) {
+    wireLiteMessageContextRoot(message);
+    return;
+  }
+
   // Chat renderers repeat this YouTube-owned ID, so avoid an ID-selector
   // optimization that can escape the renderer scope in some DOM engines.
   const menu = message.querySelector<HTMLElement>('[id="menu"]');
@@ -101,6 +110,43 @@ export function wireMessageContext(message: HTMLElement): void {
   );
 }
 
+function wireLiteMessageContextRoot(message: HTMLElement): void {
+  const root = message.closest<HTMLElement>('.ytcq-lite-root');
+  if (!root || liteContextRoots.has(root)) return;
+
+  liteContextRoots.add(root);
+  const options = { capture: true, signal: contextMenuWiringListeners.signal };
+  root.addEventListener('pointerdown', handleLiteMessageContextEvent, options);
+  root.addEventListener('click', handleLiteMessageContextEvent, options);
+  root.addEventListener('keydown', handleLiteMessageContextEvent, options);
+}
+
+function handleLiteMessageContextEvent(event: Event): void {
+  const root = event.currentTarget instanceof HTMLElement ? event.currentTarget : null;
+  const target = event.target instanceof Element ? event.target : null;
+  const message = target?.closest<HTMLElement>('.ytcq-lite-message') || null;
+  if (!root || !target || !message || message.closest('.ytcq-lite-root') !== root) return;
+
+  if (target.closest('[id="menu"]')) setActiveContextMessage(message);
+  if (!(event instanceof MouseEvent) || event.type !== 'click') return;
+
+  const clickedButton = target.closest<HTMLButtonElement>('.ytcq-lite-message-menu-button');
+  if (clickedButton && message.contains(clickedButton)) {
+    event.preventDefault();
+    event.stopPropagation();
+    setActiveContextMessage(message);
+    openLiteContextMenu(message, clickedButton);
+    return;
+  }
+
+  if (isInteractiveLiteMessageTarget(target) || hasSelectedLiteMessageText(message)) return;
+  const button = message.querySelector<HTMLButtonElement>('.ytcq-lite-message-menu-button');
+  if (!button) return;
+
+  setActiveContextMessage(message);
+  openLiteContextMenu(message, button);
+}
+
 export function handleMessageMenuActivation(event: Event): void {
   const target = event.target instanceof Element ? event.target : null;
   if (!target) return;
@@ -135,6 +181,7 @@ export function cleanupStaleMessageMenuSurfaces(): void {
   messageMenuActivationListeners = new AbortController();
   contextMenuWiringListeners.abort();
   contextMenuWiringListeners = new AbortController();
+  liteContextRoots = new WeakSet();
   activeContextMessage = null;
   activeContextMessageSnapshot?.remove();
   activeContextMessageSnapshot = null;

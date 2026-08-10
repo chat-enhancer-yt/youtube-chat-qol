@@ -77,8 +77,11 @@ const pendingTranslations = new Map<string, Set<PendingTranslationEntry>>();
 const priorityTranslationKeys = new Map<string, number>();
 const activePriorityScopes = new Set<ActiveTranslationPriorityScope>();
 
-export function queueMessageTranslation(message: HTMLElement, { backfill = false } = {}): void {
-  const request = getTranslationRequest(message);
+export function queueMessageTranslation(
+  message: HTMLElement,
+  { backfill = false, originalText }: { backfill?: boolean; originalText?: string } = {}
+): void {
+  const request = getTranslationRequest(message, originalText);
   if (!request) return;
 
   retainPriorityTranslationKeyForMessage(message, request.key);
@@ -182,21 +185,24 @@ export function clearTranslations(): void {
   emitMessageTranslationsCleared();
 }
 
-function getTranslationRequest(message: HTMLElement): TranslationRequest | null {
+function getTranslationRequest(
+  message: HTMLElement,
+  knownOriginalText?: string
+): TranslationRequest | null {
   const options = getOptions();
   if (!options.targetLanguage) return null;
 
-  const details = getMessageDetails(message);
-  const plan = createTranslationPlan(message, details.text);
+  const originalText = knownOriginalText ?? getMessageDetails(message).text;
+  const plan = createTranslationPlan(message, originalText);
   const key = makeTranslationKey(plan.text, options.targetLanguage);
 
-  if (!details.text || !key) return null;
+  if (!originalText || !key) return null;
   if (!hasTextOutsidePlaceholders(plan.text)) return null;
-  if (!isUsefulTranslationCandidate(details.text)) return null;
+  if (!isUsefulTranslationCandidate(originalText)) return null;
 
   return {
     key,
-    originalText: details.text,
+    originalText,
     protectedTokens: plan.protectedTokens,
     sourceText: plan.text,
     targetLanguage: options.targetLanguage

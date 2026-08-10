@@ -871,9 +871,20 @@ function createAuthorAvatar(author: YouTubeChatAuthor | undefined): HTMLElement 
   const channelUrl = getChannelUrl(author?.channelId);
   const host = channelUrl
     ? el<HTMLAnchorElement>(
-        <a id="author-photo" class="ytcq-lite-author-photo" href={channelUrl} />
+        <a
+          id="author-photo"
+          class="ytcq-lite-author-photo ytcq-profile-enabled"
+          href={channelUrl}
+          title={t('showRecentMessages')}
+        />
       )
-    : el<HTMLSpanElement>(<span id="author-photo" class="ytcq-lite-author-photo" />);
+    : el<HTMLSpanElement>(
+        <span
+          id="author-photo"
+          class="ytcq-lite-author-photo ytcq-profile-enabled"
+          title={t('showRecentMessages')}
+        />
+      );
   const avatarUrl = getSafeHttpsUrl(author?.avatarUrl);
   if (avatarUrl) {
     const image = el<HTMLImageElement>(
@@ -946,12 +957,12 @@ function createAuthorName(author: YouTubeChatAuthor | undefined): HTMLElement {
   const name = author.name;
   const element = channelUrl
     ? el<HTMLAnchorElement>(
-        <a id="author-name" class={className} href={channelUrl}>
+        <a id="author-name" class={className} href={channelUrl} title={t('mentionUserTitle')}>
           {name}
         </a>
       )
     : el<HTMLButtonElement>(
-        <button id="author-name" type="button" class={className}>
+        <button id="author-name" type="button" class={className} title={t('mentionUserTitle')}>
           {name}
         </button>
       );

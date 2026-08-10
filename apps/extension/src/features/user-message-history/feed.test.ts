@@ -162,6 +162,24 @@ describe('feed-backed user message history', () => {
     })?.messageRef?.deref()).toBe(unknownMessage);
   });
 
+  it('binds a Lite row by parsed record ID without querying or requesting it again', async () => {
+    const history = await initHistory();
+    const feedRecord = createRecord('lite-message-1', '@LiteViewer', 'feed text');
+    dispatchActions([upsert(feedRecord)]);
+    const message = document.createElement('article');
+    message.className = 'ytcq-lite-message';
+    const querySelector = vi.spyOn(message, 'querySelector');
+
+    history.recordUserMessage(message, { record: feedRecord });
+
+    expect(history.getLatestMessageForIdentity({
+      authorName: '@LiteViewer',
+      channelId: 'feed-channel'
+    })?.messageRef?.deref()).toBe(message);
+    expect(querySelector).not.toHaveBeenCalled();
+    expect(feedMocks.requestRenderedRecord).not.toHaveBeenCalled();
+  });
+
   it('binds a DOM row when its feed record arrives afterward', async () => {
     let resolveRecord: (record: YouTubeChatMessageRecord | null) => void = () => undefined;
     const requestedRecord = new Promise<YouTubeChatMessageRecord | null>((resolve) => {

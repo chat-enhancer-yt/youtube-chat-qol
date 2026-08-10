@@ -6,7 +6,11 @@ const channelPopupMocks = vi.hoisted(() => ({
 
 vi.mock('../channel-popup', () => channelPopupMocks);
 
-import { createAvatarElement, createProfileAvatarButton } from './elements';
+import {
+  createAvatarElement,
+  createProfileAvatarButton,
+  createProfileChannelButton
+} from './elements';
 
 describe('profile popup element helpers', () => {
   beforeEach(() => {
@@ -33,6 +37,17 @@ describe('profile popup element helpers', () => {
     expect(button.getAttribute('aria-label')).toBe('Open channel');
     expect(button.contains(avatar)).toBe(true);
     expect(button.querySelector('.ytcq-profile-card-avatar-open-icon')).not.toBeNull();
+
+    button.click();
+    expect(channelPopupMocks.openChannelWindow).toHaveBeenCalledWith('https://www.youtube.com/@viewer');
+  });
+
+  it('creates the shared profile header channel action', () => {
+    const button = createProfileChannelButton('https://www.youtube.com/@viewer');
+
+    expect(button.className).toBe('ytcq-profile-card-header-button ytcq-profile-card-channel');
+    expect(button.title).toBe('Open channel');
+    expect(button.getAttribute('aria-label')).toBe('Open channel');
 
     button.click();
     expect(channelPopupMocks.openChannelWindow).toHaveBeenCalledWith('https://www.youtube.com/@viewer');

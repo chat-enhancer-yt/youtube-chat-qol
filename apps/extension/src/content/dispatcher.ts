@@ -14,6 +14,7 @@
 import type { Options } from '../shared/options';
 import { isExtensionManagedElement } from '../shared/managed-dom';
 import { clearToast } from '../shared/toast';
+import type { YouTubeChatMessageRecord } from '../youtube/chat-feed/protocol';
 
 type LifecycleCallback = () => void;
 type InitCallback = (context: FeatureInitContext) => void;
@@ -33,6 +34,9 @@ export interface FeatureInitContext {
 }
 
 export interface FeatureMessageContext {
+  /** Parsed data for extension-rendered Lite rows. Native YouTube rows use the DOM fallback. */
+  record?: YouTubeChatMessageRecord;
+
   /** `existing` for scans, `added` for insertion, or `changed` for later DOM updates. */
   source: FeatureMessageSource;
 }

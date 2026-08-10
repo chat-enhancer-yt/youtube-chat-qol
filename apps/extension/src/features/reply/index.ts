@@ -11,20 +11,29 @@ import { cleanText } from '../../shared/text';
 import { showToast } from '../../shared/toast';
 import { getMessageContentNodes, getMessageDetails } from '../../youtube/messages';
 import { showFocusPromptForAuthor, showFocusPromptForMessage } from '../focus-mode';
-import { registerFeature } from '../../content/dispatcher';
+import { registerFeature, type FeatureMessageContext } from '../../content/dispatcher';
 import { formatMentionText, formatQuoteText } from './format';
 import { insertMentionText, replaceInputWithQuoteNodes, replaceInputWithQuoteText } from './input';
 import { createQuoteContentNodes } from './quote-content';
 import type { ReplyInsertOptions, RichQuoteContent } from './types';
 
 let replyWiringListeners = new AbortController();
+let liteReplyRoots = new WeakSet<HTMLElement>();
 
 registerFeature({
   page: { cleanup: cleanupStaleReplyWiring },
   message: wireAuthorNameMention
 });
 
-export function wireAuthorNameMention(message: HTMLElement): void {
+export function wireAuthorNameMention(
+  message: HTMLElement,
+  { record }: Pick<FeatureMessageContext, 'record'> = {}
+): void {
+  if (record) {
+    wireLiteReplyRoot(message);
+    return;
+  }
+
   if (message.dataset.ytcqAuthorMentionWired === 'true') return;
   message.dataset.ytcqAuthorMentionWired = 'true';
 
@@ -46,9 +55,36 @@ export function wireAuthorNameMention(message: HTMLElement): void {
   });
 }
 
+function wireLiteReplyRoot(message: HTMLElement): void {
+  const root = message.closest<HTMLElement>('.ytcq-lite-root');
+  if (!root || liteReplyRoots.has(root)) return;
+
+  liteReplyRoots.add(root);
+  root.addEventListener('click', handleLiteAuthorClick, {
+    capture: true,
+    signal: replyWiringListeners.signal
+  });
+}
+
+function handleLiteAuthorClick(event: MouseEvent): void {
+  if (event.defaultPrevented || event.button !== 0) return;
+  const root = event.currentTarget instanceof HTMLElement ? event.currentTarget : null;
+  const authorName = event.target instanceof Element
+    ? event.target.closest<HTMLElement>('[id="author-name"]')
+    : null;
+  const message = authorName?.closest<HTMLElement>('.ytcq-lite-message') || null;
+  if (!root || !authorName || !message || message.closest('.ytcq-lite-root') !== root) return;
+
+  event.preventDefault();
+  event.stopPropagation();
+  event.stopImmediatePropagation();
+  replyToMessage(message, { quote: event.altKey });
+}
+
 export function cleanupStaleReplyWiring(): void {
   replyWiringListeners.abort();
   replyWiringListeners = new AbortController();
+  liteReplyRoots = new WeakSet();
   document.querySelectorAll('[data-ytcq-author-mention-wired]').forEach((element) => {
     const authorName = element.querySelector<HTMLElement>('#author-name');
     if (authorName?.title === t('mentionUserTitle')) {

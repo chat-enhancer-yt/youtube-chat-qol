@@ -40,7 +40,12 @@ describe('Lite chat renderer', () => {
       height: 24,
       width: 24
     });
-    expect(row.querySelector('#author-name')?.textContent).toBe('@Example');
+    const authorPhoto = row.querySelector<HTMLElement>('#author-photo')!;
+    const authorName = row.querySelector<HTMLElement>('#author-name')!;
+    expect(authorPhoto.classList).toContain('ytcq-profile-enabled');
+    expect(authorPhoto.title).toBe('Show recent messages');
+    expect(authorName.textContent).toBe('@Example');
+    expect(authorName.title).toBe('Mention user. Alt/Option-click to quote.');
     expect(row.querySelector('#message-container #message')).not.toBeNull();
     expect(row.querySelector<HTMLAnchorElement>('#message a')?.href).toBe(
       'https://example.com/path'

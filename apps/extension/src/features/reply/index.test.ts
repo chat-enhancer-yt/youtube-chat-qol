@@ -61,6 +61,35 @@ describe('reply feature entry points', () => {
     expect(focusMocks.showFocusPromptForMessage).toHaveBeenCalledTimes(2);
   });
 
+  it('delegates Lite author clicks once per renderer root', () => {
+    const root = document.createElement('section');
+    root.className = 'ytcq-lite-root';
+    const first = createMessage('@ViewerOne', 'first message');
+    const second = createMessage('@ViewerTwo', 'second message');
+    first.className = 'ytcq-lite-message';
+    second.className = 'ytcq-lite-message';
+    root.append(first, second);
+    document.body.append(root);
+    const addEventListener = vi.spyOn(root, 'addEventListener');
+
+    wireAuthorNameMention(first, { record: createMessageRecord('lite-message-1') });
+    wireAuthorNameMention(second, { record: createMessageRecord('lite-message-2') });
+    first.querySelector<HTMLElement>('[id="author-name"]')!.click();
+    second.querySelector<HTMLElement>('[id="author-name"]')!.dispatchEvent(
+      new MouseEvent('click', {
+        altKey: true,
+        bubbles: true,
+        button: 0
+      })
+    );
+
+    expect(inputMocks.insertMentionText).toHaveBeenCalledWith('@ViewerOne ');
+    expect(inputMocks.replaceInputWithQuoteNodes).toHaveBeenCalledOnce();
+    expect(addEventListener).toHaveBeenCalledOnce();
+    expect(first.dataset.ytcqAuthorMentionWired).toBeUndefined();
+    expect(second.dataset.ytcqAuthorMentionWired).toBeUndefined();
+  });
+
   it('does not handle prevented, non-primary, or missing author clicks', () => {
     const message = createMessage('@ViewerOne', 'ignored message');
     document.body.append(message);
@@ -167,4 +196,13 @@ function createMessage(authorName: string, text: string): HTMLElement {
     <span id="message">${text}</span>
   `;
   return message;
+}
+
+function createMessageRecord(id: string) {
+  return {
+    id,
+    kind: 'text' as const,
+    plainText: 'hello chat',
+    runs: []
+  };
 }

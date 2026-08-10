@@ -1,5 +1,5 @@
 /** Browser-local chat message bookmarks. */
-import { registerFeature } from '../../content/dispatcher';
+import { registerFeature, type FeatureMessageContext } from '../../content/dispatcher';
 import {
   BOOKMARK_FILLED_ICON_PATH,
   BOOKMARK_ICON_PATH,
@@ -147,8 +147,16 @@ export function cleanupBookmarks(): void {
   chrome.storage.onChanged.removeListener(handleBookmarksStorageChange);
 }
 
-function handleBookmarkTargetMessage(message: HTMLElement): void {
-  if (!pendingTargetMessageId || getMessageStableId(message) !== pendingTargetMessageId) return;
+function handleBookmarkTargetMessage(
+  message: HTMLElement,
+  { record }: Pick<FeatureMessageContext, 'record'> = {}
+): void {
+  if (
+    !pendingTargetMessageId ||
+    (record?.id || getMessageStableId(message)) !== pendingTargetMessageId
+  ) {
+    return;
+  }
 
   const messageId = pendingTargetMessageId;
   if (message.classList.contains('ytcq-lite-message')) {

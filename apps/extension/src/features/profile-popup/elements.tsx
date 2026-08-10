@@ -4,7 +4,7 @@
  * Builds avatar and channel-link controls shared by the recent-messages card
  * without mixing SVG details into the card renderer.
  */
-import { createOpenInNewIcon } from '../../shared/icons';
+import { createChannelIcon, createOpenInNewIcon } from '../../shared/icons';
 import { t } from '../../shared/i18n';
 import { jsx, el } from '../../shared/jsx-dom';
 import { openChannelWindow } from '../channel-popup';
@@ -36,6 +36,24 @@ export function createProfileAvatarButton(
     </button>
   );
   return button;
+}
+
+export function createProfileChannelButton(profileUrl: string): HTMLButtonElement {
+  return el<HTMLButtonElement>(
+    <button
+      type="button"
+      class="ytcq-profile-card-header-button ytcq-profile-card-channel"
+      title={t('openChannel')}
+      aria-label={t('openChannel')}
+      onClick={(event: MouseEvent) => {
+        event.preventDefault();
+        event.stopPropagation();
+        openChannelWindow(profileUrl);
+      }}
+    >
+      {createChannelIcon()}
+    </button>
+  );
 }
 
 function createProfileOpenInNewIcon(): SVGSVGElement {

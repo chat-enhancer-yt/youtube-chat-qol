@@ -151,15 +151,18 @@ export function initInbox(): void {
 
 function handleInboxMessage(
   message: HTMLElement,
-  { source }: Pick<FeatureMessageContext, 'source'>
+  { record, source }: FeatureMessageContext
 ): void {
   if (source === 'added' || source === 'changed') {
-    if (!message.isConnected || !getMessageText(message)) return;
-    if (attachLiveInboxMessage(message) && isInboxCardOpen()) {
+    if (!message.isConnected || !(record?.plainText || getMessageText(message))) return;
+    const attached = record
+      ? attachLiveInboxMessage(message, record.id)
+      : attachLiveInboxMessage(message);
+    if (attached && isInboxCardOpen()) {
       scheduleOpenInboxCardRefresh();
     }
   }
-  highlightPotentialInboxKeywords(message);
+  highlightPotentialInboxKeywords(message, record);
 }
 
 function handleInboxMutations({ addedElements, mutations }: {
@@ -178,14 +181,17 @@ function handleInboxMutations({ addedElements, mutations }: {
   if (shouldWireButton) scheduleInboxButtonWire();
 }
 
-function highlightPotentialInboxKeywords(message: HTMLElement): void {
+function highlightPotentialInboxKeywords(
+  message: HTMLElement,
+  record?: YouTubeChatMessageRecord
+): void {
   if (!message.isConnected) return;
   if (!isInboxStateLoaded()) {
-    void loadInboxState().then(() => highlightPotentialInboxKeywords(message));
+    void loadInboxState().then(() => highlightPotentialInboxKeywords(message, record));
     return;
   }
 
-  applyCurrentChatKeywordHighlights(message);
+  applyCurrentChatKeywordHighlights(message, record);
 }
 
 export function scheduleInboxButtonWire(): void {
@@ -436,19 +442,28 @@ function handleInboxMentionCandidatesChanged(candidates: readonly string[]): voi
 
 function refreshVisibleChatKeywordHighlights(): void {
   document.querySelectorAll<HTMLElement>(CHAT_MESSAGE_SELECTOR)
-    .forEach(applyCurrentChatKeywordHighlights);
+    .forEach((message) => applyCurrentChatKeywordHighlights(message));
 }
 
-function applyCurrentChatKeywordHighlights(message: HTMLElement): string[] {
-  const text = getMessageText(message);
-  const authorName = getAuthorName(message);
+function applyCurrentChatKeywordHighlights(
+  message: HTMLElement,
+  record?: YouTubeChatMessageRecord
+): string[] {
+  const keywords = getInboxKeywordsSnapshot();
+  if (!keywords.length && !message.dataset.ytcqInboxKeywordHighlightKey) return [];
+
+  const text = record?.plainText ?? getMessageText(message);
+  const authorName = record?.author?.name ?? getAuthorName(message);
   if (isCurrentUserAuthorName(authorName)) {
     applyChatKeywordHighlights(message, [], '');
     return [];
   }
 
   const keywordValues = [authorName, text];
-  const matchedKeywords = getInboxKeywordsSnapshot().length ? getMatchingKeywords(...keywordValues) : [];
+  const matchedKeywords = keywords.length ? getMatchingKeywords(...keywordValues) : [];
+  if (record && !matchedKeywords.length && !message.dataset.ytcqInboxKeywordHighlightKey) {
+    return [];
+  }
   applyChatKeywordHighlights(message, matchedKeywords, matchedKeywords.length ? getKeywordCheckKeyFromValues(keywordValues) : '');
   return matchedKeywords;
 }

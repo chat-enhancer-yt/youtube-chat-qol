@@ -185,6 +185,42 @@ describe('avatar rings', () => {
     expect(avatar.classList.contains('ytcq-avatar-ring-active')).toBe(true);
   });
 
+  it('uses a Lite row record without re-reading its author or requesting feed data', async () => {
+    const feature = await import('./index');
+    const lifecycle = await import('../../content/dispatcher');
+    feature.initAvatarRings();
+    await flushAsyncWork();
+    await feature.toggleAvatarRing({
+      authorName: '@LiteViewer',
+      channelId: 'lite-viewer-channel'
+    });
+
+    const message = document.createElement('article');
+    message.className = 'ytcq-lite-message';
+    message.innerHTML = '<span id="author-photo"></span>';
+    document.body.append(message);
+
+    lifecycle.handleFeatureMessage(message, {
+      record: {
+        author: {
+          badges: [],
+          channelId: 'lite-viewer-channel',
+          name: '@LiteViewer'
+        },
+        id: 'lite-message-1',
+        kind: 'text',
+        plainText: 'hello',
+        runs: []
+      },
+      source: 'added'
+    });
+
+    const avatar = message.querySelector<HTMLElement>('#author-photo')!;
+    expect(avatar.dataset.ytcqAvatarRingKey).toBe('channel:lite-viewer-channel');
+    expect(avatar.classList.contains('ytcq-avatar-ring-active')).toBe(true);
+    expect(chatFeedRecordMocks.requestRenderedYouTubeChatFeedRecord).not.toHaveBeenCalled();
+  });
+
   it('reacts only to local ring storage changes and removes its listener and DOM state', async () => {
     const feature = await import('./index');
     feature.initAvatarRings();

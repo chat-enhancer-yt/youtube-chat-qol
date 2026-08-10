@@ -203,6 +203,28 @@ describe('profile popup coordinator', () => {
     });
   });
 
+  it('delegates Lite avatar clicks once per renderer root', () => {
+    const root = document.createElement('section');
+    root.className = 'ytcq-lite-root';
+    const first = createMessage();
+    const second = createMessage();
+    first.className = 'ytcq-lite-message';
+    second.className = 'ytcq-lite-message';
+    root.append(first, second);
+    document.body.append(root);
+    const addEventListener = vi.spyOn(root, 'addEventListener');
+
+    wireProfileClick(first, { record: createMessageRecord('lite-message-1') });
+    wireProfileClick(second, { record: createMessageRecord('lite-message-2') });
+    first.querySelector<HTMLElement>('[id="author-photo"]')!.click();
+    second.querySelector<HTMLElement>('[id="author-photo"]')!.click();
+
+    expect(sourceMocks.getMessageProfileSource).toHaveBeenCalledTimes(2);
+    expect(addEventListener).toHaveBeenCalledOnce();
+    expect(first.dataset.ytcqProfileWired).toBeUndefined();
+    expect(second.dataset.ytcqProfileWired).toBeUndefined();
+  });
+
   it('opens the author channel from the header channel button', () => {
     const message = createMessage();
     document.body.append(message);
@@ -875,6 +897,15 @@ function source(overrides: Record<string, unknown> = {}) {
     },
     profileUrl: 'https://www.youtube.com/@ViewerOne',
     ...overrides
+  };
+}
+
+function createMessageRecord(id: string) {
+  return {
+    id,
+    kind: 'text' as const,
+    plainText: 'hello chat',
+    runs: []
   };
 }
 

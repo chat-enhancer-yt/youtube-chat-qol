@@ -32,18 +32,38 @@ function handleTranslationOptionsChanged(previousOptions: Options, nextOptions: 
 
 function handleTranslationMessage(
   message: HTMLElement,
-  { source }: Pick<FeatureMessageContext, 'source'>
+  { record, source }: FeatureMessageContext
 ): void {
   if (!getOptions().targetLanguage) return;
+  const originalText = getRecordMessageText(record);
   if (source === 'existing' && message.classList.contains('ytcq-lite-message')) {
     // Lite mode replaces the native history with fresh elements. Backfill only
     // those rows so cached native translations carry across immediately while
     // untranslated history continues through the normal bounded queue.
-    queueMessageTranslation(message, { backfill: true });
+    queueMessageTranslation(
+      message,
+      originalText ? { backfill: true, originalText } : { backfill: true }
+    );
     return;
   }
   if (source !== 'added' && source !== 'changed') return;
   if (source === 'changed' && message.dataset.ytcqTranslationKey) return;
 
-  queueMessageTranslation(message);
+  if (originalText) {
+    queueMessageTranslation(message, { originalText });
+  } else {
+    queueMessageTranslation(message);
+  }
+}
+
+function getRecordMessageText(record: FeatureMessageContext['record']): string {
+  if (!record?.plainText || record.kind === 'sticker') return '';
+  if (
+    record.kind === 'membership' &&
+    (!record.membership || record.plainText === record.membership.headerText)
+  ) {
+    return '';
+  }
+
+  return record.plainText;
 }

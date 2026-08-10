@@ -194,6 +194,23 @@
   gap: 8px;
 }
 
+.ytcq-focus-header-actions {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 6px;
+}
+
+.ytcq-focus-header-actions .ytcq-profile-card-header-button {
+  width: 24px;
+  height: 24px;
+}
+
+.ytcq-focus-header-actions .ytcq-focus-ring-toggle svg {
+  width: 17px;
+  height: 17px;
+}
+
 .ytcq-focus-messages {
   display: flex;
   flex: 1 1 auto;
@@ -244,17 +261,17 @@
 .ytcq-focus-message .ytcq-message-row-action {
   width: 20px;
   height: 20px;
-  opacity: 0.42;
-  pointer-events: auto;
+  opacity: 0;
+  pointer-events: none;
   transition:
     color 120ms ease,
     opacity 120ms ease;
 }
 
 .ytcq-focus-message:hover .ytcq-message-row-action,
-.ytcq-focus-message:focus-within .ytcq-message-row-action,
-.ytcq-focus-message .ytcq-bookmark-toggle-active {
+.ytcq-focus-message:focus-within .ytcq-message-row-action {
   opacity: 1;
+  pointer-events: auto;
 }
 
 .ytcq-focus-message .ytcq-message-row-action svg {
@@ -324,5 +341,12 @@
 @media (prefers-reduced-motion: reduce) {
   .ytcq-focus-card {
     animation: none;
+  }
+}
+
+@media (hover: none) {
+  .ytcq-focus-message .ytcq-message-row-action {
+    opacity: 1;
+    pointer-events: auto;
   }
 }

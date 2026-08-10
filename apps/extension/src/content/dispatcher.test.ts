@@ -20,21 +20,30 @@ describe('content feature dispatcher', () => {
     expect(calls).toEqual(expect.arrayContaining(['first', 'second']));
   });
 
-  it('passes the source context to a message hook', async () => {
+  it('passes the source and optional parsed record to a message hook', async () => {
     vi.resetModules();
     const dispatcher = await import('./dispatcher');
     const message = document.createElement('yt-live-chat-text-message-renderer');
     let receivedSource = '';
+    let receivedRecord: unknown;
+    const record = {
+      id: 'message-1',
+      kind: 'text' as const,
+      plainText: 'hello',
+      runs: []
+    };
 
     dispatcher.registerFeature({
       message: (_message, context) => {
         receivedSource = context.source;
+        receivedRecord = context.record;
       }
     });
 
-    dispatcher.handleFeatureMessage(message, { source: 'changed' });
+    dispatcher.handleFeatureMessage(message, { record, source: 'changed' });
 
     expect(receivedSource).toBe('changed');
+    expect(receivedRecord).toBe(record);
   });
 
   it('continues feature dispatch after a hook fails', async () => {

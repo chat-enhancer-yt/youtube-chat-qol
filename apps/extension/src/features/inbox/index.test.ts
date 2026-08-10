@@ -274,6 +274,41 @@ describe('inbox coordinator', () => {
     expect(highlightMocks.applyChatKeywordHighlights).toHaveBeenCalledWith(touchedMessage, ['alpha'], '@ViewerTouched|hello alpha');
   });
 
+  it('uses parsed Lite record data without querying the row for author or text', () => {
+    inboxTestState.keywords = ['alpha'];
+    inboxTestState.matchingKeywords = ['alpha'];
+    const message = document.createElement('article');
+    message.className = 'ytcq-lite-message';
+    document.body.append(message);
+    const querySelector = vi.spyOn(message, 'querySelector');
+
+    handleFeatureMessage(message, {
+      record: {
+        author: {
+          badges: [],
+          channelId: 'lite-viewer-channel',
+          name: '@LiteViewer'
+        },
+        id: 'lite-message-1',
+        kind: 'text',
+        plainText: 'hello alpha',
+        runs: []
+      },
+      source: 'added'
+    });
+
+    expect(stateMocks.attachLiveInboxMessage).toHaveBeenCalledWith(
+      message,
+      'lite-message-1'
+    );
+    expect(highlightMocks.applyChatKeywordHighlights).toHaveBeenCalledWith(
+      message,
+      ['alpha'],
+      '@LiteViewer|hello alpha'
+    );
+    expect(querySelector).not.toHaveBeenCalled();
+  });
+
   it('coalesces live-message card refreshes into one animation frame', async () => {
     inboxTestState.inboxOpen = true;
     const firstMessage = createMessage('@ViewerOne', 'hello one');
@@ -349,6 +384,7 @@ describe('inbox coordinator', () => {
 
   it('clears rendered keyword highlights when no keywords are configured', () => {
     const message = createMessage('@ViewerTwo', 'hello alpha');
+    message.dataset.ytcqInboxKeywordHighlightKey = 'previous-keywords';
     document.body.append(message);
 
     handleFeatureMessage(message, { source: 'added' });

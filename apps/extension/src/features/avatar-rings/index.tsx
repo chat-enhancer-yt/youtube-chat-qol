@@ -1,5 +1,5 @@
 /** Browser-local avatar rings selected explicitly from recent-message profiles. */
-import { registerFeature } from '../../content/dispatcher';
+import { registerFeature, type FeatureMessageContext } from '../../content/dispatcher';
 import {
   AVATAR_RINGS_STORAGE_KEY,
   getAvatarRingColor,
@@ -194,12 +194,22 @@ function getAvatarRingIdentityFromParticipant(participant: HTMLElement): AvatarR
   };
 }
 
-function renderMessageAvatarRing(message: HTMLElement): void {
-  const identity = getAvatarRingIdentityFromMessage(message);
+function renderMessageAvatarRing(
+  message: HTMLElement,
+  { record }: Pick<FeatureMessageContext, 'record'> = {}
+): void {
+  const identity = record?.author?.name
+    ? {
+        authorName: record.author.name,
+        channelId: record.author.channelId
+      }
+    : getAvatarRingIdentityFromMessage(message);
   const avatar = message.querySelector<HTMLElement>('#author-photo');
   if (!identity || !avatar) return;
 
   applyAvatarRing(avatar, identity);
+  if (record) return;
+
   const messageId = getMessageStableId(message);
   if (!messageId) return;
   void requestRenderedYouTubeChatFeedRecord(message).then((record) => {
