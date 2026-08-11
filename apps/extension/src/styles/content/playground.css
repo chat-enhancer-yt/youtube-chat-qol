@@ -6,7 +6,7 @@
 }
 
 .ytcq-games-card {
-  z-index: 2147483646;
+  z-index: var(--ytcq-layer-popover);
 }
 
 .ytcq-games-card-icon {
@@ -655,11 +655,11 @@
 
 .ytcq-chess-game-panel {
   position: fixed;
-  right: 12px;
-  bottom: 12px;
-  z-index: 2147483645;
+  right: 0;
+  bottom: 0;
+  z-index: var(--ytcq-layer-panel-raised);
   display: grid;
-  width: min(244px, calc(100vw - 24px));
+  width: min(244px, 100vw);
   overflow: hidden;
   border: 1px solid var(--ytcq-control-border);
   border-radius: 8px;
@@ -672,11 +672,11 @@
 
 .ytcq-replay-trivia-game-panel {
   position: fixed;
-  right: 12px;
-  bottom: 12px;
-  z-index: 2147483645;
+  right: 0;
+  bottom: 0;
+  z-index: var(--ytcq-layer-panel-raised);
   display: grid;
-  width: min(351px, calc(100vw - 24px));
+  width: min(351px, 100vw);
   overflow: hidden;
   border: 1px solid var(--ytcq-control-border);
   border-radius: 8px;
@@ -689,11 +689,11 @@
 
 .ytcq-bounty-hunting-game-panel {
   position: fixed;
-  right: 12px;
-  bottom: 12px;
-  z-index: 2147483645;
+  right: 0;
+  bottom: 0;
+  z-index: var(--ytcq-layer-panel-raised);
   display: grid;
-  width: min(351px, calc(100vw - 24px));
+  width: min(351px, 100vw);
   overflow: hidden;
   border: 1px solid var(--ytcq-control-border);
   border-radius: 8px;
@@ -712,7 +712,7 @@
 .ytcq-game-overlay {
   position: absolute;
   inset: 0;
-  z-index: 2147483644;
+  z-index: var(--ytcq-layer-panel);
   overflow: hidden;
   background: rgba(0, 0, 0, 0.74);
   color: #fff;

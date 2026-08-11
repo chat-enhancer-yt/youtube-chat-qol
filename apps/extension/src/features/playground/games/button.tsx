@@ -148,34 +148,35 @@ function getGamesAriaLabel(state: GamesButtonBadgeState): string {
 }
 
 export function positionGamesCard(card: HTMLElement, anchor?: HTMLElement): void {
-  const margin = 8;
+  const anchorGap = 8;
   const cardRect = card.getBoundingClientRect();
   const width = cardRect.width;
   const height = cardRect.height;
-  const anchorRect = anchor?.isConnected
-    ? anchor.getBoundingClientRect()
+  const connectedAnchor = anchor?.isConnected ? anchor : null;
+  const anchorRect = connectedAnchor
+    ? connectedAnchor.getBoundingClientRect()
     : {
-        left: window.innerWidth - margin,
-        right: window.innerWidth - margin,
-        top: margin,
-        bottom: margin
+        left: window.innerWidth,
+        right: window.innerWidth,
+        top: 0,
+        bottom: 0
       };
 
   let left = anchorRect.right - width;
-  if (left < margin) {
+  if (left < 0) {
     left = anchorRect.left;
   }
-  if (left + width + margin > window.innerWidth) {
-    left = window.innerWidth - width - margin;
+  if (left + width > window.innerWidth) {
+    left = window.innerWidth - width;
   }
 
-  let top = anchorRect.bottom + margin;
-  if (top + height + margin > window.innerHeight) {
-    top = anchorRect.top - height - margin;
+  let top = connectedAnchor ? anchorRect.bottom + anchorGap : 0;
+  if (top + height > window.innerHeight) {
+    top = connectedAnchor ? anchorRect.top - height - anchorGap : 0;
   }
 
-  card.style.left = `${Math.max(margin, Math.round(left))}px`;
-  card.style.top = `${Math.max(margin, Math.round(top))}px`;
+  card.style.left = `${Math.max(0, Math.round(left))}px`;
+  card.style.top = `${Math.max(0, Math.round(top))}px`;
 }
 
 function getDirectHeaderChild(

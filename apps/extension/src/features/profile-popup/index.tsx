@@ -7,6 +7,7 @@
  */
 import { t } from '../../shared/i18n';
 import { wireFloatingPanelDrag } from '../../shared/floating-panel-drag';
+import { wireFloatingPanelResize } from '../../shared/floating-panel-resize';
 import { createCloseIcon } from '../../shared/icons';
 import { jsx, el } from '../../shared/jsx-dom';
 import { updateScrollEdgeFades, wireScrollEdgeFades } from '../../shared/scroll';
@@ -71,7 +72,8 @@ const profileCardKeys = new WeakMap<HTMLElement, string>();
 const profileCardOriginMessageIds = new WeakMap<HTMLElement, string>();
 const stickyProfileCards = new WeakSet<HTMLElement>();
 const PROFILE_HISTORY_EDGE_TOLERANCE_PX = 12;
-let nextProfileCardZIndex = 10_000;
+const PROFILE_PANEL_MIN_HEIGHT_PX = 140;
+const PROFILE_PANEL_MAX_WIDTH_PX = 520;
 let profileWiringListeners = new AbortController();
 let liteProfileRoots = new WeakSet<HTMLElement>();
 let profileMentionListenersWired = false;
@@ -378,6 +380,7 @@ function showProfileCard(source: ProfileSource, anchor: HTMLElement): void {
             : 'ytcq-profile-card-header'
         }
       >
+        <span class="ytcq-panel-drag-grip" aria-hidden="true" />
         {avatarSurface}
         <div class="ytcq-profile-card-title-wrap">{title}</div>
         {createAvatarRingToggleButton({
@@ -431,6 +434,16 @@ function showProfileCard(source: ProfileSource, anchor: HTMLElement): void {
     handle: header,
     onDragMove: () => stickyProfileCards.add(card),
     onDragStart: () => bringProfileCardToFront(card),
+    panel: card,
+    signal: cardListeners.signal
+  });
+  wireFloatingPanelResize({
+    axis: 'both',
+    maxWidth: PROFILE_PANEL_MAX_WIDTH_PX,
+    minHeight: PROFILE_PANEL_MIN_HEIGHT_PX,
+    minWidth: 'initial',
+    onResize: () => keepProfileCardInViewport(card),
+    onResizeStart: () => bringProfileCardToFront(card),
     panel: card,
     signal: cardListeners.signal
   });
@@ -619,7 +632,9 @@ function isProfileCardOpen(card: HTMLElement): boolean {
 }
 
 function bringProfileCardToFront(card: HTMLElement): void {
-  card.style.zIndex = String(++nextProfileCardZIndex);
+  profileCards.forEach((profileCard) => {
+    profileCard.classList.toggle('ytcq-profile-card-front', profileCard === card);
+  });
 }
 
 type ProfileScrollIntent =

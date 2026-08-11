@@ -3,14 +3,14 @@
  */
 .ytcq-focus-anchor {
   position: relative;
-  z-index: 10001;
+  z-index: var(--ytcq-layer-panel-raised);
   height: 0;
   pointer-events: none;
 }
 
 .ytcq-focus-card {
   position: absolute;
-  z-index: 10001;
+  z-index: var(--ytcq-layer-panel-raised);
   bottom: 8px;
   left: 12px;
   right: 12px;

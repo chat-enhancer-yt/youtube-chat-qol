@@ -1375,7 +1375,7 @@
 :root[data-ytcq-chat-skin="aero"]
   .ytcq-profile-card:not(.ytcq-inbox-card):not(.ytcq-games-card)::before {
   position: absolute;
-  inset: -1px;
+  inset: 0;
   z-index: 0;
   border-radius: inherit;
   corner-shape: inherit;

@@ -94,7 +94,7 @@ function prepareAnimationGhost(ghost: HTMLElement, rect: DOMRect): void {
     transformOrigin: 'center center',
     width: `${rect.width}px`,
     willChange: 'transform, opacity',
-    zIndex: '2147483647'
+    zIndex: 'var(--ytcq-layer-popover)'
   });
 }
 

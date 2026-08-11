@@ -1,5 +1,6 @@
 import {
   inboxDirectMentionScenario,
+  inboxGripDragScenario,
   inboxKeywordOverlapPreservesProfileMentionScenario,
   inboxOpensFromHeaderScenario,
   inboxRecordCreationAndJumpScenario,
@@ -31,6 +32,12 @@ export const inboxScenarios: readonly YouTubeScenario[] = [
     title: 'Inbox opens from the chat header',
     run: inboxOpensFromHeaderScenario,
     on: [...pair.liveLoggedIn, ...pair.liveLoggedOut, ...pair.replayLoggedIn]
+  },
+  {
+    title: 'Inbox drags directly from its visible grip',
+    run: inboxGripDragScenario,
+    on: [target.mockLiveLoggedOut],
+    reason: 'Requires deterministic pointer geometry.'
   },
   {
     title: 'Inbox saves replay feed matches and jumps back to chat',

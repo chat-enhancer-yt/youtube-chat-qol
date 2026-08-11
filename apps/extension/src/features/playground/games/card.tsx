@@ -7,6 +7,10 @@
 import { createCloseIcon, createGamesIcon } from '../../../shared/icons';
 import { t } from '../../../shared/i18n';
 import { jsx, el } from '../../../shared/jsx-dom';
+import {
+  clampFloatingPanelToViewport,
+  wireFloatingPanelDrag
+} from '../../../shared/floating-panel-drag';
 import { positionGamesCard } from './button';
 
 export interface GamesCardElements {
@@ -25,6 +29,7 @@ export function createGamesCard(onClose: () => void): GamesCardElements {
   const card = el<HTMLElement>(
     <section class="ytcq-profile-card ytcq-games-card" role="dialog" aria-label={t('games')}>
       <div class="ytcq-profile-card-header ytcq-games-card-header">
+        <span class="ytcq-panel-drag-grip" aria-hidden="true" />
         <span class="ytcq-games-card-icon">{createGamesIcon()}</span>
         <div class="ytcq-profile-card-title-wrap ytcq-games-title-wrap">
           <div class="ytcq-games-title-row">
@@ -52,10 +57,12 @@ export function installGamesCardListeners({
   getCard,
   onClose
 }: GamesCardListenerOptions): () => void {
+  let persistent = false;
   const handleOutsideClick = (event: MouseEvent): void => {
     if (getCard()?.contains(event.target as Node)) return;
     if ((event.target as Element | null)?.closest?.('.ytcq-games-button')) return;
     if ((event.target as Element | null)?.closest?.('.ytcq-game-panel')) return;
+    if (persistent) return;
     onClose();
   };
   const handleKeydown = (event: KeyboardEvent): void => {
@@ -64,9 +71,26 @@ export function installGamesCardListeners({
   const handleResize = (): void => {
     const card = getCard();
     if (!card) return;
-    positionGamesCard(card, getAnchor() || undefined);
+    if (persistent) {
+      clampFloatingPanelToViewport(card);
+    } else {
+      positionGamesCard(card, getAnchor() || undefined);
+    }
   };
   const cardListeners = new AbortController();
+  const card = getCard();
+  const header = card?.querySelector<HTMLElement>('.ytcq-games-card-header');
+  if (card && header) {
+    wireFloatingPanelDrag({
+      draggingClassName: 'ytcq-games-card-dragging',
+      handle: header,
+      onDragMove: () => {
+        persistent = true;
+      },
+      panel: card,
+      signal: cardListeners.signal
+    });
+  }
 
   window.setTimeout(() => {
     const options = { capture: true, signal: cardListeners.signal };

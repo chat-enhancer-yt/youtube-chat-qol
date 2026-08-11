@@ -30,6 +30,57 @@ import {
 } from './interactions';
 import { readButtonTreatment } from './visuals';
 
+export const playgroundLobbyGripDragScenario: BrowserScenario = async ({
+  chat,
+  context,
+  page
+}) => {
+  const backend = await installMockPlaygroundBackend(context, {
+    snapshot: createMockPlaygroundSnapshot()
+  });
+
+  await withExtensionStorageValues(context, 'sync', PLAYGROUND_ENABLED_OPTIONS, async () => {
+    const card = await openGamesCard(chat, backend);
+    await expect(card.locator('.ytcq-panel-resize-handle')).toHaveCount(0);
+    await card.evaluate((panel) => {
+      Object.assign((panel as HTMLElement).style, {
+        bottom: 'auto',
+        left: '20px',
+        right: 'auto',
+        top: '20px',
+        transform: ''
+      });
+    });
+
+    const grip = card.locator('.ytcq-panel-drag-grip');
+    expect(await grip.evaluate((element) => {
+      const rect = element.getBoundingClientRect();
+      return document.elementFromPoint(
+        rect.left + rect.width / 2,
+        rect.top + rect.height / 2
+      ) === element;
+    })).toBe(true);
+    const gripBox = await grip.boundingBox();
+    if (!gripBox) throw new Error('Games lobby drag grip is not visible.');
+    await page.mouse.move(gripBox.x + gripBox.width / 2, gripBox.y + gripBox.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(
+      gripBox.x + gripBox.width / 2 + 30,
+      gripBox.y + gripBox.height / 2 + 20
+    );
+    await page.mouse.up();
+
+    const position = await card.evaluate((panel) => {
+      const rect = panel.getBoundingClientRect();
+      return { left: rect.left, top: rect.top };
+    });
+    expect(position.left).toBeCloseTo(50, 0);
+    expect(position.top).toBeCloseTo(40, 0);
+    await card.locator('.ytcq-profile-card-close').click();
+    await expect(card).toHaveCount(0);
+  });
+};
+
 export const playgroundRestoreStateWithInvitesOffScenario: BrowserScenario = async ({ chat, context }) => {
   const snapshot = createMockPlaygroundSnapshot({
     games: [createBrowserChessGame({ gameId: 'restored-chess-game' })],

@@ -71,7 +71,7 @@ yt-emoji-picker-renderer .ytcq-frequent-emoji-button img,
 
 .ytcq-quick-emoji-popover {
   position: fixed;
-  z-index: 10002;
+  z-index: var(--ytcq-layer-popover);
   display: grid;
   grid-template-columns: repeat(var(--ytcq-quick-emoji-columns, 10), 28px);
   direction: ltr;

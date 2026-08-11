@@ -12,10 +12,15 @@ import {
   mentionMenuDraftScenario,
   quoteMenuDraftScenario
 } from '../../scenarios/message-actions';
-import { messageMenuScenario, settingsMenuScenario } from '../../scenarios/menus';
+import {
+  messageMenuScenario,
+  nativeMenuStacksAboveExtensionPanelScenario,
+  settingsMenuScenario
+} from '../../scenarios/menus';
 import { settingsMenuBehaviorScenario } from '../../scenarios/settings';
 import {
   youtubeScenarioPairs as pair,
+  youtubeScenarioTargets as target,
   type YouTubeScenario
 } from './model';
 
@@ -40,6 +45,12 @@ export const chatScenarios: readonly YouTubeScenario[] = [
     title: 'chat settings menu toggles persist options',
     run: settingsMenuBehaviorScenario,
     on: [...pair.liveLoggedIn, ...pair.liveLoggedOut]
+  },
+  {
+    title: 'native YouTube menus appear above extension panels',
+    run: nativeMenuStacksAboveExtensionPanelScenario,
+    on: [target.mockLiveLoggedOut],
+    reason: 'Requires deterministic overlapping panel and menu geometry.'
   },
   {
     title: 'message context menu receives save, quote, and mention actions',

@@ -63,6 +63,7 @@ describe('game minimize animation', () => {
     expect(ghost?.style.top).toBe('200px');
     expect(ghost?.style.width).toBe('300px');
     expect(ghost?.style.height).toBe('200px');
+    expect(ghost?.style.zIndex).toBe('var(--ytcq-layer-popover)');
     expect(surface.isConnected).toBe(true);
 
     const [keyframes, options] = animate.mock.calls[0] as unknown as [

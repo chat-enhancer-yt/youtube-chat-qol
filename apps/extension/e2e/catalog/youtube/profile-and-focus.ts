@@ -9,7 +9,8 @@ import {
 import {
   profileCardHistoryPagingScenario,
   profileCardReceivesNewMessagesScenario,
-  profileCardRecentMessagesScenario
+  profileCardRecentMessagesScenario,
+  profileCardResizeScenario
 } from '../../scenarios/profile/card';
 import { profileMentionOpensRecentMessagesScenario } from '../../scenarios/profile/mentions';
 import {
@@ -44,6 +45,12 @@ export const profileAndFocusScenarios: readonly YouTubeScenario[] = [
     title: 'profile history pages through injected incoming messages',
     run: profileCardHistoryPagingScenario,
     on: pair.liveLoggedOut
+  },
+  {
+    title: 'profile panels resize without stretching sparse message rows',
+    run: profileCardResizeScenario,
+    on: [target.mockLiveLoggedOut],
+    reason: 'Requires deterministic incoming messages and pointer geometry.'
   },
   {
     title: 'inline profile mentions open injected author history',

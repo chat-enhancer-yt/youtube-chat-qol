@@ -3,6 +3,10 @@
  * and rounded surface defaults.
  */
 :root {
+  /* Keep extension-owned surfaces below YouTube's native popup layer. */
+  --ytcq-layer-panel: 800;
+  --ytcq-layer-panel-raised: 801;
+  --ytcq-layer-popover: 802;
   --ytcq-chat-header-icon-hover-background: rgba(0, 0, 0, 0.2);
   --ytcq-hover-background: var(--yt-spec-touch-response, var(--yt-spec-10-percent-layer, rgba(128, 128, 128, 0.16)));
   --ytcq-hover-background-strong: var(--yt-spec-10-percent-layer, rgba(128, 128, 128, 0.22));

@@ -166,12 +166,13 @@ describe('playground games header button', () => {
     Object.defineProperty(window, 'innerHeight', { configurable: true, value: 220 });
 
     positionGamesCard(card, anchor);
-    expect(card.style.left).toBe('8px');
+    expect(card.style.left).toBe('4px');
     expect(card.style.top).toBe('32px');
 
     anchor.remove();
     positionGamesCard(card, anchor);
-    expect(card.style.left).toBe('12px');
+    expect(card.style.left).toBe('20px');
+    expect(card.style.top).toBe('0px');
   });
 
   it('reuses this content script button and replaces stale owner buttons', () => {
@@ -1731,6 +1732,48 @@ describe('playground games header button', () => {
     cleanup();
     document.body.dispatchEvent(new MouseEvent('click', { bubbles: true }));
     expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it('keeps a dragged games lobby open without making it resizable', async () => {
+    const onClose = vi.fn();
+    const { card } = createGamesCard(onClose);
+    document.body.append(card);
+    mockRect(card, { height: 180, left: 100, top: 20, width: 300 });
+    Object.defineProperty(window, 'innerHeight', { configurable: true, value: 400 });
+    Object.defineProperty(window, 'innerWidth', { configurable: true, value: 600 });
+    const cleanup = installGamesCardListeners({
+      getAnchor: () => null,
+      getCard: () => card,
+      onClose
+    });
+    await vi.runOnlyPendingTimersAsync();
+
+    const grip = card.querySelector<HTMLElement>('.ytcq-panel-drag-grip')!;
+    grip.dispatchEvent(createPointerEvent('pointerdown', {
+      clientX: 150,
+      clientY: 70,
+      pointerId: 8
+    }));
+    document.dispatchEvent(createPointerEvent('pointermove', {
+      clientX: 250,
+      clientY: 120,
+      pointerId: 8
+    }));
+    document.dispatchEvent(createPointerEvent('pointerup', {
+      clientX: 250,
+      clientY: 120,
+      pointerId: 8
+    }));
+
+    expect(card.style.left).toBe('200px');
+    expect(card.style.top).toBe('70px');
+    expect(card.querySelector('.ytcq-panel-resize-handle')).toBeNull();
+    document.body.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    expect(onClose).not.toHaveBeenCalled();
+
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+    expect(onClose).toHaveBeenCalledOnce();
+    cleanup();
   });
 
   it('cancels pending wiring and removes buttons during cleanup', async () => {

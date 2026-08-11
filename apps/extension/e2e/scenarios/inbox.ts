@@ -28,6 +28,44 @@ export const inboxOpensFromHeaderScenario: BrowserScenario = async ({ chat }) =>
   await closeInboxPanel(chat);
 };
 
+export const inboxGripDragScenario: BrowserScenario = async ({ chat, page }) => {
+  await expectInboxButtonAttached(chat);
+  await openInboxPanel(chat);
+  const card = chat.locator('.ytcq-inbox-card');
+  await expect(card.locator('.ytcq-panel-resize-handle')).toHaveCount(8);
+  await card.evaluate((panel) => {
+    Object.assign((panel as HTMLElement).style, {
+      bottom: 'auto',
+      left: '20px',
+      right: 'auto',
+      top: '20px',
+      transform: ''
+    });
+  });
+
+  const grip = card.locator('.ytcq-panel-drag-grip');
+  expect(await grip.evaluate((element) => {
+    const rect = element.getBoundingClientRect();
+    return [rect.left + 4, rect.left + rect.width / 2, rect.right - 4].every(
+      (x) => document.elementFromPoint(x, rect.bottom - 1) === element
+    );
+  })).toBe(true);
+  const gripBox = await grip.boundingBox();
+  if (!gripBox) throw new Error('Inbox drag grip is not visible.');
+  await page.mouse.move(gripBox.x + gripBox.width / 2, gripBox.y + gripBox.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(gripBox.x + gripBox.width / 2 + 30, gripBox.y + gripBox.height / 2 + 20);
+  await page.mouse.up();
+
+  const position = await card.evaluate((panel) => {
+    const rect = panel.getBoundingClientRect();
+    return { left: rect.left, top: rect.top };
+  });
+  expect(position.left).toBeCloseTo(50, 0);
+  expect(position.top).toBeCloseTo(40, 0);
+  await closeInboxPanel(chat);
+};
+
 export const inboxStaysOpenOnWatchPageClickScenario: BrowserScenario = async ({ chat, page }) => {
   await expectInboxButtonAttached(chat);
   await openInboxPanel(chat);

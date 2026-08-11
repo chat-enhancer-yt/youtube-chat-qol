@@ -41,6 +41,11 @@ describe('game panel shell', () => {
     expect(shell.statusOverlay.element.parentElement).toBe(shell.body);
     expect(shell.statusOverlay.element.className).toContain('ytcq-replay-trivia-status');
     expect(shell.statusOverlay.element.hidden).toBe(true);
+    expect(shell.panel.querySelector('.ytcq-panel-resize-handle')).toBeNull();
+
+    shell.setPosition({ placement: 'top-right' }, { animate: false });
+    expect(shell.panel.style.top).toBe('0px');
+    expect(shell.panel.style.right).toBe('0px');
 
     shell.closeButton.click();
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
@@ -369,8 +374,8 @@ describe('game panel shell', () => {
       clientY: -100,
       pointerId: 7
     }));
-    expect(shell.panel.style.left).toBe('492px');
-    expect(shell.panel.style.top).toBe('8px');
+    expect(shell.panel.style.left).toBe('500px');
+    expect(shell.panel.style.top).toBe('0px');
 
     document.dispatchEvent(createPointerEvent('pointerup', {
       clientX: 2_000,
@@ -385,8 +390,8 @@ describe('game panel shell', () => {
       clientY: 300,
       pointerId: 7
     }));
-    expect(shell.panel.style.left).toBe('492px');
-    expect(shell.panel.style.top).toBe('8px');
+    expect(shell.panel.style.left).toBe('500px');
+    expect(shell.panel.style.top).toBe('0px');
   });
 
   it('ignores drag starts from header buttons and handles narrow viewports', () => {
@@ -436,8 +441,8 @@ describe('game panel shell', () => {
       pointerId: 1
     }));
 
-    expect(shell.panel.style.left).toBe('8px');
-    expect(shell.panel.style.top).toBe('8px');
+    expect(shell.panel.style.left).toBe('0px');
+    expect(shell.panel.style.top).toBe('0px');
   });
 });
 

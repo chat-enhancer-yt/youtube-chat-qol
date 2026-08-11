@@ -223,7 +223,7 @@ export function createGamePanelShell({
 }
 
 function applyGamePanelPosition(panel: HTMLElement, position: GamePanelShellPosition): void {
-  const inset = position.inset ?? 12;
+  const inset = position.inset ?? 0;
   const { placement } = position;
   if (placement === 'cursor') {
     const rect = panel.getBoundingClientRect();

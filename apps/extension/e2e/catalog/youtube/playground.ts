@@ -14,6 +14,7 @@ import {
   playgroundIncomingInviteAcceptScenario,
   playgroundIncomingInviteIgnoreScenario,
   playgroundInviteCancelScenario,
+  playgroundLobbyGripDragScenario,
   playgroundRestoreStateWithInvitesOffScenario,
   playgroundVersionMismatchScenario
 } from '../../scenarios/playground/lobby';
@@ -34,6 +35,12 @@ const mockLive = [target.mockLiveLoggedIn] as const;
 const mockReplay = [target.mockReplayLoggedIn] as const;
 
 export const playgroundScenarios: readonly YouTubeScenario[] = [
+  {
+    title: 'Playground lobby drags directly from its visible grip',
+    run: playgroundLobbyGripDragScenario,
+    on: mockLive,
+    reason
+  },
   {
     title: 'Playground Games invites a chess opponent and sends a move',
     run: playgroundChessInviteAndMoveScenario,

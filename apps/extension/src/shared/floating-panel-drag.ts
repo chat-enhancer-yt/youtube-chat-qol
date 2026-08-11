@@ -13,7 +13,7 @@ interface FloatingPanelDragOptions {
 }
 
 const DEFAULT_IGNORED_SELECTOR = 'button, a, input, textarea, select, [contenteditable]';
-const DEFAULT_MARGIN = 8;
+const DEFAULT_MARGIN = 0;
 
 export function wireFloatingPanelDrag({
   draggingClassName,

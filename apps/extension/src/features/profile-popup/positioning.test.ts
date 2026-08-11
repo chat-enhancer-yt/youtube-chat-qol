@@ -25,7 +25,7 @@ describe('profile card positioning', () => {
     positionProfileCard(card, anchor.getBoundingClientRect());
 
     expect(card.style.left).toBe('122px');
-    expect(card.style.top).toBe('132px');
+    expect(card.style.top).toBe('140px');
   });
 
   it('keeps cards in view after their rendered content changes size', () => {
@@ -34,8 +34,8 @@ describe('profile card positioning', () => {
 
     keepProfileCardInViewport(card);
 
-    expect(card.style.left).toBe('212px');
-    expect(card.style.top).toBe('172px');
+    expect(card.style.left).toBe('220px');
+    expect(card.style.top).toBe('180px');
   });
 
   it('pins cards to the viewport margin when they would move past the top or left edge', () => {
@@ -45,11 +45,11 @@ describe('profile card positioning', () => {
 
     positionProfileCard(card, anchor.getBoundingClientRect());
     expect(card.style.left).toBe('32px');
-    expect(card.style.top).toBe('8px');
+    expect(card.style.top).toBe('0px');
 
     keepProfileCardInViewport(card);
-    expect(card.style.left).toBe('8px');
-    expect(card.style.top).toBe('8px');
+    expect(card.style.left).toBe('0px');
+    expect(card.style.top).toBe('0px');
   });
 });
 

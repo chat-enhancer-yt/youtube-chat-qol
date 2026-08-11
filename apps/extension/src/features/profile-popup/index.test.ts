@@ -522,12 +522,12 @@ describe('profile popup coordinator', () => {
 
     avatar.click();
     const card = document.querySelector<HTMLElement>('.ytcq-profile-card')!;
-    const initialZIndex = Number(card.style.zIndex);
+    expect(card.classList.contains('ytcq-profile-card-front')).toBe(true);
     avatar.click();
 
     expect(document.querySelectorAll('.ytcq-profile-card:not(.ytcq-inbox-card)')).toHaveLength(1);
     expect(document.querySelector('.ytcq-profile-card')).toBe(card);
-    expect(Number(card.style.zIndex)).toBeGreaterThan(initialZIndex);
+    expect(card.classList.contains('ytcq-profile-card-front')).toBe(true);
     expect(positioningMocks.positionProfileCard).toHaveBeenCalledOnce();
 
     expect(
@@ -624,6 +624,14 @@ describe('profile popup coordinator', () => {
       expect.stringContaining('@ViewerOne'),
       expect.stringContaining('@ViewerTwo')
     ]);
+    const secondCard = cards[1] as HTMLElement;
+    expect(firstCard.classList.contains('ytcq-profile-card-front')).toBe(false);
+    expect(secondCard.classList.contains('ytcq-profile-card-front')).toBe(true);
+
+    firstCard.dispatchEvent(new Event('pointerdown', { bubbles: true }));
+
+    expect(firstCard.classList.contains('ytcq-profile-card-front')).toBe(true);
+    expect(secondCard.classList.contains('ytcq-profile-card-front')).toBe(false);
   });
 
   it('drags profile cards by the header and ignores header buttons', () => {
@@ -642,6 +650,7 @@ describe('profile popup coordinator', () => {
 
     const card = document.querySelector<HTMLElement>('.ytcq-profile-card')!;
     const header = card.querySelector<HTMLElement>('.ytcq-profile-card-header')!;
+    const grip = card.querySelector<HTMLElement>('.ytcq-panel-drag-grip')!;
     vi.spyOn(card, 'getBoundingClientRect').mockReturnValue(
       createRect({
         bottom: 200,
@@ -670,7 +679,7 @@ describe('profile popup coordinator', () => {
       pointerId: 7
     });
     const preventDefault = vi.spyOn(down, 'preventDefault');
-    header.dispatchEvent(down);
+    grip.dispatchEvent(down);
 
     expect(preventDefault).toHaveBeenCalledOnce();
     expect(card.classList.contains('ytcq-profile-card-dragging')).toBe(true);
@@ -688,8 +697,8 @@ describe('profile popup coordinator', () => {
         pointerId: 7
       })
     );
-    expect(card.style.left).toBe('292px');
-    expect(card.style.top).toBe('8px');
+    expect(card.style.left).toBe('300px');
+    expect(card.style.top).toBe('0px');
 
     document.dispatchEvent(
       createPointerEvent('pointerup', {
@@ -700,6 +709,59 @@ describe('profile popup coordinator', () => {
     );
     expect(card.classList.contains('ytcq-profile-card-dragging')).toBe(false);
     expect(card.releasePointerCapture).toHaveBeenCalledWith(7);
+    expect(header.contains(grip)).toBe(true);
+  });
+
+  it('resizes profile cards within the panel and viewport bounds', () => {
+    Object.defineProperty(window, 'innerHeight', {
+      configurable: true,
+      value: 400
+    });
+    Object.defineProperty(window, 'innerWidth', {
+      configurable: true,
+      value: 600
+    });
+    const message = createMessage();
+    document.body.append(message);
+    wireProfileClick(message);
+    message.querySelector<HTMLElement>('#author-photo')!.click();
+
+    const card = document.querySelector<HTMLElement>('.ytcq-profile-card')!;
+    vi.spyOn(card, 'getBoundingClientRect').mockReturnValue(
+      createRect({
+        bottom: 200,
+        height: 180,
+        left: 100,
+        right: 400,
+        top: 20,
+        width: 300
+      })
+    );
+    const handle = card.querySelector<HTMLElement>('.ytcq-panel-resize-handle-bottom-right')!;
+
+    handle.dispatchEvent(createPointerEvent('pointerdown', {
+      clientX: 400,
+      clientY: 200,
+      pointerId: 9
+    }));
+    document.dispatchEvent(createPointerEvent('pointermove', {
+      clientX: 2_000,
+      clientY: 2_000,
+      pointerId: 9
+    }));
+
+    expect(card.dataset.ytcqPanelResized).toBe('true');
+    expect(card.style.width).toBe('500px');
+    expect(card.style.height).toBe('380px');
+    expect(positioningMocks.keepProfileCardInViewport).toHaveBeenCalled();
+
+    document.dispatchEvent(createPointerEvent('pointermove', {
+      clientX: -1_000,
+      clientY: -1_000,
+      pointerId: 9
+    }));
+    expect(card.style.width).toBe('300px');
+    expect(card.style.height).toBe('140px');
   });
 
   it('tolerates participants without clickable avatar or author targets', () => {

@@ -3,7 +3,7 @@
  */
 .ytcq-command-autocomplete-card {
   position: fixed;
-  z-index: 10001;
+  z-index: var(--ytcq-layer-popover);
   width: min(340px, calc(100vw - 16px));
   max-height: min(280px, calc(100vh - 16px));
   box-sizing: border-box;
@@ -60,7 +60,7 @@
 
 .ytcq-command-help-card {
   position: fixed;
-  z-index: 10000;
+  z-index: var(--ytcq-layer-panel-raised);
   width: min(360px, calc(100vw - 16px));
   max-height: min(420px, calc(100vh - 16px));
   box-sizing: border-box;

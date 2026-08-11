@@ -338,6 +338,67 @@ describe('inbox card view', () => {
     expect(isInboxCardOpen()).toBe(false);
   });
 
+  it('keeps a dragged inbox open until it is explicitly closed', async () => {
+    vi.useFakeTimers();
+    Object.defineProperty(window, 'innerHeight', { configurable: true, value: 400 });
+    Object.defineProperty(window, 'innerWidth', { configurable: true, value: 600 });
+    openInboxCardView(undefined, callbacksForCard());
+    const card = document.querySelector<HTMLElement>('.ytcq-inbox-card')!;
+    const grip = card.querySelector<HTMLElement>('.ytcq-panel-drag-grip')!;
+    mockRect(card, { height: 180, left: 100, top: 20, width: 300 });
+    await vi.runOnlyPendingTimersAsync();
+
+    grip.dispatchEvent(createPointerEvent('pointerdown', {
+      clientX: 150,
+      clientY: 70,
+      pointerId: 7
+    }));
+    document.dispatchEvent(createPointerEvent('pointermove', {
+      clientX: 250,
+      clientY: 120,
+      pointerId: 7
+    }));
+    document.dispatchEvent(createPointerEvent('pointerup', {
+      clientX: 250,
+      clientY: 120,
+      pointerId: 7
+    }));
+
+    expect(card.style.left).toBe('200px');
+    expect(card.style.top).toBe('70px');
+    expect(card.querySelectorAll('.ytcq-panel-resize-handle')).toHaveLength(8);
+    document.body.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    expect(isInboxCardOpen()).toBe(true);
+
+    document.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, key: 'Escape' }));
+    expect(isInboxCardOpen()).toBe(false);
+  });
+
+  it('keeps the original width while allowing a more compact height', async () => {
+    vi.useFakeTimers();
+    Object.defineProperty(window, 'innerHeight', { configurable: true, value: 800 });
+    Object.defineProperty(window, 'innerWidth', { configurable: true, value: 800 });
+    openInboxCardView(undefined, callbacksForCard());
+    const card = document.querySelector<HTMLElement>('.ytcq-inbox-card')!;
+    mockRect(card, { height: 220, left: 100, top: 20, width: 340 });
+    await vi.runOnlyPendingTimersAsync();
+
+    const handle = card.querySelector<HTMLElement>('.ytcq-panel-resize-handle-bottom-right')!;
+    handle.dispatchEvent(createPointerEvent('pointerdown', {
+      clientX: 440,
+      clientY: 240,
+      pointerId: 8
+    }));
+    document.dispatchEvent(createPointerEvent('pointermove', {
+      clientX: -1_000,
+      clientY: -1_000,
+      pointerId: 8
+    }));
+
+    expect(card.style.width).toBe('340px');
+    expect(card.style.height).toBe('160px');
+  });
+
   it('repositions on resize using the provided anchor when connected', async () => {
     vi.useFakeTimers();
     const anchor = document.createElement('button');
@@ -406,7 +467,7 @@ describe('inbox card view', () => {
     await vi.runOnlyPendingTimersAsync();
     window.dispatchEvent(new Event('resize'));
 
-    expect(Number.parseInt(card.style.left, 10)).toBeGreaterThanOrEqual(8);
+    expect(Number.parseInt(card.style.left, 10)).toBeGreaterThanOrEqual(0);
     expect(Number.parseInt(card.style.top, 10)).toBeLessThan(866);
   });
 
@@ -447,6 +508,37 @@ function callbacksForCard() {
     onKeywordsChanged: vi.fn(),
     onMarkRead: vi.fn()
   };
+}
+
+function createPointerEvent(type: string, options: {
+  clientX: number;
+  clientY: number;
+  pointerId: number;
+}): Event {
+  const event = new Event(type, { bubbles: true, cancelable: true });
+  Object.defineProperties(event, {
+    clientX: { value: options.clientX },
+    clientY: { value: options.clientY },
+    pointerId: { value: options.pointerId }
+  });
+  return event;
+}
+
+function mockRect(
+  element: HTMLElement,
+  rectangle: { height: number; left: number; top: number; width: number }
+): void {
+  element.getBoundingClientRect = () => ({
+    bottom: rectangle.top + rectangle.height,
+    height: rectangle.height,
+    left: rectangle.left,
+    right: rectangle.left + rectangle.width,
+    top: rectangle.top,
+    width: rectangle.width,
+    x: rectangle.left,
+    y: rectangle.top,
+    toJSON: () => ({})
+  } as DOMRect);
 }
 
 function record(overrides: Partial<InboxRecord> = {}): InboxRecord {

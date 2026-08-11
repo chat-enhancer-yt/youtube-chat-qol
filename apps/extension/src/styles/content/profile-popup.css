@@ -5,11 +5,11 @@
   --ytcq-profile-card-padding: 12px;
 
   position: fixed;
-  z-index: 10000;
+  z-index: var(--ytcq-layer-panel);
   display: flex;
   flex-direction: column;
-  width: min(340px, calc(100vw - 16px));
-  max-height: min(420px, calc(100vh - 16px));
+  width: min(340px, 100vw);
+  max-height: min(420px, 100vh);
   box-sizing: border-box;
   padding: var(--ytcq-profile-card-padding);
   border: 1px solid var(--ytcq-control-border);
@@ -20,10 +20,14 @@
   font: 400 13px/18px Roboto, Arial, sans-serif;
 }
 
+.ytcq-profile-card.ytcq-profile-card-front {
+  z-index: var(--ytcq-layer-panel-raised);
+}
+
 .ytcq-profile-card:not(.ytcq-inbox-card):not(.ytcq-games-card) {
   isolation: isolate;
-  max-height: min(360px, calc(100vh - 16px));
-  overflow: hidden;
+  max-height: min(360px, 100vh);
+  overflow: visible;
 }
 
 .ytcq-profile-card-avatar-tint {
@@ -37,6 +41,7 @@
   object-position: center;
   opacity: 0.13;
   filter: blur(2px) saturate(0.5) contrast(0.9);
+  clip-path: inset(4px round 8px);
   pointer-events: none;
   user-select: none;
 }
@@ -53,7 +58,7 @@
 :root:not([data-ytcq-chat-skin="aero"])
   .ytcq-profile-card:not(.ytcq-inbox-card):not(.ytcq-games-card)::before {
   position: absolute;
-  inset: -1px;
+  inset: 0;
   z-index: 0;
   border-radius: inherit;
   corner-shape: inherit;
@@ -147,16 +152,42 @@
 
 .ytcq-profile-card:not(.ytcq-inbox-card):not(.ytcq-games-card) .ytcq-profile-card-header {
   position: relative;
-  z-index: 1;
+  z-index: auto;
   margin: calc(-1 * var(--ytcq-profile-card-padding)) calc(-1 * var(--ytcq-profile-card-padding)) 0;
   padding: calc(var(--ytcq-profile-card-padding) + 4px) var(--ytcq-profile-card-padding) 0;
   cursor: grab;
   user-select: none;
 }
 
-.ytcq-profile-card:not(.ytcq-inbox-card):not(.ytcq-games-card) .ytcq-profile-card-header::before {
+.ytcq-inbox-card .ytcq-profile-card-header,
+.ytcq-games-card .ytcq-profile-card-header {
+  position: relative;
+  cursor: grab;
+  user-select: none;
+}
+
+.ytcq-panel-drag-grip {
   position: absolute;
+  left: 50%;
+  z-index: 7;
+  width: 42px;
+  height: 13px;
+  cursor: inherit;
+  transform: translateX(-50%);
+}
+
+.ytcq-profile-card:not(.ytcq-inbox-card):not(.ytcq-games-card) .ytcq-panel-drag-grip {
   top: -1px;
+}
+
+.ytcq-inbox-card .ytcq-panel-drag-grip,
+.ytcq-games-card .ytcq-panel-drag-grip {
+  top: calc(-1 * var(--ytcq-profile-card-padding) - 1px);
+}
+
+.ytcq-panel-drag-grip::before {
+  position: absolute;
+  top: 0;
   left: 50%;
   width: 42px;
   height: 11px;
@@ -169,9 +200,9 @@
   transform: translateX(-50%);
 }
 
-.ytcq-profile-card:not(.ytcq-inbox-card):not(.ytcq-games-card) .ytcq-profile-card-header::after {
+.ytcq-panel-drag-grip::after {
   position: absolute;
-  top: 3px;
+  top: 4px;
   left: 50%;
   width: 25px;
   height: 4px;
@@ -185,6 +216,11 @@
 }
 
 .ytcq-profile-card-dragging .ytcq-profile-card-header {
+  cursor: grabbing;
+}
+
+.ytcq-inbox-card-dragging .ytcq-profile-card-header,
+.ytcq-games-card-dragging .ytcq-profile-card-header {
   cursor: grabbing;
 }
 
@@ -421,6 +457,13 @@
   position: relative;
   z-index: 1;
   max-height: 182px;
+}
+
+.ytcq-profile-card.ytcq-panel-resizable-both[data-ytcq-panel-resized="true"]
+  .ytcq-profile-card-messages {
+  align-content: start;
+  flex: 1 1 auto;
+  max-height: none;
 }
 
 .ytcq-profile-card-message {

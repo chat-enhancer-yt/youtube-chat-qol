@@ -9,42 +9,41 @@ export function positionProfileCard(
   anchorRect: Pick<DOMRectReadOnly, 'left' | 'right' | 'top'>
 ): void {
   const cardRect = card.getBoundingClientRect();
-  const margin = 8;
+  const anchorGap = 8;
   const width = cardRect.width;
   const height = cardRect.height;
 
-  let left = anchorRect.right + margin;
-  if (left + width + margin > window.innerWidth) {
-    left = anchorRect.left - width - margin;
+  let left = anchorRect.right + anchorGap;
+  if (left + width > window.innerWidth) {
+    left = anchorRect.left - width - anchorGap;
   }
 
   let top = anchorRect.top;
-  if (top + height + margin > window.innerHeight) {
-    top = window.innerHeight - height - margin;
+  if (top + height > window.innerHeight) {
+    top = window.innerHeight - height;
   }
 
-  card.style.left = `${Math.max(margin, Math.round(left))}px`;
-  card.style.top = `${Math.max(margin, Math.round(top))}px`;
+  card.style.left = `${Math.max(0, Math.round(left))}px`;
+  card.style.top = `${Math.max(0, Math.round(top))}px`;
 }
 
 export function keepProfileCardInViewport(card: HTMLElement): void {
   const rect = card.getBoundingClientRect();
-  const margin = 8;
 
   let left = rect.left;
-  if (left + rect.width + margin > window.innerWidth) {
-    left -= left + rect.width + margin - window.innerWidth;
+  if (left + rect.width > window.innerWidth) {
+    left -= left + rect.width - window.innerWidth;
   }
-  if (left < margin) {
-    left = margin;
+  if (left < 0) {
+    left = 0;
   }
 
   let top = rect.top;
-  if (top + rect.height + margin > window.innerHeight) {
-    top -= top + rect.height + margin - window.innerHeight;
+  if (top + rect.height > window.innerHeight) {
+    top -= top + rect.height - window.innerHeight;
   }
-  if (top < margin) {
-    top = margin;
+  if (top < 0) {
+    top = 0;
   }
 
   card.style.left = `${Math.round(left)}px`;

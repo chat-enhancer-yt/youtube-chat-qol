@@ -526,6 +526,48 @@ describe('focus mode entrypoint', () => {
     expect(document.querySelector('.ytcq-focus-card')).toBeNull();
   });
 
+  it('resizes expanded focus mode by height only within safe bounds', async () => {
+    Object.defineProperty(window, 'innerHeight', { configurable: true, value: 500 });
+    Object.defineProperty(window, 'innerWidth', { configurable: true, value: 800 });
+    expect(
+      openFocusModeForAuthor({ authorName: '@ResizeViewer', channelId: 'viewer-channel' })
+    ).toBe(true);
+    await vi.runAllTimersAsync();
+
+    const card = document.querySelector<HTMLElement>('.ytcq-focus-card-expanded')!;
+    vi.spyOn(card, 'getBoundingClientRect').mockReturnValue({
+      bottom: 500,
+      height: 240,
+      left: 0,
+      right: 800,
+      top: 260,
+      width: 800,
+      x: 0,
+      y: 260,
+      toJSON: () => ({})
+    } as DOMRect);
+    const handle = card.querySelector<HTMLElement>(
+      '.ytcq-panel-resize-handle-height-from-top'
+    )!;
+    expect(card.querySelectorAll('.ytcq-panel-resize-handle')).toHaveLength(1);
+
+    handle.dispatchEvent(createPointerEvent('pointerdown', {
+      clientX: 400,
+      clientY: 260,
+      pointerId: 4
+    }));
+    document.dispatchEvent(createPointerEvent('pointermove', {
+      clientX: 400,
+      clientY: -1_000,
+      pointerId: 4
+    }));
+
+    expect(card.style.height).toBe('500px');
+    expect(card.style.maxHeight).toBe('100vh');
+    expect(card.style.width).toBe('');
+    expect(card.querySelector('.ytcq-panel-resize-handle-right')).toBeNull();
+  });
+
   it('prefixes existing draft text when focus mode first opens', async () => {
     chatState.text = 'draft text';
 
@@ -786,4 +828,18 @@ function createSendButton(): HTMLElement {
   const button = document.createElement('button');
   button.id = 'send-button';
   return button;
+}
+
+function createPointerEvent(type: string, options: {
+  clientX: number;
+  clientY: number;
+  pointerId: number;
+}): Event {
+  const event = new Event(type, { bubbles: true, cancelable: true });
+  Object.defineProperties(event, {
+    clientX: { value: options.clientX },
+    clientY: { value: options.clientY },
+    pointerId: { value: options.pointerId }
+  });
+  return event;
 }

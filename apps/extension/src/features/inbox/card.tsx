@@ -5,6 +5,11 @@
  * jump-to-message buttons while state changes stay in the coordinator.
  */
 import { t } from '../../shared/i18n';
+import {
+  clampFloatingPanelToViewport,
+  wireFloatingPanelDrag
+} from '../../shared/floating-panel-drag';
+import { wireFloatingPanelResize } from '../../shared/floating-panel-resize';
 import { createCloseIcon, createOpenInNewIcon } from '../../shared/icons';
 import { jsx, el } from '../../shared/jsx-dom';
 import {
@@ -44,6 +49,8 @@ export interface InboxCardCallbacks {
 
 let activeInboxCard: HTMLElement | null = null;
 let activeInboxCardCleanup: (() => void) | null = null;
+const INBOX_PANEL_MIN_HEIGHT_PX = 160;
+const INBOX_PANEL_MAX_WIDTH_PX = 520;
 
 export function isInboxCardOpen(): boolean {
   return Boolean(activeInboxCard);
@@ -71,6 +78,7 @@ export function openInboxCardView(
     }
   });
 
+  let header!: HTMLDivElement;
   let list!: HTMLDivElement;
   const clearButton = el<HTMLButtonElement>(
     <button
@@ -85,7 +93,11 @@ export function openInboxCardView(
 
   const card = el<HTMLElement>(
     <section class="ytcq-profile-card ytcq-inbox-card" role="dialog" aria-label={t('inbox')}>
-      <div class="ytcq-profile-card-header ytcq-inbox-card-header">
+      <div
+        ref={(element: HTMLDivElement) => (header = element)}
+        class="ytcq-profile-card-header ytcq-inbox-card-header"
+      >
+        <span class="ytcq-panel-drag-grip" aria-hidden="true" />
         <span class="ytcq-inbox-card-icon">
           {createInboxIcon(getInboxRecordsSnapshot().length > 0)}
         </span>
@@ -111,10 +123,31 @@ export function openInboxCardView(
   positionInboxCard(card, anchor);
   scrollElementToBottom(list);
   callbacks.onMarkRead();
+  let persistent = false;
+  const cardListeners = new AbortController();
+  wireFloatingPanelDrag({
+    draggingClassName: 'ytcq-inbox-card-dragging',
+    handle: header,
+    onDragMove: () => {
+      persistent = true;
+    },
+    panel: card,
+    signal: cardListeners.signal
+  });
+  wireFloatingPanelResize({
+    axis: 'both',
+    maxWidth: INBOX_PANEL_MAX_WIDTH_PX,
+    minHeight: INBOX_PANEL_MIN_HEIGHT_PX,
+    minWidth: 'initial',
+    onResize: () => clampFloatingPanelToViewport(card),
+    panel: card,
+    signal: cardListeners.signal
+  });
 
   const handleOutsideClick = (event: MouseEvent): void => {
     if (activeInboxCard?.contains(event.target as Node)) return;
     if ((event.target as Element | null)?.closest?.(INBOX_BUTTON_SELECTOR)) return;
+    if (persistent) return;
     closeInboxCard();
   };
   const handleKeydown = (event: KeyboardEvent): void => {
@@ -122,9 +155,12 @@ export function openInboxCardView(
   };
   const handleResize = (): void => {
     if (!activeInboxCard) return;
-    positionInboxCard(activeInboxCard, anchor);
+    if (persistent) {
+      clampFloatingPanelToViewport(activeInboxCard);
+    } else {
+      positionInboxCard(activeInboxCard, anchor);
+    }
   };
-  const cardListeners = new AbortController();
 
   activeInboxCardCleanup = () => {
     cardListeners.abort();
@@ -380,32 +416,33 @@ function getInboxSubtitle(): string {
 }
 
 function positionInboxCard(card: HTMLElement, anchor?: HTMLElement): void {
-  const margin = 8;
+  const anchorGap = 8;
   const cardRect = card.getBoundingClientRect();
   const width = cardRect.width;
   const height = cardRect.height;
-  const anchorRect = anchor?.isConnected
-    ? anchor.getBoundingClientRect()
+  const connectedAnchor = anchor?.isConnected ? anchor : null;
+  const anchorRect = connectedAnchor
+    ? connectedAnchor.getBoundingClientRect()
     : {
-        left: window.innerWidth - margin,
-        right: window.innerWidth - margin,
-        top: margin,
-        bottom: margin
+        left: window.innerWidth,
+        right: window.innerWidth,
+        top: 0,
+        bottom: 0
       };
 
   let left = anchorRect.right - width;
-  if (left < margin) {
+  if (left < 0) {
     left = anchorRect.left;
   }
-  if (left + width + margin > window.innerWidth) {
-    left = window.innerWidth - width - margin;
+  if (left + width > window.innerWidth) {
+    left = window.innerWidth - width;
   }
 
-  let top = anchorRect.bottom + margin;
-  if (top + height + margin > window.innerHeight) {
-    top = anchorRect.top - height - margin;
+  let top = connectedAnchor ? anchorRect.bottom + anchorGap : 0;
+  if (top + height > window.innerHeight) {
+    top = connectedAnchor ? anchorRect.top - height - anchorGap : 0;
   }
 
-  card.style.left = `${Math.max(margin, Math.round(left))}px`;
-  card.style.top = `${Math.max(margin, Math.round(top))}px`;
+  card.style.left = `${Math.max(0, Math.round(left))}px`;
+  card.style.top = `${Math.max(0, Math.round(top))}px`;
 }

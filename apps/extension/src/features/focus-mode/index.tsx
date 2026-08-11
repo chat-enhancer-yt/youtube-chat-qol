@@ -5,6 +5,7 @@
  * selected chatter. It is intentionally local and current-page only.
  */
 import { t } from '../../shared/i18n';
+import { wireFloatingPanelResize } from '../../shared/floating-panel-resize';
 import { createCloseIcon } from '../../shared/icons';
 import { jsx, el } from '../../shared/jsx-dom';
 import {
@@ -58,9 +59,11 @@ import { renderFocusMessageText } from './translation';
 import type { FocusRecord, FocusSource } from './types';
 
 const FOCUS_ANCHOR_CLASS = 'ytcq-focus-anchor';
+const FOCUS_PANEL_MIN_HEIGHT_PX = 160;
 
 let activeSource: FocusSource | null = null;
 let activeCard: HTMLElement | null = null;
+let activeCardListeners: AbortController | null = null;
 let activeList: HTMLElement | null = null;
 let activeScrollFadeCleanup: (() => void) | null = null;
 let activeTranslationPriorityScope: TranslationPriorityScope | null = null;
@@ -218,6 +221,7 @@ function renderCollapsedFocusPrompt(): void {
 
   activeExpanded = false;
   cleanupActiveScrollFade();
+  cleanupActiveCardListeners();
   activeCard?.remove();
 
   const author = createFocusAuthor(activeSource);
@@ -264,6 +268,7 @@ function openFocusPanel(): void {
 
   activeExpanded = true;
   cleanupActiveScrollFade();
+  cleanupActiveCardListeners();
   activeCard?.remove();
   clearFocusRecords();
   stopFocusTranslationPriority();
@@ -300,6 +305,13 @@ function openFocusPanel(): void {
   );
   activeScrollFadeCleanup = wireScrollEdgeFades(list);
   mountFocusCard(card);
+  activeCardListeners = new AbortController();
+  wireFloatingPanelResize({
+    axis: 'height-from-top',
+    minHeight: FOCUS_PANEL_MIN_HEIGHT_PX,
+    panel: card,
+    signal: activeCardListeners.signal
+  });
   activeList = list;
 
   historyScanInProgress = true;
@@ -411,6 +423,7 @@ async function quoteFocusRecord(record: FocusRecord): Promise<void> {
 
 function closeFocusMode(): void {
   cleanupActiveScrollFade();
+  cleanupActiveCardListeners();
   activeCard?.remove();
   activeCard = null;
   activeList = null;
@@ -425,6 +438,11 @@ function closeFocusMode(): void {
 function cleanupActiveScrollFade(): void {
   activeScrollFadeCleanup?.();
   activeScrollFadeCleanup = null;
+}
+
+function cleanupActiveCardListeners(): void {
+  activeCardListeners?.abort();
+  activeCardListeners = null;
 }
 
 function clearFocusRecords(): void {
