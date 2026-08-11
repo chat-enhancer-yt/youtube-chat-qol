@@ -21,21 +21,21 @@ export async function expectProfileCardPositionedFromAnchor(
     .poll(
       async () =>
         profileCard.evaluate((element, anchor) => {
-          const margin = 8;
+          const anchorGap = 8;
           const cardRect = element.getBoundingClientRect();
-          let expectedLeft = anchor.right + margin;
-          if (expectedLeft + cardRect.width + margin > window.innerWidth) {
-            expectedLeft = anchor.left - cardRect.width - margin;
+          let expectedLeft = anchor.right + anchorGap;
+          if (expectedLeft + cardRect.width > window.innerWidth) {
+            expectedLeft = anchor.left - cardRect.width - anchorGap;
           }
 
           let expectedTop = anchor.top;
-          if (expectedTop + cardRect.height + margin > window.innerHeight) {
-            expectedTop = window.innerHeight - cardRect.height - margin;
+          if (expectedTop + cardRect.height > window.innerHeight) {
+            expectedTop = window.innerHeight - cardRect.height;
           }
 
           return {
-            x: Math.round(cardRect.left) - Math.max(margin, Math.round(expectedLeft)),
-            y: Math.round(cardRect.top) - Math.max(margin, Math.round(expectedTop))
+            x: Math.round(cardRect.left) - Math.max(0, Math.round(expectedLeft)),
+            y: Math.round(cardRect.top) - Math.max(0, Math.round(expectedTop))
           };
         }, anchorRect),
       {
