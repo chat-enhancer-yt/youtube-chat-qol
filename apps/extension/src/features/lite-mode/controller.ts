@@ -99,6 +99,7 @@ let nativeUiObserver: MutationObserver | null = null;
 let observedNativeUiTargets: Element[] = [];
 let startupTimer = 0;
 let sourceTimer = 0;
+let sourceWatchdogContinuationTimeoutMs: number | undefined | null = null;
 let timestampSyncTimer = 0;
 let feedReady = false;
 let unreadableFeedBatchesWithoutProgress = 0;
@@ -423,6 +424,21 @@ function handleDocumentShow(): void {
   documentUnloading = false;
 }
 
+export function handleLiteModeVisibilityChanged(
+  visibilityState: Document['visibilityState']
+): void {
+  if (!active) return;
+  if (visibilityState === 'hidden') {
+    clearStartupTimer();
+    clearSourceTimer();
+    return;
+  }
+  if (!feedReady) scheduleStartupTimeout();
+  if (sourceWatchdogContinuationTimeoutMs !== null) {
+    scheduleSourceWatchdog(sourceWatchdogContinuationTimeoutMs);
+  }
+}
+
 function handleNativeUiMutations(mutations: MutationRecord[]): void {
   if (!active) return;
   if (mutations.some((mutation) =>
@@ -598,33 +614,33 @@ function isNativeTimestampToggleEnabled(toggle: Element): boolean {
 
 function scheduleSourceWatchdog(continuationTimeoutMs: number | undefined): void {
   clearSourceTimer();
-  if (window.location.pathname === '/live_chat_replay') return;
+  if (window.location.pathname === '/live_chat_replay') {
+    sourceWatchdogContinuationTimeoutMs = null;
+    return;
+  }
+  sourceWatchdogContinuationTimeoutMs = continuationTimeoutMs;
+  if (document.visibilityState === 'hidden') return;
   const providerTimeout = continuationTimeoutMs || 0;
   const timeout = providerTimeout
     ? Math.max(12_000, providerTimeout * 2 + 5_000)
     : DEFAULT_SOURCE_TIMEOUT_MS;
   sourceTimer = window.setTimeout(() => {
     sourceTimer = 0;
-    if (document.visibilityState === 'hidden') {
-      scheduleSourceWatchdog(continuationTimeoutMs);
-      return;
-    }
+    if (document.visibilityState === 'hidden') return;
+    sourceWatchdogContinuationTimeoutMs = null;
     failLiteMode('source-timeout');
   }, timeout);
 }
 
 function scheduleStartupTimeout(): void {
   clearStartupTimer();
-  if (!active || feedReady) return;
+  if (!active || feedReady || document.visibilityState === 'hidden') return;
   const timeout = window.location.pathname === '/live_chat_replay'
     ? REPLAY_STARTUP_TIMEOUT_MS
     : STARTUP_TIMEOUT_MS;
   startupTimer = window.setTimeout(() => {
     startupTimer = 0;
-    if (document.visibilityState === 'hidden') {
-      scheduleStartupTimeout();
-      return;
-    }
+    if (document.visibilityState === 'hidden') return;
     failLiteMode('startup-timeout');
   }, timeout);
 }
@@ -652,6 +668,7 @@ function teardownLiteMode(clearIntent: boolean): void {
   store = null;
   resetDetachedNativeListDiagnostics();
   feedReady = false;
+  sourceWatchdogContinuationTimeoutMs = null;
   unreadableFeedBatchesWithoutProgress = 0;
   documentUnloading = false;
   if (clearIntent) clearLiteModeBootstrapIntent();
@@ -699,6 +716,7 @@ function markLiteModeFeedReady(allowEmptyReplay = false): void {
 function waitForLiteModeFeedRecovery(): void {
   feedReady = false;
   clearSourceTimer();
+  sourceWatchdogContinuationTimeoutMs = null;
   renderer?.setConnectionState('connecting');
   // YouTube retries temporary server failures itself. Keep the original
   // recovery deadline when several failed responses arrive in succession.

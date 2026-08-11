@@ -33,6 +33,7 @@ import {
   cleanupLiteMode,
   getLiteModeMessageElement,
   handleLiteModeDomMutations,
+  handleLiteModeVisibilityChanged,
   hasRetainedLiteModeMessage,
   isLiteModeActive,
   refreshLiteMode,
@@ -954,25 +955,33 @@ describe('Lite mode controller', () => {
     });
   });
 
-  it('defers a live source timeout while backgrounded', async () => {
+  it('gives a backgrounded live source a fresh timeout after it becomes visible', async () => {
     window.history.replaceState({}, '', '/live_chat');
     startLiteMode({ clearCooldown: true });
     dispatchBatch({
       ...createBatch(1, [{ type: 'upsert', record: createRecord('live', 'Live') }]),
       continuationTimeoutMs: 1_000
     });
+    await vi.advanceTimersByTimeAsync(6_000);
     Object.defineProperty(document, 'visibilityState', {
       configurable: true,
       value: 'hidden'
     });
-    await vi.advanceTimersByTimeAsync(12_000);
+    handleLiteModeVisibilityChanged('hidden');
+    await vi.advanceTimersByTimeAsync(60_000);
     expect(isLiteModeActive()).toBe(true);
+    expect(requestNativeChatRestoreMock).not.toHaveBeenCalled();
 
     Object.defineProperty(document, 'visibilityState', {
       configurable: true,
       value: 'visible'
     });
-    await vi.advanceTimersByTimeAsync(12_000);
+    handleLiteModeVisibilityChanged('visible');
+    await vi.advanceTimersByTimeAsync(11_999);
+    expect(isLiteModeActive()).toBe(true);
+    expect(requestNativeChatRestoreMock).not.toHaveBeenCalled();
+
+    await vi.advanceTimersByTimeAsync(1);
     expect(isLiteModeActive()).toBe(false);
     expect(requestNativeChatRestoreMock).toHaveBeenCalledWith({
       automaticFailure: true,
@@ -981,14 +990,16 @@ describe('Lite mode controller', () => {
     });
   });
 
-  it('defers the startup timeout while backgrounded', async () => {
+  it('gives a partially elapsed startup watchdog a fresh timeout after visibility returns', async () => {
     startLiteMode({ clearCooldown: true });
+    await vi.advanceTimersByTimeAsync(10_000);
     Object.defineProperty(document, 'visibilityState', {
       configurable: true,
       value: 'hidden'
     });
+    handleLiteModeVisibilityChanged('hidden');
 
-    await vi.advanceTimersByTimeAsync(40_000);
+    await vi.advanceTimersByTimeAsync(60_000);
     expect(isLiteModeActive()).toBe(true);
     expect(requestNativeChatRestoreMock).not.toHaveBeenCalled();
 
@@ -996,9 +1007,44 @@ describe('Lite mode controller', () => {
       configurable: true,
       value: 'visible'
     });
-    await vi.advanceTimersByTimeAsync(20_000);
+    handleLiteModeVisibilityChanged('visible');
+    await vi.advanceTimersByTimeAsync(19_999);
+    expect(isLiteModeActive()).toBe(true);
+    expect(requestNativeChatRestoreMock).not.toHaveBeenCalled();
+
+    await vi.advanceTimersByTimeAsync(1);
     expect(isLiteModeActive()).toBe(false);
-    expect(requestNativeChatRestoreMock).toHaveBeenCalledOnce();
+    expect(requestNativeChatRestoreMock).toHaveBeenCalledWith({
+      automaticFailure: true,
+      fallbackCode: 'LM01',
+      message: 'Loading chat'
+    });
+  });
+
+  it('does not start the startup watchdog until an already-hidden document is visible', async () => {
+    Object.defineProperty(document, 'visibilityState', {
+      configurable: true,
+      value: 'hidden'
+    });
+    startLiteMode({ clearCooldown: true });
+
+    await vi.advanceTimersByTimeAsync(60_000);
+    expect(isLiteModeActive()).toBe(true);
+    expect(requestNativeChatRestoreMock).not.toHaveBeenCalled();
+
+    Object.defineProperty(document, 'visibilityState', {
+      configurable: true,
+      value: 'visible'
+    });
+    handleLiteModeVisibilityChanged('visible');
+    await vi.advanceTimersByTimeAsync(20_000);
+
+    expect(isLiteModeActive()).toBe(false);
+    expect(requestNativeChatRestoreMock).toHaveBeenCalledWith({
+      automaticFailure: true,
+      fallbackCode: 'LM01',
+      message: 'Loading chat'
+    });
   });
 
   it('dispatches row callbacks through the existing feature pipeline', () => {

@@ -30,6 +30,7 @@ import {
 import {
   cleanupLiteMode,
   handleLiteModeDomMutations,
+  handleLiteModeVisibilityChanged,
   LITE_MODE_FALLBACK_EVENT,
   refreshLiteMode,
   setLiteModeRowRenderedCallback,
@@ -53,7 +54,8 @@ registerFeature({
     cleanup: cleanupStaleLiteMode,
     init: initLiteMode,
     optionsChanged: handleLiteModeOptionsChanged,
-    reset: resetLiteMode
+    reset: resetLiteMode,
+    visibilityChanged: handleLiteModeVisibilityChanged
   },
   mutation: handleLiteModeMutations
 });
