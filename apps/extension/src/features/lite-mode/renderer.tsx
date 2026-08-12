@@ -329,7 +329,6 @@ export function createLiteChatRenderer(
     if (!newMessageIds.length) return;
 
     rememberLiveBatchArrival(performance.now());
-    if (!followingLiveEdge) return;
     if (document.visibilityState !== 'visible') {
       // There is no presentation to smooth while hidden. Drop any existing
       // hold as well so a newer hidden response cannot pass queued rows.
@@ -389,12 +388,7 @@ export function createLiteChatRenderer(
   }
 
   function scheduleLivePresentation(delay: number): void {
-    if (
-      destroyed ||
-      !followingLiveEdge ||
-      !pendingLivePresentationIds.length ||
-      livePresentationTimer
-    ) {
+    if (destroyed || !pendingLivePresentationIds.length || livePresentationTimer) {
       return;
     }
 
@@ -403,7 +397,7 @@ export function createLiteChatRenderer(
 
   function presentNextLiveRows(): void {
     livePresentationTimer = 0;
-    if (destroyed || !followingLiveEdge) {
+    if (destroyed) {
       clearLivePresentation();
       return;
     }
@@ -423,8 +417,13 @@ export function createLiteChatRenderer(
       pendingLivePresentationIdSet.delete(id);
     }
 
-    renderRecords(null, releaseCount === 1);
-    pinScrollToBottom();
+    // Keep YouTube's continuation cadence advancing while the reader checks
+    // history, but leave the frozen DOM untouched. Returning to live can then
+    // resume the in-flight response instead of waiting for the next response.
+    if (followingLiveEdge) {
+      renderRecords(null, releaseCount === 1);
+      pinScrollToBottom();
+    }
     if (!pendingLivePresentationIds.length) {
       clearLivePresentation();
       return;
@@ -815,7 +814,6 @@ export function createLiteChatRenderer(
     const endIndex = Math.min(records.length - 1, startIndex + renderLimit - 1);
 
     clearReturnIntent();
-    clearLivePresentation();
     setFollowingLiveEdge(false);
     frozenEndId = records[endIndex]?.id || id;
     pendingMessageCount = Math.min(
@@ -828,7 +826,6 @@ export function createLiteChatRenderer(
   }
 
   function leaveLiveEdge(): void {
-    clearLivePresentation();
     setFollowingLiveEdge(false);
     setPinnedRecords(store.getRecords());
     const rendered = getRenderedRecords();
@@ -839,8 +836,8 @@ export function createLiteChatRenderer(
 
   function scrollToLiveEdge(): void {
     clearReturnIntent();
-    clearLivePresentation();
     setFollowingLiveEdge(true);
+    ensureRetainedLivePresentationRow();
     frozenEndId = '';
     pendingMessageCount = 0;
     renderRecords(null);

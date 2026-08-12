@@ -716,8 +716,9 @@ describe('Lite chat renderer', () => {
     renderer.destroy();
   });
 
-  it('drops visual catch-up when the reader leaves the live edge', () => {
+  it('keeps live presentation cadence while the reader checks history', async () => {
     vi.useFakeTimers();
+    vi.spyOn(Math, 'random').mockReturnValue(0.5);
     const store = createLiteChatStore();
     const renderer = createLiteChatRenderer(store);
     document.body.append(renderer.root);
@@ -727,6 +728,12 @@ describe('Lite chat renderer', () => {
       scrollHeight: { configurable: true, value: 500 },
       scrollTop: { configurable: true, value: 400, writable: true }
     });
+    const seedActions = [{ type: 'upsert' as const, record: createRecord('seed', 'Seed') }];
+    renderer.rememberActionSources(seedActions, 'live');
+    store.apply(seedActions);
+    await vi.advanceTimersByTimeAsync(5_000);
+
+    scroller.dispatchEvent(new WheelEvent('wheel', { deltaY: -20 }));
     const actions = Array.from({ length: 6 }, (_value, index) => ({
       type: 'upsert' as const,
       record: createRecord(`leaving-${index}`, `Leaving ${index}`)
@@ -734,19 +741,32 @@ describe('Lite chat renderer', () => {
 
     renderer.rememberActionSources(actions, 'live');
     store.apply(actions);
-    expect(getRenderedMessageIds(renderer.root)).toEqual(['leaving-0']);
+    expect(getRenderedMessageIds(renderer.root)).toEqual(['seed']);
 
-    scroller.dispatchEvent(new WheelEvent('wheel', { deltaY: -20 }));
-    vi.advanceTimersByTime(1_200);
+    await vi.advanceTimersByTimeAsync(1_200);
 
     expect(renderer.root.dataset.ytcqFollowingLiveEdge).toBe('false');
-    expect(getRenderedMessageIds(renderer.root)).toEqual(['leaving-0']);
+    expect(getRenderedMessageIds(renderer.root)).toEqual(['seed']);
     expect(renderer.root.querySelector<HTMLButtonElement>('.ytcq-lite-new-messages')?.hidden).toBe(
       false
     );
 
     renderer.scrollToLiveEdge();
-    expect(getRenderedMessageIds(renderer.root)).toEqual(actions.map(({ record }) => record.id));
+    expect(getRenderedMessageIds(renderer.root)).toEqual(['seed', 'leaving-0', 'leaving-1']);
+
+    await vi.advanceTimersByTimeAsync(800);
+    expect(getRenderedMessageIds(renderer.root)).toEqual([
+      'seed',
+      'leaving-0',
+      'leaving-1',
+      'leaving-2'
+    ]);
+
+    await vi.advanceTimersByTimeAsync(3_000);
+    expect(getRenderedMessageIds(renderer.root)).toEqual([
+      'seed',
+      ...actions.map(({ record }) => record.id)
+    ]);
     renderer.destroy();
   });
 
