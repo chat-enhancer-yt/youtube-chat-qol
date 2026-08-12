@@ -11,6 +11,8 @@ import { CHAT_HEADER_SELECTOR } from '../../../youtube/selectors';
 import { formatBadgeCount } from '../../inbox/icons';
 import { INBOX_BUTTON_CLASS, INBOX_BUTTON_SELECTOR } from '../../inbox/selectors';
 
+const GAMES_CARD_RIGHT_OFFSET_PX = 16;
+
 export interface GamesButtonBadgeState {
   activeGames: number;
   invites: number;
@@ -153,6 +155,7 @@ export function positionGamesCard(card: HTMLElement, anchor?: HTMLElement): void
   const width = cardRect.width;
   const height = cardRect.height;
   const connectedAnchor = anchor?.isConnected ? anchor : null;
+  const rightOffset = connectedAnchor ? GAMES_CARD_RIGHT_OFFSET_PX : 0;
   const anchorRect = connectedAnchor
     ? connectedAnchor.getBoundingClientRect()
     : {
@@ -162,9 +165,9 @@ export function positionGamesCard(card: HTMLElement, anchor?: HTMLElement): void
         bottom: 0
       };
 
-  let left = anchorRect.right - width;
+  let left = anchorRect.right - width + rightOffset;
   if (left < 0) {
-    left = anchorRect.left;
+    left = anchorRect.left + rightOffset;
   }
   if (left + width > window.innerWidth) {
     left = window.innerWidth - width;

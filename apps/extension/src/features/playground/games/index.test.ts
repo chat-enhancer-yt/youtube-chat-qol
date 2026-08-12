@@ -166,13 +166,28 @@ describe('playground games header button', () => {
     Object.defineProperty(window, 'innerHeight', { configurable: true, value: 220 });
 
     positionGamesCard(card, anchor);
-    expect(card.style.left).toBe('4px');
+    expect(card.style.left).toBe('20px');
     expect(card.style.top).toBe('32px');
 
     anchor.remove();
     positionGamesCard(card, anchor);
     expect(card.style.left).toBe('20px');
     expect(card.style.top).toBe('0px');
+  });
+
+  it('nudges the games card right of direct trigger alignment', () => {
+    const card = document.createElement('section');
+    const anchor = document.createElement('button');
+    document.body.append(anchor, card);
+    mockRect(card, { height: 358, left: 0, top: 0, width: 340 });
+    mockRect(anchor, { height: 40, left: 305, top: 4, width: 40 });
+    Object.defineProperty(window, 'innerWidth', { configurable: true, value: 473 });
+    Object.defineProperty(window, 'innerHeight', { configurable: true, value: 717 });
+
+    positionGamesCard(card, anchor);
+
+    expect(card.style.left).toBe('21px');
+    expect(card.style.top).toBe('52px');
   });
 
   it('reuses this content script button and replaces stale owner buttons', () => {
