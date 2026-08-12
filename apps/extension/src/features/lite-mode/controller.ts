@@ -132,7 +132,9 @@ export function startLiteMode(options: StartLiteModeOptions = {}): void {
   unreadableFeedBatchesWithoutProgress = 0;
   setLiteModeBootstrapIntent(true);
   store = createLiteChatStore();
+  const initialFeedState = getYouTubeChatFeedRecordState();
   renderer = createLiteChatRenderer(store, {
+    lastLiveBatchReceivedAt: initialFeedState.lastLiveBatchReceivedAt,
     onRowRendered: (row, record, source) => {
       try {
         rowRenderedCallback?.(row, record, source);
@@ -142,7 +144,6 @@ export function startLiteMode(options: StartLiteModeOptions = {}): void {
     }
   });
   mountLiteRoot();
-  const initialFeedState = getYouTubeChatFeedRecordState();
   const initialRecords = initialFeedState.records;
   if (initialRecords.length) {
     applyStoreActions(
@@ -325,7 +326,7 @@ function handleLiteChatBatch(batch: YouTubeChatFeedBatch): void {
       return;
     }
   }
-  applyStoreActions(batch.actions, batch.source);
+  applyStoreActions(batch.actions, batch.source, batch.receivedAt);
   if (
     (isTransportDelivery && isSourceHeartbeat(batch.source)) ||
     (
@@ -366,9 +367,10 @@ function mountLiteRoot(): void {
 
 function applyStoreActions(
   actions: readonly YouTubeChatFeedAction[],
-  source: YouTubeChatFeedTransportBatch['source']
+  source: YouTubeChatFeedTransportBatch['source'],
+  receivedAt?: number
 ): void {
-  renderer?.rememberActionSources(actions, source);
+  renderer?.rememberActionSources(actions, source, receivedAt);
   store?.apply(actions);
 }
 

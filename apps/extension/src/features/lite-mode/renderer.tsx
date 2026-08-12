@@ -60,6 +60,7 @@ export type LiteChatRowRenderedCallback = (
 ) => void;
 
 export interface CreateLiteChatRendererOptions {
+  lastLiveBatchReceivedAt?: number;
   onRowRendered?: LiteChatRowRenderedCallback;
   renderLimit?: number;
   timestampsVisible?: boolean;
@@ -72,7 +73,8 @@ export interface LiteChatRenderer {
   hasMessage(id: string): boolean;
   rememberActionSources(
     actions: readonly YouTubeChatFeedAction[],
-    origin: YouTubeChatFeedBatchSource
+    origin: YouTubeChatFeedBatchSource,
+    receivedAt?: number
   ): void;
   render(): void;
   revealMessage(id: string): HTMLElement | null;
@@ -105,7 +107,13 @@ export function createLiteChatRenderer(
   let destroyed = false;
   let scrollFrame = 0;
   let activeScrollPointer: ActiveScrollPointer | null = null;
+  let livePresentationAnchorAt = performance.now();
   let lastLiveBatchAt: number | null = null;
+  let lastLiveBatchReceivedAt =
+    typeof options.lastLiveBatchReceivedAt === 'number' &&
+    Number.isFinite(options.lastLiveBatchReceivedAt)
+      ? options.lastLiveBatchReceivedAt
+      : null;
   let livePresentationTimer = 0;
   let returnIntentPending = false;
   let returnIntentTimer = 0;
@@ -229,8 +237,14 @@ export function createLiteChatRenderer(
 
   function rememberActionSources(
     actions: readonly YouTubeChatFeedAction[],
-    origin: YouTubeChatFeedBatchSource
+    origin: YouTubeChatFeedBatchSource,
+    receivedAt?: number
   ): void {
+    if (origin === 'initial' && lastLiveBatchAt === null) {
+      livePresentationAnchorAt = performance.now();
+    } else if (origin === 'live') {
+      rememberLiveBatchArrival(performance.now(), receivedAt);
+    }
     const source: LiteChatRowSource = origin === 'initial' ? 'existing' : 'added';
     stagedActionSources = new Map();
     stagedActionOrigin = origin;
@@ -328,7 +342,6 @@ export function createLiteChatRenderer(
     });
     if (!newMessageIds.length) return;
 
-    rememberLiveBatchArrival(performance.now());
     if (document.visibilityState !== 'visible') {
       // There is no presentation to smooth while hidden. Drop any existing
       // hold as well so a newer hidden response cannot pass queued rows.
@@ -349,15 +362,35 @@ export function createLiteChatRenderer(
     scheduleLivePresentation(getNextLivePresentationDelay(performance.now()));
   }
 
-  function rememberLiveBatchArrival(now: number): void {
-    if (lastLiveBatchAt !== null) {
-      const interval = now - lastLiveBatchAt;
-      if (interval > 0) {
-        liveBatchIntervals.push(interval);
-        if (liveBatchIntervals.length > LIVE_PRESENTATION_INTERVAL_SAMPLE_LIMIT) {
-          liveBatchIntervals.shift();
-        }
+  function rememberLiveBatchArrival(now: number, receivedAt: number | undefined): void {
+    const validReceivedAt =
+      typeof receivedAt === 'number' && Number.isFinite(receivedAt) ? receivedAt : null;
+    const transportInterval =
+      validReceivedAt !== null && lastLiveBatchReceivedAt !== null
+        ? validReceivedAt - lastLiveBatchReceivedAt
+        : 0;
+    const interval =
+      transportInterval > 0
+        ? transportInterval
+        : now - (lastLiveBatchAt ?? livePresentationAnchorAt);
+    if (interval > 0) {
+      // A late Lite subscriber inherits the preceding transport timestamp, so
+      // its first response keeps Native's established cadence. The initial
+      // snapshot clock remains the cold-start fallback.
+      liveBatchIntervals.push(
+        lastLiveBatchAt === null
+          ? Math.min(interval, LIVE_PRESENTATION_DEFAULT_WINDOW_MS)
+          : interval
+      );
+      if (liveBatchIntervals.length > LIVE_PRESENTATION_INTERVAL_SAMPLE_LIMIT) {
+        liveBatchIntervals.shift();
       }
+    }
+    if (
+      validReceivedAt !== null &&
+      (lastLiveBatchReceivedAt === null || validReceivedAt >= lastLiveBatchReceivedAt)
+    ) {
+      lastLiveBatchReceivedAt = validReceivedAt;
     }
     lastLiveBatchAt = now;
   }

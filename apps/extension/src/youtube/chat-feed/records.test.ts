@@ -45,11 +45,15 @@ describe('YouTube chat feed record store', () => {
     message.id = 'message-1';
     const pending = records.requestYouTubeChatFeedRecord(message);
     const record = createRecord('message-1', '1782000000000000', 'UC-one');
-    dispatchBatch(createBatch(1, [{ record, type: 'upsert' }]));
+    dispatchBatch({
+      ...createBatch(1, [{ record, type: 'upsert' }]),
+      receivedAt: 1_782_000_000_000
+    });
 
     await expect(pending).resolves.toEqual(record);
     expect(records.getYouTubeChatFeedRecord(message)).toEqual(record);
     expect(records.getYouTubeChatFeedRecordState()).toEqual({
+      lastLiveBatchReceivedAt: 1_782_000_000_000,
       ready: true,
       records: [record]
     });

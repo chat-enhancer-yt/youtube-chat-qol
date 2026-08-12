@@ -588,6 +588,70 @@ describe('Lite chat renderer', () => {
     renderer.destroy();
   });
 
+  it('paces the first live response from the preceding transport arrival', async () => {
+    vi.useFakeTimers();
+    vi.spyOn(Math, 'random').mockReturnValue(0.5);
+    const store = createLiteChatStore();
+    const renderer = createLiteChatRenderer(store, { lastLiveBatchReceivedAt: 1_000 });
+    document.body.append(renderer.root);
+
+    await vi.advanceTimersByTimeAsync(5_000);
+    const initialActions = [
+      { type: 'upsert' as const, record: createRecord('existing', 'Existing') }
+    ];
+    renderer.rememberActionSources(initialActions, 'initial');
+    store.apply(initialActions);
+    await vi.advanceTimersByTimeAsync(5_000);
+
+    const liveActions = Array.from({ length: 6 }, (_value, index) => ({
+      type: 'upsert' as const,
+      record: createRecord(`startup-${index}`, `Startup ${index}`)
+    }));
+    renderer.rememberActionSources(liveActions, 'live', 1_500);
+    store.apply(liveActions);
+
+    expect(getRenderedMessageIds(renderer.root)).toEqual(['existing', 'startup-0']);
+    await vi.advanceTimersByTimeAsync(250);
+    expect(getRenderedMessageIds(renderer.root).length).toBeGreaterThan(2);
+    expect(getRenderedMessageIds(renderer.root).length).toBeLessThan(7);
+
+    await vi.advanceTimersByTimeAsync(250);
+    expect(getRenderedMessageIds(renderer.root)).toEqual([
+      'existing',
+      ...liveActions.map(({ record }) => record.id)
+    ]);
+    renderer.destroy();
+  });
+
+  it('keeps the existing fallback ceiling for a slow first live response', async () => {
+    vi.useFakeTimers();
+    vi.spyOn(Math, 'random').mockReturnValue(0.5);
+    const store = createLiteChatStore();
+    const renderer = createLiteChatRenderer(store);
+    document.body.append(renderer.root);
+    const initialActions = [
+      { type: 'upsert' as const, record: createRecord('existing', 'Existing') }
+    ];
+    renderer.rememberActionSources(initialActions, 'initial');
+    store.apply(initialActions);
+    await vi.advanceTimersByTimeAsync(20_000);
+
+    const liveActions = Array.from({ length: 22 }, (_value, index) => ({
+      type: 'upsert' as const,
+      record: createRecord(`slow-start-${index}`, `Slow start ${index}`)
+    }));
+    renderer.rememberActionSources(liveActions, 'live');
+    store.apply(liveActions);
+
+    expect(getRenderedMessageIds(renderer.root)).toEqual(['existing', 'slow-start-0']);
+    await vi.advanceTimersByTimeAsync(10_100);
+    expect(getRenderedMessageIds(renderer.root)).toEqual([
+      'existing',
+      ...liveActions.map(({ record }) => record.id)
+    ]);
+    renderer.destroy();
+  });
+
   it('paces a live response across the recently observed response interval', async () => {
     vi.useFakeTimers();
     vi.spyOn(Math, 'random').mockReturnValue(0.5);

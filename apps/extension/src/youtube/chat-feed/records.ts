@@ -31,6 +31,7 @@ interface PendingChatFeedRecord {
 const recordsById = new Map<string, YouTubeChatMessageRecord>();
 const pendingRecordsById = new Map<string, PendingChatFeedRecord>();
 let ready = false;
+let lastLiveBatchReceivedAt: number | undefined;
 let renderedSnapshotRequestPending = false;
 let renderedSnapshotRequestTimeoutId = 0;
 let unsubscribe: (() => void) | null = null;
@@ -50,6 +51,7 @@ export function stopYouTubeChatFeedRecordStore(): void {
   unsubscribe?.();
   unsubscribe = null;
   ready = false;
+  lastLiveBatchReceivedAt = undefined;
   clearRenderedSnapshotRequest();
   clearYouTubeChatFeedRecords();
   resolveAllPendingRecords(null);
@@ -64,10 +66,12 @@ export function getYouTubeChatFeedRecord(
 
 /** Current feed state for consumers that start after initial collection. */
 export function getYouTubeChatFeedRecordState(): {
+  lastLiveBatchReceivedAt?: number;
   ready: boolean;
   records: YouTubeChatMessageRecord[];
 } {
   return {
+    ...(lastLiveBatchReceivedAt !== undefined ? { lastLiveBatchReceivedAt } : {}),
     ready,
     records: [...recordsById.values()]
   };
@@ -114,6 +118,9 @@ export function requestRenderedYouTubeChatFeedRecord(
 
 function applyYouTubeChatFeedRecordBatch(batch: YouTubeChatFeedBatch): void {
   ready = true;
+  if (batch.delivery === 'transport' && batch.source === 'live') {
+    lastLiveBatchReceivedAt = batch.receivedAt;
+  }
   batch.actions.forEach((action) => {
     if (action.type === 'reset') {
       clearYouTubeChatFeedRecords();
