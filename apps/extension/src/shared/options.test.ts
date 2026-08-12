@@ -14,6 +14,7 @@ describe('shared option helpers', () => {
       composerTranslateLanguage: 123,
       lastTranslationTarget: '',
       liteModeEnabled: 'yes',
+      messageDensity: 'crowded',
       playgroundEnabled: 'yes',
       playgroundGamesAvailable: 'yes',
       sound: 'yes',
@@ -29,6 +30,7 @@ describe('shared option helpers', () => {
     expect(normalizeOptions({
       chatSkin: 'aero',
       liteModeEnabled: true,
+      messageDensity: 'compact',
       sound: false,
       startupEffect: false,
       playgroundEnabled: true,
@@ -39,6 +41,7 @@ describe('shared option helpers', () => {
       startupEffect: false,
       chatSkin: 'aero',
       liteModeEnabled: true,
+      messageDensity: 'compact',
       playgroundEnabled: true,
       playgroundGamesAvailable: false,
       translationDisplay: 'below'

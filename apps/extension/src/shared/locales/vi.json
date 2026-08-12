@@ -321,6 +321,9 @@
     "onboardingTranslationDisplayHelper": {
       "message": "Chọn cách hiển thị bản dịch."
     },
+    "onboardingReplaceText": {
+      "message": "Thay thế văn bản"
+    },
     "onboardingPlaygroundHelper": {
       "message": "Chơi game với người dùng tiện ích khác."
     },
@@ -455,6 +458,9 @@
     },
     "appearance": {
       "message": "Giao diện"
+    },
+    "more": {
+      "message": "Thêm"
     },
     "performance": {
       "message": "Hiệu suất"
@@ -596,6 +602,21 @@
     },
     "chatSkinAero": {
       "message": "Aero"
+    },
+    "messageDensity": {
+      "message": "Mật độ tin nhắn"
+    },
+    "messageDensityTitle": {
+      "message": "Chọn khoảng cách giữa các tin nhắn trong cuộc trò chuyện YouTube."
+    },
+    "messageDensityHelper": {
+      "message": "Hiển thị thêm tin nhắn mà không thay đổi cỡ chữ."
+    },
+    "messageDensityDefault": {
+      "message": "Mặc định"
+    },
+    "messageDensityCompact": {
+      "message": "Gọn"
     },
     "popupResetItemBookmarks": {
       "message": "Dấu trang"

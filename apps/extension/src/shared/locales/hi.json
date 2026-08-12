@@ -322,6 +322,9 @@
     "onboardingTranslationDisplayHelper": {
       "message": "चुनें कि अनुवाद कैसे दिखाए जाएँ।"
     },
+    "onboardingReplaceText": {
+      "message": "टेक्स्ट बदलें"
+    },
     "onboardingPlaygroundHelper": {
       "message": "अन्य एक्सटेंशन उपयोगकर्ताओं के साथ गेम खेलें।"
     },
@@ -458,6 +461,9 @@
     },
     "appearance": {
       "message": "रूप"
+    },
+    "more": {
+      "message": "ज़्यादा"
     },
     "performance": {
       "message": "प्रदर्शन"
@@ -599,6 +605,21 @@
     },
     "chatSkinAero": {
       "message": "Aero"
+    },
+    "messageDensity": {
+      "message": "मैसेज डेंसिटी"
+    },
+    "messageDensityTitle": {
+      "message": "चुनें कि YouTube चैट में मैसेज कितनी पास-पास दिखें।"
+    },
+    "messageDensityHelper": {
+      "message": "टेक्स्ट का आकार बदले बिना चैट में ज़्यादा मैसेज दिखाएँ।"
+    },
+    "messageDensityDefault": {
+      "message": "डिफ़ॉल्ट"
+    },
+    "messageDensityCompact": {
+      "message": "कॉम्पैक्ट"
     },
     "popupResetItemBookmarks": {
       "message": "बुकमार्क"

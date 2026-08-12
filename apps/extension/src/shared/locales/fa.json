@@ -321,6 +321,9 @@
     "onboardingTranslationDisplayHelper": {
       "message": "نحوه نمایش ترجمه‌ها را انتخاب کنید."
     },
+    "onboardingReplaceText": {
+      "message": "جایگزینی متن"
+    },
     "onboardingPlaygroundHelper": {
       "message": "با دیگر کاربران افزونه بازی کنید."
     },
@@ -455,6 +458,9 @@
     },
     "appearance": {
       "message": "ظاهر"
+    },
+    "more": {
+      "message": "بیشتر"
     },
     "performance": {
       "message": "عملکرد"
@@ -596,6 +602,21 @@
     },
     "chatSkinAero": {
       "message": "Aero"
+    },
+    "messageDensity": {
+      "message": "تراکم پیام‌ها"
+    },
+    "messageDensityTitle": {
+      "message": "میزان فاصله بین پیام‌ها را در گپ YouTube انتخاب کنید."
+    },
+    "messageDensityHelper": {
+      "message": "بدون تغییر اندازه متن، پیام‌های بیشتری را در گپ ببینید."
+    },
+    "messageDensityDefault": {
+      "message": "پیش‌فرض"
+    },
+    "messageDensityCompact": {
+      "message": "فشرده"
     },
     "popupResetItemBookmarks": {
       "message": "نشانک‌ها"

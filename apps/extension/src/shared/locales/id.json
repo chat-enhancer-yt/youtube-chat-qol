@@ -322,6 +322,9 @@
     "onboardingTranslationDisplayHelper": {
       "message": "Pilih cara terjemahan ditampilkan."
     },
+    "onboardingReplaceText": {
+      "message": "Ganti teks"
+    },
     "onboardingPlaygroundHelper": {
       "message": "Main game dengan pengguna ekstensi lain."
     },
@@ -458,6 +461,9 @@
     },
     "appearance": {
       "message": "Tampilan"
+    },
+    "more": {
+      "message": "Lainnya"
     },
     "performance": {
       "message": "Performa"
@@ -599,6 +605,21 @@
     },
     "chatSkinAero": {
       "message": "Aero"
+    },
+    "messageDensity": {
+      "message": "Kepadatan pesan"
+    },
+    "messageDensityTitle": {
+      "message": "Pilih seberapa rapat pesan ditampilkan di chat YouTube."
+    },
+    "messageDensityHelper": {
+      "message": "Tampilkan lebih banyak pesan di chat tanpa mengubah ukuran teks."
+    },
+    "messageDensityDefault": {
+      "message": "Bawaan"
+    },
+    "messageDensityCompact": {
+      "message": "Ringkas"
     },
     "popupResetItemBookmarks": {
       "message": "Bookmark"

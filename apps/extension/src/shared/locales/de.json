@@ -321,6 +321,9 @@
     "onboardingTranslationDisplayHelper": {
       "message": "Wähle, wie Übersetzungen angezeigt werden."
     },
+    "onboardingReplaceText": {
+      "message": "Text ersetzen"
+    },
     "onboardingPlaygroundHelper": {
       "message": "Spiele mit anderen Erweiterungsnutzern."
     },
@@ -455,6 +458,9 @@
     },
     "appearance": {
       "message": "Darstellung"
+    },
+    "more": {
+      "message": "Mehr"
     },
     "performance": {
       "message": "Leistung"
@@ -596,6 +602,21 @@
     },
     "chatSkinAero": {
       "message": "Aero"
+    },
+    "messageDensity": {
+      "message": "Nachrichtendichte"
+    },
+    "messageDensityTitle": {
+      "message": "Wähle, wie eng Nachrichten im YouTube-Chat angeordnet sind."
+    },
+    "messageDensityHelper": {
+      "message": "Zeige mehr Nachrichten im Chat an, ohne die Textgröße zu ändern."
+    },
+    "messageDensityDefault": {
+      "message": "Standard"
+    },
+    "messageDensityCompact": {
+      "message": "Kompakt"
     },
     "popupResetItemBookmarks": {
       "message": "Lesezeichen"

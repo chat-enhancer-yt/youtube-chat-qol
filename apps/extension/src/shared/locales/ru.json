@@ -322,6 +322,9 @@
     "onboardingTranslationDisplayHelper": {
       "message": "Выберите, как показывать переводы."
     },
+    "onboardingReplaceText": {
+      "message": "Заменить текст"
+    },
     "onboardingPlaygroundHelper": {
       "message": "Играйте с другими пользователями расширения."
     },
@@ -458,6 +461,9 @@
     },
     "appearance": {
       "message": "Внешний вид"
+    },
+    "more": {
+      "message": "Ещё"
     },
     "performance": {
       "message": "Производительность"
@@ -599,6 +605,21 @@
     },
     "chatSkinAero": {
       "message": "Aero"
+    },
+    "messageDensity": {
+      "message": "Плотность сообщений"
+    },
+    "messageDensityTitle": {
+      "message": "Выберите расстояние между сообщениями в чате YouTube."
+    },
+    "messageDensityHelper": {
+      "message": "Показывайте больше сообщений без изменения размера текста."
+    },
+    "messageDensityDefault": {
+      "message": "По умолчанию"
+    },
+    "messageDensityCompact": {
+      "message": "Компактная"
     },
     "popupResetItemBookmarks": {
       "message": "Закладки"

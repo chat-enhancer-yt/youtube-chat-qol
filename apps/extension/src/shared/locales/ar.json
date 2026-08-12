@@ -322,6 +322,9 @@
     "onboardingTranslationDisplayHelper": {
       "message": "اختر كيفية عرض الترجمات."
     },
+    "onboardingReplaceText": {
+      "message": "استبدال النص"
+    },
     "onboardingPlaygroundHelper": {
       "message": "العب ألعابًا مع مستخدمي الإضافة الآخرين."
     },
@@ -458,6 +461,9 @@
     },
     "appearance": {
       "message": "المظهر"
+    },
+    "more": {
+      "message": "المزيد"
     },
     "performance": {
       "message": "الأداء"
@@ -599,6 +605,21 @@
     },
     "chatSkinAero": {
       "message": "Aero"
+    },
+    "messageDensity": {
+      "message": "كثافة الرسائل"
+    },
+    "messageDensityTitle": {
+      "message": "اختر مدى تقارب الرسائل في دردشة YouTube."
+    },
+    "messageDensityHelper": {
+      "message": "اعرض المزيد من الرسائل في الدردشة دون تغيير حجم النص."
+    },
+    "messageDensityDefault": {
+      "message": "افتراضية"
+    },
+    "messageDensityCompact": {
+      "message": "مضغوطة"
     },
     "popupResetItemBookmarks": {
       "message": "الإشارات"

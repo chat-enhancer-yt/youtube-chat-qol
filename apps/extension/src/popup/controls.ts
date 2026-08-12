@@ -10,7 +10,17 @@ export const controls = {
   bookmarksCount: document.querySelector<HTMLElement>('#bookmarksCount'),
   bookmarksFilter: document.querySelector<HTMLInputElement>('#bookmarksFilter'),
   bookmarksList: document.querySelector<HTMLElement>('#bookmarksList'),
+  appearanceMoreSettingsToggle: document.querySelector<HTMLButtonElement>(
+    '#appearanceMoreSettingsToggle'
+  ),
+  appearanceMoreSettingsToggleContainer: document.querySelector<HTMLElement>(
+    '#appearanceMoreSettingsToggleContainer'
+  ),
+  appearanceMoreSettingsGroup: document.querySelector<HTMLElement>(
+    '#appearanceMoreSettingsGroup'
+  ),
   chatSkin: document.querySelector<HTMLSelectElement>('#chatSkin'),
+  messageDensity: document.querySelector<HTMLSelectElement>('#messageDensity'),
   targetLanguage: document.querySelector<HTMLSelectElement>('#targetLanguage'),
   translationDisplay: document.querySelector<HTMLSelectElement>('#translationDisplay'),
   liteModeEnabled: document.querySelector<HTMLInputElement>('#liteModeEnabled'),
@@ -31,8 +41,12 @@ export const controls = {
 };
 
 export interface PopupSettingsControls {
+  appearanceMoreSettingsGroup: HTMLElement;
+  appearanceMoreSettingsToggle: HTMLButtonElement;
+  appearanceMoreSettingsToggleContainer: HTMLElement;
   chatSkin: HTMLSelectElement;
   liteModeEnabled: HTMLInputElement;
+  messageDensity: HTMLSelectElement;
   playgroundEnabled: HTMLInputElement;
   playgroundDisplayName: HTMLInputElement;
   playgroundGamesAvailable: HTMLInputElement;
@@ -52,8 +66,12 @@ export interface PopupSettingsControls {
 
 export function getSettingsControls(): PopupSettingsControls | null {
   const {
+    appearanceMoreSettingsGroup,
+    appearanceMoreSettingsToggle,
+    appearanceMoreSettingsToggleContainer,
     targetLanguage,
     chatSkin,
+    messageDensity,
     translationDisplay,
     liteModeEnabled,
     sound,
@@ -72,8 +90,12 @@ export function getSettingsControls(): PopupSettingsControls | null {
   } = controls;
 
   if (
+    !appearanceMoreSettingsGroup ||
+    !appearanceMoreSettingsToggle ||
+    !appearanceMoreSettingsToggleContainer ||
     !targetLanguage ||
     !chatSkin ||
+    !messageDensity ||
     !translationDisplay ||
     !liteModeEnabled ||
     !sound ||
@@ -94,8 +116,12 @@ export function getSettingsControls(): PopupSettingsControls | null {
   }
 
   return {
+    appearanceMoreSettingsGroup,
+    appearanceMoreSettingsToggle,
+    appearanceMoreSettingsToggleContainer,
     chatSkin,
     liteModeEnabled,
+    messageDensity,
     playgroundEnabled,
     playgroundDisplayName,
     playgroundGamesAvailable,

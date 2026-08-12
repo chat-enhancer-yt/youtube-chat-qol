@@ -22,6 +22,10 @@ export const SETTING_ICON_ANIMATIONS = {
     className: 'ytcq-bolt-redraw',
     durationMs: 550
   },
+  messageDensity: {
+    className: 'ytcq-density-compress',
+    durationMs: 700
+  },
   playgroundJoystick: {
     className: 'ytcq-playground-joystick-wiggle',
     durationMs: 560

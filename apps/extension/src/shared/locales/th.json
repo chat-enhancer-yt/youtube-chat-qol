@@ -321,6 +321,9 @@
     "onboardingTranslationDisplayHelper": {
       "message": "เลือกวิธีแสดงคำแปล"
     },
+    "onboardingReplaceText": {
+      "message": "แทนที่ข้อความ"
+    },
     "onboardingPlaygroundHelper": {
       "message": "เล่นเกมกับผู้ใช้ส่วนขยายคนอื่น ๆ"
     },
@@ -455,6 +458,9 @@
     },
     "appearance": {
       "message": "รูปลักษณ์"
+    },
+    "more": {
+      "message": "เพิ่มเติม"
     },
     "performance": {
       "message": "ประสิทธิภาพ"
@@ -596,6 +602,21 @@
     },
     "chatSkinAero": {
       "message": "Aero"
+    },
+    "messageDensity": {
+      "message": "ความหนาแน่นของข้อความ"
+    },
+    "messageDensityTitle": {
+      "message": "เลือกระยะห่างระหว่างข้อความในแชท YouTube"
+    },
+    "messageDensityHelper": {
+      "message": "แสดงข้อความในแชทได้มากขึ้นโดยไม่เปลี่ยนขนาดตัวอักษร"
+    },
+    "messageDensityDefault": {
+      "message": "ค่าเริ่มต้น"
+    },
+    "messageDensityCompact": {
+      "message": "กะทัดรัด"
     },
     "popupResetItemBookmarks": {
       "message": "บุ๊กมาร์ก"

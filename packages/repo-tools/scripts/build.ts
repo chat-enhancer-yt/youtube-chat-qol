@@ -54,6 +54,7 @@ const contentCssSources = [
   ['features', 'src/styles/content/translation.css'],
   ['features', 'src/styles/content/toast.css'],
   ...contentSkinCssSources,
+  ['features', 'src/styles/content/message-density.css'],
   ['browser-fixes', 'src/styles/content/browser-fixes.css']
 ];
 const popupCssSources = [

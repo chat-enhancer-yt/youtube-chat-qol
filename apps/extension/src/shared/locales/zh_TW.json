@@ -321,6 +321,9 @@
     "onboardingTranslationDisplayHelper": {
       "message": "選擇翻譯的顯示方式。"
     },
+    "onboardingReplaceText": {
+      "message": "取代文字"
+    },
     "onboardingPlaygroundHelper": {
       "message": "與其他擴充功能使用者一起玩遊戲。"
     },
@@ -455,6 +458,9 @@
     },
     "appearance": {
       "message": "外觀"
+    },
+    "more": {
+      "message": "更多"
     },
     "performance": {
       "message": "效能"
@@ -596,6 +602,21 @@
     },
     "chatSkinAero": {
       "message": "Aero"
+    },
+    "messageDensity": {
+      "message": "訊息密度"
+    },
+    "messageDensityTitle": {
+      "message": "選擇 YouTube 聊天中的訊息間距。"
+    },
+    "messageDensityHelper": {
+      "message": "在不變更文字大小的情況下顯示更多訊息。"
+    },
+    "messageDensityDefault": {
+      "message": "預設"
+    },
+    "messageDensityCompact": {
+      "message": "緊湊"
     },
     "popupResetItemBookmarks": {
       "message": "書籤"

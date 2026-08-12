@@ -321,6 +321,9 @@
     "onboardingTranslationDisplayHelper": {
       "message": "בחרו כיצד תרגומים מוצגים."
     },
+    "onboardingReplaceText": {
+      "message": "החלפת הטקסט"
+    },
     "onboardingPlaygroundHelper": {
       "message": "שחקו עם משתמשי הרחבה אחרים."
     },
@@ -455,6 +458,9 @@
     },
     "appearance": {
       "message": "מראה"
+    },
+    "more": {
+      "message": "עוד"
     },
     "performance": {
       "message": "ביצועים"
@@ -596,6 +602,21 @@
     },
     "chatSkinAero": {
       "message": "Aero"
+    },
+    "messageDensity": {
+      "message": "צפיפות הודעות"
+    },
+    "messageDensityTitle": {
+      "message": "בחרו את המרווח בין הודעות בצ׳אט של YouTube."
+    },
+    "messageDensityHelper": {
+      "message": "הציגו יותר הודעות בצ׳אט בלי לשנות את גודל הטקסט."
+    },
+    "messageDensityDefault": {
+      "message": "ברירת מחדל"
+    },
+    "messageDensityCompact": {
+      "message": "קומפקטית"
     },
     "popupResetItemBookmarks": {
       "message": "סימניות"

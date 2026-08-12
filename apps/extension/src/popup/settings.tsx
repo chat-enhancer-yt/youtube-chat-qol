@@ -1,5 +1,6 @@
 import { LANGUAGE_OPTIONS } from '../shared/languages';
 import { CHAT_SKIN_OPTIONS, DEFAULT_CHAT_SKIN } from '../shared/chat-skins';
+import { DEFAULT_MESSAGE_DENSITY, MESSAGE_DENSITY_OPTIONS } from '../shared/message-density';
 import { createSplitTranslateIcon } from '../shared/icons';
 import {
   getPlaygroundAvatarPresentation,
@@ -27,6 +28,7 @@ import {
   animatePopupDisplayIcon,
   animatePopupGameInvitesIcon,
   animatePopupLiteModeIcon,
+  animatePopupMessageDensityIcon,
   animatePopupPlaygroundIcon,
   animatePopupSoundIcon,
   animatePopupStartupEffectIcon,
@@ -35,26 +37,33 @@ import {
 import { getExtensionMessage, getLocalizedLanguageLabel } from './i18n';
 import { prefersReducedMotion } from '../shared/motion';
 
-const PLAYGROUND_GROUP_COLLAPSED_CLASS = 'playground-group-collapsed';
-const PLAYGROUND_GROUP_ANIMATION_MS = 180;
+const SETTINGS_GROUP_COLLAPSED_CLASS = 'settings-group-collapsed';
+const SETTINGS_GROUP_ANIMATION_MS = 180;
+const SETTINGS_GROUP_ANIMATION_FALLBACK_MS = SETTINGS_GROUP_ANIMATION_MS + 50;
+const APPEARANCE_MORE_SETTINGS_TOGGLE_CONTAINER_DISMISSED_CLASS =
+  'appearance-more-settings-toggle-container-dismissed';
 const TRANSLATION_TARGET_ICON_CLASS = 'option-icon translation-target-icon';
 
 let lastKnownTranslationTarget = DEFAULT_OPTIONS.lastTranslationTarget;
-let playgroundGamesVisibilityToken = 0;
 let playgroundProfileRequestToken = 0;
 let playgroundProfileStatsRequestToken = 0;
+const settingsGroupVisibilityTokens = new WeakMap<HTMLElement, number>();
 
 export function initSettingsControls(popupLocale: string): void {
   const settingsControls = getSettingsControls();
   if (!settingsControls) return;
 
   const {
+    appearanceMoreSettingsToggle,
+    appearanceMoreSettingsToggleContainer,
     chatSkin,
     liteModeEnabled,
+    messageDensity,
     targetLanguage,
     translationDisplay,
     sound,
     startupEffect,
+    appearanceMoreSettingsGroup,
     playgroundEnabled,
     playgroundGamesAvailable,
     playgroundDisplayName,
@@ -63,6 +72,7 @@ export function initSettingsControls(popupLocale: string): void {
 
   preparePopupTranslationIcon();
   populateChatSkinOptions(chatSkin);
+  populateMessageDensityOptions(messageDensity);
 
   targetLanguage.appendChild(createSelectOption('', getExtensionMessage('off')));
   for (const [value, label] of LANGUAGE_OPTIONS) {
@@ -95,6 +105,12 @@ export function initSettingsControls(popupLocale: string): void {
     save({ chatSkin: nextSkin });
   });
 
+  messageDensity.addEventListener('change', () => {
+    const nextDensity = messageDensity.value as Options['messageDensity'];
+    if (nextDensity !== DEFAULT_MESSAGE_DENSITY) animatePopupMessageDensityIcon();
+    save({ messageDensity: nextDensity });
+  });
+
   liteModeEnabled.addEventListener('change', () => {
     const enabled = liteModeEnabled.checked;
     if (enabled) animatePopupLiteModeIcon();
@@ -114,6 +130,27 @@ export function initSettingsControls(popupLocale: string): void {
     const enabled = startupEffect.checked;
     if (enabled) animatePopupStartupEffectIcon();
     save({ startupEffect: enabled });
+  });
+
+  appearanceMoreSettingsToggle.addEventListener('click', () => {
+    if (appearanceMoreSettingsToggle.getAttribute('aria-expanded') === 'true') return;
+
+    const appearanceSection =
+      appearanceMoreSettingsToggle.closest<HTMLElement>('.settings-section');
+    const settingsPanel = appearanceSection?.closest<HTMLElement>('#settingsPanel');
+    appearanceMoreSettingsToggle.setAttribute('aria-expanded', 'true');
+    appearanceMoreSettingsToggleContainer.classList.add(
+      APPEARANCE_MORE_SETTINGS_TOGGLE_CONTAINER_DISMISSED_CLASS
+    );
+    const stopFollowingPanelBottom =
+      settingsPanel && !prefersReducedMotion()
+        ? followScrollableElementBottom(settingsPanel)
+        : () => undefined;
+    updateSettingsGroupVisibility(appearanceMoreSettingsGroup, true, true, () => {
+      stopFollowingPanelBottom();
+      appearanceMoreSettingsToggleContainer.hidden = true;
+      if (settingsPanel) settingsPanel.scrollTop = settingsPanel.scrollHeight;
+    });
   });
 
   playgroundEnabled.addEventListener('change', () => {
@@ -155,6 +192,7 @@ export function applyOptionsToControls(options: Partial<Options>): void {
   const {
     chatSkin,
     liteModeEnabled,
+    messageDensity,
     targetLanguage,
     translationDisplay,
     sound,
@@ -166,6 +204,7 @@ export function applyOptionsToControls(options: Partial<Options>): void {
   const normalized = normalizeOptions(options);
   chatSkin.value = normalized.chatSkin;
   liteModeEnabled.checked = normalized.liteModeEnabled;
+  messageDensity.value = normalized.messageDensity;
   lastKnownTranslationTarget = normalized.lastTranslationTarget;
   targetLanguage.value = normalized.targetLanguage;
   translationDisplay.value = normalized.translationDisplay;
@@ -203,39 +242,102 @@ function populateChatSkinOptions(chatSkin: HTMLSelectElement): void {
   );
 }
 
+function populateMessageDensityOptions(messageDensity: HTMLSelectElement): void {
+  messageDensity.replaceChildren(
+    ...MESSAGE_DENSITY_OPTIONS.map(({ id, labelMessage }) =>
+      createSelectOption(id, getExtensionMessage(labelMessage))
+    )
+  );
+}
+
 function updatePlaygroundGamesVisibility(playgroundEnabled: boolean, animated = false): void {
   const settingsControls = getSettingsControls();
   if (!settingsControls) return;
 
-  const section = settingsControls.playgroundGamesSection;
-  const token = ++playgroundGamesVisibilityToken;
+  updateSettingsGroupVisibility(
+    settingsControls.playgroundGamesSection,
+    playgroundEnabled,
+    animated
+  );
+}
+
+function updateSettingsGroupVisibility(
+  section: HTMLElement,
+  visible: boolean,
+  animated: boolean,
+  afterShow?: () => void
+): void {
+  const token = (settingsGroupVisibilityTokens.get(section) ?? 0) + 1;
+  settingsGroupVisibilityTokens.set(section, token);
   const shouldAnimate = animated && !prefersReducedMotion();
 
-  if (playgroundEnabled) {
+  if (visible) {
     section.hidden = false;
     if (!shouldAnimate) {
-      section.classList.remove(PLAYGROUND_GROUP_COLLAPSED_CLASS);
+      section.classList.remove(SETTINGS_GROUP_COLLAPSED_CLASS);
+      afterShow?.();
       return;
     }
 
-    section.classList.add(PLAYGROUND_GROUP_COLLAPSED_CLASS);
+    section.classList.add(SETTINGS_GROUP_COLLAPSED_CLASS);
     window.setTimeout(() => {
-      if (token === playgroundGamesVisibilityToken) {
-        section.classList.remove(PLAYGROUND_GROUP_COLLAPSED_CLASS);
+      if (settingsGroupVisibilityTokens.get(section) !== token) return;
+      if (afterShow) {
+        runAfterSettingsGroupTransition(section, token, afterShow);
       }
+      section.classList.remove(SETTINGS_GROUP_COLLAPSED_CLASS);
     }, 0);
     return;
   }
 
-  section.classList.add(PLAYGROUND_GROUP_COLLAPSED_CLASS);
   if (!shouldAnimate) {
+    section.classList.add(SETTINGS_GROUP_COLLAPSED_CLASS);
     section.hidden = true;
     return;
   }
 
-  window.setTimeout(() => {
-    if (token === playgroundGamesVisibilityToken) section.hidden = true;
-  }, PLAYGROUND_GROUP_ANIMATION_MS);
+  runAfterSettingsGroupTransition(section, token, () => {
+    section.hidden = true;
+  });
+  section.classList.add(SETTINGS_GROUP_COLLAPSED_CLASS);
+}
+
+function runAfterSettingsGroupTransition(
+  section: HTMLElement,
+  token: number,
+  callback: () => void
+): void {
+  let completed = false;
+  let fallbackTimer: number | undefined;
+  const finish = (): void => {
+    if (completed) return;
+    completed = true;
+    section.removeEventListener('transitionend', handleTransitionEnd);
+    if (fallbackTimer !== undefined) window.clearTimeout(fallbackTimer);
+    if (settingsGroupVisibilityTokens.get(section) === token) callback();
+  };
+  const handleTransitionEnd = (event: TransitionEvent): void => {
+    if (event.target === section && event.propertyName === 'transform') finish();
+  };
+
+  section.addEventListener('transitionend', handleTransitionEnd);
+  fallbackTimer = window.setTimeout(finish, SETTINGS_GROUP_ANIMATION_FALLBACK_MS);
+}
+
+function followScrollableElementBottom(element: HTMLElement): () => void {
+  let active = true;
+  let frameId = 0;
+  const follow = (): void => {
+    if (!active) return;
+    element.scrollTop = element.scrollHeight;
+    frameId = window.requestAnimationFrame(follow);
+  };
+
+  follow();
+  return () => {
+    active = false;
+    window.cancelAnimationFrame(frameId);
+  };
 }
 
 function updatePlaygroundProfile(playgroundEnabled: boolean): void {

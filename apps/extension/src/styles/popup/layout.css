@@ -512,6 +512,7 @@ main {
 
 #playgroundGamesSection {
   max-height: none;
+  overflow: hidden;
   opacity: 1;
   transform: translateY(0);
   transition:
@@ -523,7 +524,7 @@ main {
     transform 180ms ease;
 }
 
-#playgroundGamesSection.playground-group-collapsed {
+#playgroundGamesSection.settings-group-collapsed {
   max-height: 0;
   margin-top: 0;
   padding-top: 0;
@@ -532,13 +533,42 @@ main {
   transform: translateY(-5px);
 }
 
+.appearance-more-settings-group {
+  display: grid;
+  grid-template-rows: 1fr;
+  overflow: hidden;
+  opacity: 1;
+  transform: translateY(0);
+  transition:
+    grid-template-rows 180ms cubic-bezier(0, 0, 0.2, 1),
+    opacity 180ms ease-out,
+    transform 180ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.appearance-more-settings-content {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.appearance-more-settings-group.settings-group-collapsed {
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transform: translateY(-5px);
+  transition-timing-function:
+    cubic-bezier(0.4, 0, 1, 1),
+    linear,
+    cubic-bezier(0.4, 0, 1, 1);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .popup-tabs.popup-tab-highlight-animated::before,
   .popup-tabs::before,
   .popup-tab,
   .popup-scrollbar,
   .popup-scrollbar-thumb,
-  #playgroundGamesSection {
+  #playgroundGamesSection,
+  .appearance-more-settings-group,
+  .appearance-more-settings-toggle-container {
     transition: none;
   }
 }

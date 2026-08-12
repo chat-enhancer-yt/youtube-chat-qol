@@ -16,8 +16,8 @@
 
 .translation-target-icon .translation-source-mark,
 .translation-target-icon .translation-target-mark,
-.translation-display-icon .translation-display-frame,
-.translation-display-icon .translation-display-line {
+.translation-display-icon .translation-display-message,
+.translation-display-icon .translation-display-flow {
   transform-box: fill-box;
   transform-origin: center;
 }
@@ -73,6 +73,31 @@
   animation-delay: 150ms;
 }
 
+.message-density-icon .message-density-line {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.message-density-line-top {
+  --ytcq-density-line-shift: 3px;
+}
+
+.message-density-line-upper {
+  --ytcq-density-line-shift: 1px;
+}
+
+.message-density-line-lower {
+  --ytcq-density-line-shift: -1px;
+}
+
+.message-density-line-bottom {
+  --ytcq-density-line-shift: -3px;
+}
+
+.message-density-icon.ytcq-density-compress .message-density-line {
+  animation: ytcq-density-line-compress 620ms cubic-bezier(0.18, 0.89, 0.32, 1.18);
+}
+
 .playground-joystick-icon {
   transform-box: view-box;
   transform-origin: 50% 63%;
@@ -112,20 +137,16 @@
   animation: ytcq-translation-target-pop 560ms ease-out 60ms;
 }
 
-.translation-display-icon.ytcq-display-reflow .translation-display-frame {
-  animation: ytcq-display-frame-reflow 680ms ease-out;
+.translation-display-icon.ytcq-display-reflow .translation-display-message-original {
+  animation: ytcq-display-original-shift 680ms ease-out;
 }
 
-.translation-display-icon.ytcq-display-reflow .translation-display-line-top {
-  animation: ytcq-display-line-top-reflow 680ms ease-out;
+.translation-display-icon.ytcq-display-reflow .translation-display-flow {
+  animation: ytcq-display-flow-step 680ms ease-out 40ms;
 }
 
-.translation-display-icon.ytcq-display-reflow .translation-display-line-left {
-  animation: ytcq-display-line-bottom-reflow 680ms ease-out 70ms;
-}
-
-.translation-display-icon.ytcq-display-reflow .translation-display-line-right {
-  animation: ytcq-display-line-bottom-reflow 680ms ease-out 120ms;
+.translation-display-icon.ytcq-display-reflow .translation-display-message-translation {
+  animation: ytcq-display-translation-arrive 680ms ease-out 80ms;
 }
 
 .startup-effect-icon .startup-sparkle {
@@ -290,6 +311,21 @@
   }
 }
 
+@keyframes ytcq-density-line-compress {
+  0%,
+  100% {
+    transform: translateY(0) scaleX(1);
+  }
+
+  38% {
+    transform: translateY(var(--ytcq-density-line-shift)) scaleX(0.76);
+  }
+
+  70% {
+    transform: translateY(0) scaleX(1.08);
+  }
+}
+
 @keyframes ytcq-playground-joystick-stick-tilt {
   0%,
   100% {
@@ -367,53 +403,56 @@
   }
 }
 
-@keyframes ytcq-display-frame-reflow {
+@keyframes ytcq-display-original-shift {
   0%,
   100% {
-    transform: scale(1);
+    transform: translateY(0) scale(1);
+    opacity: 1;
   }
 
   34% {
-    transform: scale(1.07);
+    transform: translateY(-1.5px) scale(0.94);
+    opacity: 0.68;
   }
 
   68% {
-    transform: scale(0.97);
-  }
-}
-
-@keyframes ytcq-display-line-top-reflow {
-  0%,
-  100% {
-    transform: translateY(0) scaleX(1);
-    opacity: 1;
-  }
-
-  34% {
-    transform: translateY(3px) scaleX(0.58);
-    opacity: 0.62;
-  }
-
-  66% {
-    transform: translateY(-0.7px) scaleX(1.08);
+    transform: translateY(0.3px) scale(1.03);
     opacity: 1;
   }
 }
 
-@keyframes ytcq-display-line-bottom-reflow {
+@keyframes ytcq-display-flow-step {
   0%,
   100% {
-    transform: translateY(0) scaleX(1);
+    transform: translateY(0) scale(1);
     opacity: 1;
   }
 
   34% {
-    transform: translateY(-2px) scaleX(0.72);
-    opacity: 0.64;
+    transform: translateY(2px) scale(0.72);
+    opacity: 0.48;
   }
 
-  66% {
-    transform: translateY(0.8px) scaleX(1.16);
+  68% {
+    transform: translateY(-0.3px) scale(1.18);
+    opacity: 1;
+  }
+}
+
+@keyframes ytcq-display-translation-arrive {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+
+  34% {
+    transform: translateY(2.5px) scale(0.84);
+    opacity: 0.46;
+  }
+
+  68% {
+    transform: translateY(-0.5px) scale(1.07);
     opacity: 1;
   }
 }
@@ -527,8 +566,9 @@
   .translation-target-icon.ytcq-translation-pulse .translation-target-mark,
   .chat-skin-icon.ytcq-palette-pop .chat-skin-palette-body,
   .chat-skin-icon.ytcq-palette-pop .chat-skin-palette-spot,
-  .translation-display-icon.ytcq-display-reflow .translation-display-frame,
-  .translation-display-icon.ytcq-display-reflow .translation-display-line,
+  .message-density-icon.ytcq-density-compress .message-density-line,
+  .translation-display-icon.ytcq-display-reflow .translation-display-message,
+  .translation-display-icon.ytcq-display-reflow .translation-display-flow,
   .playground-joystick-icon.ytcq-playground-joystick-wiggle,
   .playground-joystick-icon.ytcq-playground-joystick-wiggle .playground-joystick-stick,
   .game-invites-icon.ytcq-game-controller-hop,

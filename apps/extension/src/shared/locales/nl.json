@@ -321,6 +321,9 @@
     "onboardingTranslationDisplayHelper": {
       "message": "Kies hoe vertalingen worden weergegeven."
     },
+    "onboardingReplaceText": {
+      "message": "Tekst vervangen"
+    },
     "onboardingPlaygroundHelper": {
       "message": "Speel games met andere extensiegebruikers."
     },
@@ -455,6 +458,9 @@
     },
     "appearance": {
       "message": "Weergave"
+    },
+    "more": {
+      "message": "Meer"
     },
     "performance": {
       "message": "Prestaties"
@@ -596,6 +602,21 @@
     },
     "chatSkinAero": {
       "message": "Aero"
+    },
+    "messageDensity": {
+      "message": "Berichtdichtheid"
+    },
+    "messageDensityTitle": {
+      "message": "Kies hoe dicht berichten in YouTube-chat op elkaar staan."
+    },
+    "messageDensityHelper": {
+      "message": "Toon meer berichten in de chat zonder de tekstgrootte te wijzigen."
+    },
+    "messageDensityDefault": {
+      "message": "Standaard"
+    },
+    "messageDensityCompact": {
+      "message": "Compact"
     },
     "popupResetItemBookmarks": {
       "message": "Bladwijzers"

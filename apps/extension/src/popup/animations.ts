@@ -28,6 +28,10 @@ export function animatePopupLiteModeIcon(): void {
   animatePopupIcon('.lite-mode-icon', SETTING_ICON_ANIMATIONS.liteMode);
 }
 
+export function animatePopupMessageDensityIcon(): void {
+  animatePopupIcon('.message-density-icon', SETTING_ICON_ANIMATIONS.messageDensity);
+}
+
 export function animatePopupPlaygroundIcon(): void {
   animatePopupIcon('.playground-joystick-icon', SETTING_ICON_ANIMATIONS.playgroundJoystick);
 }

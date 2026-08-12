@@ -10,6 +10,11 @@ import {
   isChatSkin,
   type ChatSkin
 } from './chat-skins';
+import {
+  DEFAULT_MESSAGE_DENSITY,
+  isMessageDensity,
+  type MessageDensity
+} from './message-density';
 
 export type TranslationDisplay = 'replace' | 'below';
 
@@ -17,6 +22,7 @@ export interface Options {
   chatSkin: ChatSkin;
   composerTranslateLanguage: string;
   liteModeEnabled: boolean;
+  messageDensity: MessageDensity;
   targetLanguage: string;
   lastTranslationTarget: string;
   translationDisplay: TranslationDisplay;
@@ -32,6 +38,7 @@ export const DEFAULT_OPTIONS: Options = {
   chatSkin: DEFAULT_CHAT_SKIN,
   composerTranslateLanguage: '',
   liteModeEnabled: false,
+  messageDensity: DEFAULT_MESSAGE_DENSITY,
   targetLanguage: '',
   lastTranslationTarget: DEFAULT_TRANSLATION_TARGET,
   translationDisplay: 'replace',
@@ -54,6 +61,9 @@ export function normalizeOptions(value: Partial<Options> | Record<string, unknow
   const composerTranslateLanguage = getStringOption(candidate.composerTranslateLanguage);
   const targetLanguage = getStringOption(candidate.targetLanguage);
   const lastTranslationTarget = getStringOption(candidate.lastTranslationTarget) || targetLanguage || DEFAULT_TRANSLATION_TARGET;
+  const messageDensity = isMessageDensity(candidate.messageDensity)
+    ? candidate.messageDensity
+    : DEFAULT_OPTIONS.messageDensity;
   const translationDisplay = TRANSLATION_DISPLAY_OPTIONS.some(([mode]) => mode === candidate.translationDisplay)
     ? candidate.translationDisplay as TranslationDisplay
     : DEFAULT_OPTIONS.translationDisplay;
@@ -62,6 +72,7 @@ export function normalizeOptions(value: Partial<Options> | Record<string, unknow
     chatSkin,
     composerTranslateLanguage,
     liteModeEnabled: candidate.liteModeEnabled === true,
+    messageDensity,
     targetLanguage,
     lastTranslationTarget,
     translationDisplay,

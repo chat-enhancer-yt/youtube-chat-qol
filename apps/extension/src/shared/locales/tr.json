@@ -322,6 +322,9 @@
     "onboardingTranslationDisplayHelper": {
       "message": "Çevirilerin nasıl gösterileceğini seçin."
     },
+    "onboardingReplaceText": {
+      "message": "Metni değiştir"
+    },
     "onboardingPlaygroundHelper": {
       "message": "Diğer uzantı kullanıcılarıyla oyun oynayın."
     },
@@ -458,6 +461,9 @@
     },
     "appearance": {
       "message": "Görünüm"
+    },
+    "more": {
+      "message": "Daha fazla"
     },
     "performance": {
       "message": "Performans"
@@ -599,6 +605,21 @@
     },
     "chatSkinAero": {
       "message": "Aero"
+    },
+    "messageDensity": {
+      "message": "Mesaj yoğunluğu"
+    },
+    "messageDensityTitle": {
+      "message": "YouTube sohbetinde mesajların ne kadar yakın görüneceğini seçin."
+    },
+    "messageDensityHelper": {
+      "message": "Metin boyutunu değiştirmeden sohbette daha fazla mesaj gösterin."
+    },
+    "messageDensityDefault": {
+      "message": "Varsayılan"
+    },
+    "messageDensityCompact": {
+      "message": "Kompakt"
     },
     "popupResetItemBookmarks": {
       "message": "Yer imleri"

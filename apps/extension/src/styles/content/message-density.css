@@ -1,0 +1,100 @@
+/*
+ * Optional maximum compaction for ordinary native and Lite chat messages.
+ * Typography and action hit areas stay at their normal size.
+ */
+:root[data-ytcq-message-density="compact"] {
+  --ytcq-density-avatar-gap: 8px;
+  --ytcq-density-avatar-size: 20px;
+  --ytcq-density-content-offset: 2px;
+  --ytcq-density-feed-end-padding: 40px;
+  --ytcq-density-feed-inline-padding: 12px;
+  --ytcq-density-items-block-padding: 4px;
+  --ytcq-density-menu-top: -2px;
+  --ytcq-density-row-block-padding: 2px;
+  --ytcq-density-aero-frame-size: 31px;
+}
+
+:root[data-ytcq-message-density="compact"] :where(
+  yt-live-chat-text-message-renderer,
+  yt-live-chat-membership-item-renderer,
+  yt-live-chat-placeholder-item-renderer
+) {
+  box-sizing: border-box;
+  min-height: 24px !important;
+  padding: var(--ytcq-density-row-block-padding)
+    var(--ytcq-density-feed-inline-padding) !important;
+}
+
+:root[data-ytcq-message-density="compact"] :where(
+  yt-live-chat-text-message-renderer,
+  yt-live-chat-membership-item-renderer,
+  yt-live-chat-placeholder-item-renderer
+) > #author-photo {
+  width: var(--ytcq-density-avatar-size) !important;
+  min-width: var(--ytcq-density-avatar-size) !important;
+  max-width: var(--ytcq-density-avatar-size) !important;
+  height: var(--ytcq-density-avatar-size) !important;
+  min-height: var(--ytcq-density-avatar-size) !important;
+  max-height: var(--ytcq-density-avatar-size) !important;
+  margin-inline-end: var(--ytcq-density-avatar-gap) !important;
+  flex-basis: var(--ytcq-density-avatar-size) !important;
+}
+
+:root[data-ytcq-message-density="compact"] :where(
+  yt-live-chat-text-message-renderer,
+  yt-live-chat-membership-item-renderer,
+  yt-live-chat-placeholder-item-renderer
+) > #author-photo :where(img, #img) {
+  width: var(--ytcq-density-avatar-size) !important;
+  min-width: var(--ytcq-density-avatar-size) !important;
+  max-width: var(--ytcq-density-avatar-size) !important;
+  height: var(--ytcq-density-avatar-size) !important;
+  min-height: var(--ytcq-density-avatar-size) !important;
+  max-height: var(--ytcq-density-avatar-size) !important;
+}
+
+:root[data-ytcq-message-density="compact"] :where(
+  yt-live-chat-text-message-renderer,
+  yt-live-chat-membership-item-renderer,
+  yt-live-chat-placeholder-item-renderer
+) > #content {
+  padding-top: var(--ytcq-density-content-offset) !important;
+}
+
+:root[data-ytcq-message-density="compact"] .ytcq-lite-items {
+  padding-block: var(--ytcq-density-items-block-padding);
+}
+
+:root[data-ytcq-message-density="compact"] .ytcq-lite-message {
+  min-height: 24px;
+  grid-template-columns: var(--ytcq-density-avatar-size) minmax(0, 1fr);
+  column-gap: var(--ytcq-density-avatar-gap);
+  padding: var(--ytcq-density-row-block-padding) var(--ytcq-density-feed-end-padding)
+    var(--ytcq-density-row-block-padding) var(--ytcq-density-feed-inline-padding);
+}
+
+:root[data-ytcq-message-density="compact"] .ytcq-lite-message-menu {
+  top: var(--ytcq-density-menu-top);
+}
+
+:root[data-ytcq-message-density="compact"] :where(
+  .ytcq-lite-author-photo,
+  .ytcq-lite-author-photo > img
+) {
+  width: var(--ytcq-density-avatar-size);
+  min-width: var(--ytcq-density-avatar-size);
+  max-width: var(--ytcq-density-avatar-size);
+  height: var(--ytcq-density-avatar-size);
+  min-height: var(--ytcq-density-avatar-size);
+  max-height: var(--ytcq-density-avatar-size);
+}
+
+/* Keep Aero's decorative frame proportional to the compact avatar. */
+:root[data-ytcq-chat-skin="aero"][data-ytcq-message-density="compact"] :where(
+  yt-live-chat-text-message-renderer,
+  yt-live-chat-membership-item-renderer,
+  yt-live-chat-placeholder-item-renderer
+) > #author-photo,
+:root[data-ytcq-chat-skin="aero"][data-ytcq-message-density="compact"] .ytcq-lite-author-photo {
+  --ytcq-aero-avatar-frame-size: var(--ytcq-density-aero-frame-size);
+}

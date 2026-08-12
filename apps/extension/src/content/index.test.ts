@@ -427,6 +427,22 @@ describe('content script entrypoint wiring', () => {
     }));
 
     storageListener?.({
+      messageDensity: {
+        newValue: 'compact',
+        oldValue: 'default'
+      }
+    }, 'sync');
+    expect(getOptions().chatSkin).toBe('aero');
+    expect(getOptions().messageDensity).toBe('compact');
+    expect(document.documentElement.getAttribute('data-ytcq-chat-skin')).toBe('aero');
+    expect(document.documentElement.getAttribute('data-ytcq-chat-skin-theme')).toBe('dark');
+    expect(document.documentElement.getAttribute('data-ytcq-message-density')).toBe('compact');
+
+    storageListener?.({
+      messageDensity: {
+        newValue: 'default',
+        oldValue: 'compact'
+      },
       chatSkin: {
         newValue: 'system',
         oldValue: 'aero'
@@ -434,6 +450,7 @@ describe('content script entrypoint wiring', () => {
     }, 'sync');
     expect(document.documentElement.getAttribute('data-ytcq-chat-skin')).toBeNull();
     expect(document.documentElement.getAttribute('data-ytcq-chat-skin-theme')).toBeNull();
+    expect(document.documentElement.getAttribute('data-ytcq-message-density')).toBeNull();
     expect(document.documentElement.hasAttribute('dark')).toBe(true);
   });
 

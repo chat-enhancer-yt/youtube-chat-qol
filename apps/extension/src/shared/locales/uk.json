@@ -321,6 +321,9 @@
     "onboardingTranslationDisplayHelper": {
       "message": "Виберіть, як показувати переклади."
     },
+    "onboardingReplaceText": {
+      "message": "Замінити текст"
+    },
     "onboardingPlaygroundHelper": {
       "message": "Грайте з іншими користувачами розширення."
     },
@@ -455,6 +458,9 @@
     },
     "appearance": {
       "message": "Вигляд"
+    },
+    "more": {
+      "message": "Більше"
     },
     "performance": {
       "message": "Продуктивність"
@@ -596,6 +602,21 @@
     },
     "chatSkinAero": {
       "message": "Aero"
+    },
+    "messageDensity": {
+      "message": "Щільність повідомлень"
+    },
+    "messageDensityTitle": {
+      "message": "Виберіть відстань між повідомленнями в чаті YouTube."
+    },
+    "messageDensityHelper": {
+      "message": "Показуйте більше повідомлень без зміни розміру тексту."
+    },
+    "messageDensityDefault": {
+      "message": "За замовчуванням"
+    },
+    "messageDensityCompact": {
+      "message": "Компактна"
     },
     "popupResetItemBookmarks": {
       "message": "Закладки"

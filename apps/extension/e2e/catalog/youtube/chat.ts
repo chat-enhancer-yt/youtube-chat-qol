@@ -18,6 +18,7 @@ import {
   settingsMenuScenario
 } from '../../scenarios/menus';
 import { settingsMenuBehaviorScenario } from '../../scenarios/settings';
+import { compactMessageDensityScenario } from '../../scenarios/message-density';
 import {
   youtubeScenarioPairs as pair,
   youtubeScenarioTargets as target,
@@ -36,6 +37,11 @@ const menuSurfaces = [
 ] as const;
 
 export const chatScenarios: readonly YouTubeScenario[] = [
+  {
+    title: 'Compact message density combines with themes without changing typography',
+    run: compactMessageDensityScenario,
+    on: pair.liveLoggedIn
+  },
   {
     title: 'chat settings menu receives extension controls',
     run: settingsMenuScenario,

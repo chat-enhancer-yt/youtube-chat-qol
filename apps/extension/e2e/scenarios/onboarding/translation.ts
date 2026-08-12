@@ -10,6 +10,9 @@ export const onboardingTranslationPreviewScenario: ExtensionScenario = async ({ 
     await expect(onboarding.locator('[data-i18n="onboardingTranslationDisplayHelper"]')).toHaveText(
       'Choose how translations are shown.'
     );
+    await expect(
+      onboarding.locator('#onboardingTranslationDisplay option[value="replace"]')
+    ).toHaveText('Replace text');
     await expect(onboarding.locator('#previewInlineTranslateIcon')).toHaveCSS(
       'animation-name',
       'preview-icon-enter'

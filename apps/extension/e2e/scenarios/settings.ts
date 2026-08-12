@@ -19,6 +19,7 @@ const SETTINGS_INITIAL_VALUES = {
   lastTranslationTarget: 'ja',
   translationDisplay: 'replace',
   liteModeEnabled: false,
+  messageDensity: 'default',
   sound: false,
   startupEffect: true
 };
@@ -39,6 +40,7 @@ export const popupSettingsBehaviorScenario: BrowserScenario = async ({ context }
     try {
       await changePopupTranslationTarget({ context, popup });
       await changePopupTranslationDisplay({ context, popup });
+      await changePopupMessageDensity({ context, popup });
       await changePopupLiteMode({ context, popup });
       await changePopupAlertSounds({ context, popup });
       await changePopupStartupEffect({ context, popup });
@@ -123,7 +125,15 @@ async function changePopupTranslationDisplay({
   popup: Page;
 }): Promise<void> {
   await test.step('Set popup translation display mode', async () => {
+    const icon = popup.locator('.translation-display-icon');
+    await expect(icon.locator('.translation-display-message')).toHaveCount(2);
+    await expect(icon.locator('.translation-display-flow')).toHaveCount(1);
     await popup.locator('#translationDisplay').selectOption('below');
+    await expect(icon).toHaveClass(/ytcq-display-reflow/);
+    await expect(icon.locator('.translation-display-message-translation')).toHaveCSS(
+      'animation-name',
+      'ytcq-display-translation-arrive'
+    );
     await expectStorageValue(context, 'translationDisplay', 'below');
   });
 }
@@ -144,6 +154,31 @@ async function changePopupLiteMode({
     ).toHaveText('Beta');
     await popup.locator('#liteModeEnabled').setChecked(true);
     await expectStorageValue(context, 'liteModeEnabled', true);
+  });
+}
+
+async function changePopupMessageDensity({
+  context,
+  popup
+}: {
+  context: BrowserContext;
+  popup: Page;
+}): Promise<void> {
+  await test.step('Set message density directly below the theme control', async () => {
+    const control = popup.locator(
+      '.option-control:has(#chatSkin) + .option-control #messageDensity'
+    );
+    await expect(control).toBeVisible();
+    await expect(popup.locator('#messageDensityLabel')).toHaveText('Message density');
+    await expect(control.locator('option')).toHaveText(['Default', 'Compact']);
+    await expect(popup.locator('.message-density-icon')).not.toHaveClass(/ytcq-density-compress/);
+    await control.selectOption('compact');
+    await expect(popup.locator('.message-density-icon')).toHaveClass(/ytcq-density-compress/);
+    await expect(popup.locator('.message-density-line-top')).toHaveCSS(
+      'animation-name',
+      'ytcq-density-line-compress'
+    );
+    await expectStorageValue(context, 'messageDensity', 'compact');
   });
 }
 
@@ -168,12 +203,82 @@ async function changePopupStartupEffect({
   popup: Page;
 }): Promise<void> {
   await test.step('Set popup startup effect option', async () => {
+    const group = popup.locator('#appearanceMoreSettingsGroup');
+    const option = popup.locator('#startupEffectOption');
+    const moreSettings = popup.locator('#appearanceMoreSettingsToggle');
     const control = popup.locator('#startupEffect');
-    if (await control.isDisabled()) return;
+    await expect(group).toBeHidden();
+    await expect(moreSettings).toHaveText('More');
+    await expect(moreSettings).toHaveAttribute('aria-expanded', 'false');
+    await expect(moreSettings).toHaveAttribute('aria-controls', 'appearanceMoreSettingsGroup');
+    await expectMoreSettingsChevronOffset(moreSettings, -1.5);
+    await expect
+      .poll(async () => {
+        const [buttonBounds, sectionBounds] = await Promise.all([
+          moreSettings.boundingBox(),
+          popup.locator('#appearanceSettingsSection').boundingBox()
+        ]);
+        if (!buttonBounds || !sectionBounds) return null;
+        return {
+          height: buttonBounds.height,
+          widthInset: sectionBounds.width - buttonBounds.width
+        };
+      })
+      .toEqual({ height: 24, widthInset: 16 });
 
-    await control.setChecked(false);
-    await expectStorageValue(context, 'startupEffect', false);
+    await moreSettings.click();
+    await expect(moreSettings).toHaveAttribute('aria-expanded', 'true');
+    await expect(moreSettings).toBeHidden();
+    await expect(group).toBeVisible();
+    await expect(option).toBeVisible();
+    await expect(group.locator(':scope > .appearance-more-settings-content')).toHaveCSS(
+      'min-height',
+      '0px'
+    );
+    await expect(group).toHaveCSS(
+      'transition-property',
+      'grid-template-rows, opacity, transform'
+    );
+    await expect
+      .poll(async () => {
+        const [panelBounds, sectionBounds] = await Promise.all([
+          popup.locator('#settingsPanel').boundingBox(),
+          popup.locator('#appearanceSettingsSection').boundingBox()
+        ]);
+        if (!panelBounds || !sectionBounds) return false;
+        const panelBottom = panelBounds.y + panelBounds.height;
+        const sectionBottom = sectionBounds.y + sectionBounds.height;
+        return Math.abs(panelBottom - sectionBottom) <= 1 && sectionBounds.y >= panelBounds.y;
+      })
+      .toBe(true);
+
+    if (!(await control.isDisabled())) {
+      await control.setChecked(false);
+      await expectStorageValue(context, 'startupEffect', false);
+    }
+
+    await popup.reload();
+    await expect(group).toBeHidden();
+    await expect(moreSettings).toBeVisible();
+    await expect(moreSettings).toHaveAttribute('aria-expanded', 'false');
   });
+}
+
+async function expectMoreSettingsChevronOffset(
+  toggle: Locator,
+  expectedY: number
+): Promise<void> {
+  await expect
+    .poll(() =>
+      toggle.evaluate((element) => {
+        const matrix = new DOMMatrixReadOnly(getComputedStyle(element, '::after').transform);
+        return {
+          x: Math.round(matrix.m41 * 10) / 10,
+          y: Math.round(matrix.m42 * 10) / 10
+        };
+      })
+    )
+    .toEqual({ x: 0, y: expectedY });
 }
 
 async function openExtensionPopup(context: BrowserContext): Promise<Page> {

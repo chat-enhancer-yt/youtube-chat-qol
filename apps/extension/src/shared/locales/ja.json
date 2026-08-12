@@ -322,6 +322,9 @@
     "onboardingTranslationDisplayHelper": {
       "message": "翻訳の表示方法を選びます。"
     },
+    "onboardingReplaceText": {
+      "message": "テキストを置き換え"
+    },
     "onboardingPlaygroundHelper": {
       "message": "他の拡張機能ユーザーとゲームをプレイします。"
     },
@@ -458,6 +461,9 @@
     },
     "appearance": {
       "message": "表示"
+    },
+    "more": {
+      "message": "もっと見る"
     },
     "performance": {
       "message": "パフォーマンス"
@@ -599,6 +605,21 @@
     },
     "chatSkinAero": {
       "message": "Aero"
+    },
+    "messageDensity": {
+      "message": "メッセージ密度"
+    },
+    "messageDensityTitle": {
+      "message": "YouTube チャットのメッセージ間隔を選択します。"
+    },
+    "messageDensityHelper": {
+      "message": "文字サイズを変えずに、より多くのメッセージを表示します。"
+    },
+    "messageDensityDefault": {
+      "message": "デフォルト"
+    },
+    "messageDensityCompact": {
+      "message": "コンパクト"
     },
     "popupResetItemBookmarks": {
       "message": "ブックマーク"

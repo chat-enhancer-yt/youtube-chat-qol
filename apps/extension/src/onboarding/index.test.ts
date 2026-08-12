@@ -35,6 +35,23 @@ describe('onboarding settings', () => {
     vi.useRealTimers();
   });
 
+  it('lists Lite mode before Playground', () => {
+    const toggleOrder = Array.from(
+      document.querySelectorAll<HTMLInputElement>('.setting-row-toggle > input')
+    ).map((input) => input.id);
+
+    expect(toggleOrder).toEqual(['onboardingLiteModeEnabled', 'onboardingPlaygroundEnabled']);
+  });
+
+  it('uses onboarding-specific copy for the replacement display option', () => {
+    const replaceOption = document.querySelector<HTMLOptionElement>(
+      '#onboardingTranslationDisplay option[value="replace"]'
+    );
+
+    expect(replaceOption?.dataset.i18n).toBe('onboardingReplaceText');
+    expect(replaceOption?.textContent).toBe('Replace text');
+  });
+
   it('uses the popup icon animations for matching onboarding settings', async () => {
     await import('./index');
 
@@ -49,8 +66,14 @@ describe('onboarding settings', () => {
 
     expect(translationIcon.querySelector('.translation-source-mark')).not.toBeNull();
     expect(translationIcon.querySelector('.translation-target-mark')).not.toBeNull();
-    expect(translationDisplayIcon.querySelector('.translation-display-frame')).not.toBeNull();
-    expect(translationDisplayIcon.querySelectorAll('.translation-display-line')).toHaveLength(3);
+    expect(translationDisplayIcon.querySelectorAll('.translation-display-message')).toHaveLength(2);
+    expect(
+      translationDisplayIcon.querySelector('.translation-display-message-original')
+    ).not.toBeNull();
+    expect(
+      translationDisplayIcon.querySelector('.translation-display-message-translation')
+    ).not.toBeNull();
+    expect(translationDisplayIcon.querySelector('.translation-display-flow')).not.toBeNull();
     expect(chatSkinIcon.querySelector('.chat-skin-palette-body')).not.toBeNull();
     expect(chatSkinIcon.querySelectorAll('.chat-skin-palette-spot')).toHaveLength(4);
     expect(liteModeIcons).toHaveLength(2);

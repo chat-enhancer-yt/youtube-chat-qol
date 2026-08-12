@@ -31,6 +31,7 @@ import {
   DEFAULT_CHAT_SKIN,
   type ChatSkinTheme
 } from '../shared/chat-skins';
+import { DEFAULT_MESSAGE_DENSITY } from '../shared/message-density';
 import { getOptions, setOptions } from '../shared/state';
 import { initUiLocaleFromDocument } from '../shared/i18n';
 import { OBSERVED_MANAGED_REMOVAL_ATTRIBUTE } from '../shared/managed-dom';
@@ -51,6 +52,7 @@ const CONTENT_INSTANCE_CLAIM_EVENT = 'ytcq:content-instance-claim';
 const CONTENT_INSTANCE_ID = `${Date.now()}-${Math.random()}`;
 const CHAT_SKIN_ATTRIBUTE = 'data-ytcq-chat-skin';
 const CHAT_SKIN_THEME_ATTRIBUTE = 'data-ytcq-chat-skin-theme';
+const MESSAGE_DENSITY_ATTRIBUTE = 'data-ytcq-message-density';
 const YOUTUBE_DARK_ATTRIBUTE = 'dark';
 
 let observer: MutationObserver | null = null;
@@ -72,6 +74,7 @@ async function init(): Promise<void> {
     if (!isCurrentContentInstance()) return;
     setOptions(normalizeOptions(storedOptions));
     applyChatSkin(getOptions());
+    applyMessageDensity(getOptions());
     boot();
   });
 
@@ -96,6 +99,7 @@ function handleStorageChanged(
 
   setOptions(normalizeOptions(nextOptions));
   applyChatSkin(getOptions());
+  applyMessageDensity(getOptions());
   notifyFeatureOptionsChanged(previousOptions, getOptions());
 }
 
@@ -303,6 +307,7 @@ function saveOptions(values: Partial<Options>): void {
     : values;
   setOptions(normalizeOptions({ ...previousOptions, ...nextValues }));
   applyChatSkin(getOptions());
+  applyMessageDensity(getOptions());
   notifyFeatureOptionsChanged(previousOptions, getOptions());
   chrome.storage.sync.set(nextValues);
 }
@@ -332,6 +337,15 @@ function resolveChatSkinTheme(): ChatSkinTheme {
   return document.documentElement.hasAttribute(YOUTUBE_DARK_ATTRIBUTE) ? 'dark' : 'light';
 }
 
+function applyMessageDensity(options: Pick<Options, 'messageDensity'>): void {
+  if (options.messageDensity === DEFAULT_MESSAGE_DENSITY) {
+    document.documentElement.removeAttribute(MESSAGE_DENSITY_ATTRIBUTE);
+    return;
+  }
+
+  document.documentElement.setAttribute(MESSAGE_DENSITY_ATTRIBUTE, options.messageDensity);
+}
+
 function notifyFeatureOptionsChanged(previousOptions: Options, nextOptions: Options): void {
   if (!isCurrentContentInstance()) return;
   handleFeatureOptionsChanged(previousOptions, nextOptions);
@@ -342,6 +356,7 @@ function resetPageState(): void {
   const previousOptions = getOptions();
   setOptions(DEFAULT_OPTIONS);
   applyChatSkin(DEFAULT_OPTIONS);
+  applyMessageDensity(DEFAULT_OPTIONS);
   resetFeatures();
   notifyFeatureOptionsChanged(previousOptions, DEFAULT_OPTIONS);
 }

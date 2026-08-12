@@ -33,8 +33,21 @@ describe('popup', () => {
         <option value="replace">Replace</option>
         <option value="below">Below</option>
       </select>
-      <input id="sound" type="checkbox">
-      <input id="startupEffect" type="checkbox">
+      <section id="appearanceSettingsSection" class="settings-section">
+        <input id="sound" type="checkbox">
+        <div id="appearanceMoreSettingsGroup" hidden>
+          <div class="appearance-more-settings-content">
+            <label id="startupEffectOption">
+              <input id="startupEffect" type="checkbox">
+            </label>
+          </div>
+        </div>
+        <div id="appearanceMoreSettingsToggleContainer">
+          <button id="appearanceMoreSettingsToggle" type="button" aria-expanded="false" aria-controls="appearanceMoreSettingsGroup">
+            <span data-i18n="more">More</span>
+          </button>
+        </div>
+      </section>
       <input id="liteModeEnabled" type="checkbox">
       </div>
       <div id="bookmarksPanel" data-popup-tab-panel hidden>
@@ -78,6 +91,7 @@ describe('popup', () => {
         </section>
         <section>
           <select id="chatSkin"></select>
+          <select id="messageDensity"></select>
         </section>
       </div>
       </div>
@@ -301,6 +315,52 @@ describe('popup', () => {
     await import('./index');
 
     expect(document.querySelector('#version')?.textContent).toBe('v1.2.3');
+  });
+
+  it('reveals the startup animation through the Appearance disclosure', async () => {
+    vi.useFakeTimers();
+    vi.mocked(chrome.tabs.query).mockImplementation(((
+      _queryInfo: chrome.tabs.QueryInfo,
+      callback?: (tabs: chrome.tabs.Tab[]) => void
+    ) => {
+      callback?.([]);
+      return Promise.resolve([]);
+    }) as never);
+
+    await import('./index');
+
+    const toggle = document.querySelector<HTMLButtonElement>('#appearanceMoreSettingsToggle')!;
+    const toggleContainer = document.querySelector<HTMLElement>(
+      '#appearanceMoreSettingsToggleContainer'
+    )!;
+    const appearanceMoreSettingsGroup = document.querySelector<HTMLElement>(
+      '#appearanceMoreSettingsGroup'
+    )!;
+    const settingsPanel = document.querySelector<HTMLElement>('#settingsPanel')!;
+    const finishTransition = (propertyName = 'transform'): void => {
+      const event = new Event('transitionend');
+      Object.defineProperty(event, 'propertyName', { value: propertyName });
+      appearanceMoreSettingsGroup.dispatchEvent(event);
+    };
+    expect(toggle.getAttribute('aria-expanded')).toBe('false');
+    expect(toggleContainer.hidden).toBe(false);
+    expect(appearanceMoreSettingsGroup.hidden).toBe(true);
+
+    toggle.click();
+    expect(toggle.getAttribute('aria-expanded')).toBe('true');
+    expect(toggleContainer.hidden).toBe(false);
+    expect(
+      toggleContainer.classList.contains('appearance-more-settings-toggle-container-dismissed')
+    ).toBe(true);
+    expect(appearanceMoreSettingsGroup.hidden).toBe(false);
+    expect(appearanceMoreSettingsGroup.classList.contains('settings-group-collapsed')).toBe(true);
+    expect(settingsPanel.scrollTop).toBe(settingsPanel.scrollHeight);
+    await vi.advanceTimersByTimeAsync(0);
+    expect(appearanceMoreSettingsGroup.classList.contains('settings-group-collapsed')).toBe(false);
+    finishTransition('opacity');
+    expect(toggleContainer.hidden).toBe(false);
+    finishTransition();
+    expect(toggleContainer.hidden).toBe(true);
   });
 
   it('ignores malformed active chat responses', async () => {
@@ -1178,6 +1238,12 @@ describe('popup', () => {
       <svg class="sound-icon"></svg>
       <svg class="startup-effect-icon"></svg>
       <svg class="lite-mode-icon"></svg>
+      <svg class="message-density-icon">
+        <path class="message-density-line message-density-line-top"></path>
+        <path class="message-density-line message-density-line-upper"></path>
+        <path class="message-density-line message-density-line-lower"></path>
+        <path class="message-density-line message-density-line-bottom"></path>
+      </svg>
       <svg class="playground-joystick-icon">
         <path class="playground-joystick-stick"></path>
         <path class="playground-joystick-base"></path>
@@ -1188,6 +1254,7 @@ describe('popup', () => {
       chatSkin: 'aero',
       lastTranslationTarget: 'ko',
       liteModeEnabled: true,
+      messageDensity: 'compact',
       playgroundEnabled: true,
       playgroundGamesAvailable: true,
       sound: false,
@@ -1271,17 +1338,26 @@ describe('popup', () => {
       '#playgroundGamesAvailable'
     )!;
     const chatSkin = document.querySelector<HTMLSelectElement>('#chatSkin')!;
+    const messageDensity = document.querySelector<HTMLSelectElement>('#messageDensity')!;
     const translationIcon = document.querySelector<SVGSVGElement>('.translation-target-icon')!;
     const skinOptions = Array.from(chatSkin.options).map((option) => [
       option.value,
       option.textContent
     ]);
-
+    const densityOptions = Array.from(messageDensity.options).map((option) => [
+      option.value,
+      option.textContent
+    ]);
     expect(skinOptions).toEqual([
       ['system', 'chatSkinDefault'],
       ['aero', 'chatSkinAero']
     ]);
+    expect(densityOptions).toEqual([
+      ['default', 'messageDensityDefault'],
+      ['compact', 'messageDensityCompact']
+    ]);
     expect(chatSkin.value).toBe('aero');
+    expect(messageDensity.value).toBe('compact');
     expect(targetLanguage.value).toBe('ja');
     expect(translationIcon.querySelector('.translation-source-mark')).not.toBeNull();
     expect(translationIcon.querySelector('.translation-target-mark')).not.toBeNull();
@@ -1347,6 +1423,13 @@ describe('popup', () => {
     );
     chatSkin.value = 'aero';
     chatSkin.dispatchEvent(new Event('change', { bubbles: true }));
+    messageDensity.value = 'default';
+    messageDensity.dispatchEvent(new Event('change', { bubbles: true }));
+    expect(
+      document.querySelector('.message-density-icon')?.classList.contains('ytcq-density-compress')
+    ).toBe(false);
+    messageDensity.value = 'compact';
+    messageDensity.dispatchEvent(new Event('change', { bubbles: true }));
     sound.checked = true;
     sound.dispatchEvent(new Event('change', { bubbles: true }));
     startupEffect.checked = false;
@@ -1379,6 +1462,9 @@ describe('popup', () => {
     expect(document.querySelector('.chat-skin-icon')?.classList.contains('ytcq-palette-pop')).toBe(
       true
     );
+    expect(
+      document.querySelector('.message-density-icon')?.classList.contains('ytcq-density-compress')
+    ).toBe(true);
     expect(document.querySelector('.sound-icon')?.classList.contains('ytcq-bell-ringing')).toBe(
       true
     );
@@ -1394,10 +1480,12 @@ describe('popup', () => {
         ?.classList.contains('ytcq-playground-joystick-wiggle')
     ).toBe(false);
     expect(chrome.storage.sync.set).toHaveBeenCalledWith({ chatSkin: 'system' });
+    expect(chrome.storage.sync.set).toHaveBeenCalledWith({ messageDensity: 'default' });
+    expect(chrome.storage.sync.set).toHaveBeenCalledWith({ messageDensity: 'compact' });
     expect(chrome.storage.sync.set).toHaveBeenCalledWith({ liteModeEnabled: false });
     expect(chrome.storage.sync.set).toHaveBeenCalledWith({ liteModeEnabled: true });
     expect(playgroundGamesSection.hidden).toBe(false);
-    expect(playgroundGamesSection.classList.contains('playground-group-collapsed')).toBe(true);
+    expect(playgroundGamesSection.classList.contains('settings-group-collapsed')).toBe(true);
     expect(playgroundProfile.hidden).toBe(true);
     expect(playgroundProfileDetails.hidden).toBe(true);
     expect(playgroundProfileToggle.getAttribute('aria-expanded')).toBe('false');
@@ -1423,7 +1511,9 @@ describe('popup', () => {
     expect(chrome.storage.sync.set).toHaveBeenCalledWith({
       playgroundGamesAvailable: false
     });
-    await vi.advanceTimersByTimeAsync(180);
+    const playgroundTransitionEnd = new Event('transitionend');
+    Object.defineProperty(playgroundTransitionEnd, 'propertyName', { value: 'transform' });
+    playgroundGamesSection.dispatchEvent(playgroundTransitionEnd);
     expect(playgroundGamesSection.hidden).toBe(true);
     await vi.advanceTimersByTimeAsync(1000);
     expect(document.querySelector('.chat-skin-icon')?.classList.contains('ytcq-palette-pop')).toBe(
@@ -1435,6 +1525,9 @@ describe('popup', () => {
     expect(document.querySelector('.lite-mode-icon')?.classList.contains('ytcq-bolt-redraw')).toBe(
       false
     );
+    expect(
+      document.querySelector('.message-density-icon')?.classList.contains('ytcq-density-compress')
+    ).toBe(false);
     expect(
       document
         .querySelector('.playground-joystick-icon')
@@ -1681,6 +1774,7 @@ describe('popup', () => {
       <svg class="chat-skin-icon"></svg>
       <svg class="translation-target-icon"></svg>
       <svg class="lite-mode-icon"></svg>
+      <svg class="message-density-icon"></svg>
       <svg class="playground-joystick-icon"></svg>
       <svg class="game-invites-icon"></svg>
     `;
@@ -1702,6 +1796,9 @@ describe('popup', () => {
     targetLanguage.dispatchEvent(new Event('change', { bubbles: true }));
     chatSkin.value = 'aero';
     chatSkin.dispatchEvent(new Event('change', { bubbles: true }));
+    const messageDensity = document.querySelector<HTMLSelectElement>('#messageDensity')!;
+    messageDensity.value = 'compact';
+    messageDensity.dispatchEvent(new Event('change', { bubbles: true }));
     const liteModeEnabled = document.querySelector<HTMLInputElement>('#liteModeEnabled')!;
     liteModeEnabled.checked = true;
     liteModeEnabled.dispatchEvent(new Event('change', { bubbles: true }));
@@ -1724,6 +1821,9 @@ describe('popup', () => {
     expect(document.querySelector('.chat-skin-icon')?.classList.contains('ytcq-palette-pop')).toBe(
       false
     );
+    expect(
+      document.querySelector('.message-density-icon')?.classList.contains('ytcq-density-compress')
+    ).toBe(false);
     expect(document.querySelector('.lite-mode-icon')?.classList.contains('ytcq-bolt-redraw')).toBe(
       false
     );
@@ -1805,6 +1905,7 @@ describe('popup', () => {
     }) as never);
     await import('./index');
     document.querySelector<HTMLSelectElement>('#chatSkin')!.value = 'aero';
+    document.querySelector<HTMLSelectElement>('#messageDensity')!.value = 'compact';
     document.querySelector<HTMLSelectElement>('#targetLanguage')!.value = 'ja';
     document.querySelector<HTMLInputElement>('#sound')!.checked = false;
     document.querySelector<HTMLButtonElement>('#resetExtension')?.click();
@@ -1859,6 +1960,7 @@ describe('popup', () => {
     expect(document.querySelector('.popup-reset-dialog-close')?.textContent).toBe('Close');
     expect(document.querySelector<HTMLInputElement>('#sound')?.checked).toBe(true);
     expect(document.querySelector<HTMLSelectElement>('#chatSkin')?.value).toBe('system');
+    expect(document.querySelector<HTMLSelectElement>('#messageDensity')?.value).toBe('default');
     expect(document.querySelector<HTMLSelectElement>('#targetLanguage')?.value).toBe('');
   });
 
