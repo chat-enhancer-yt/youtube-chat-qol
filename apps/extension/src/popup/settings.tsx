@@ -36,7 +36,9 @@ import {
 } from './animations';
 import { getExtensionMessage, getLocalizedLanguageLabel } from './i18n';
 import { prefersReducedMotion } from '../shared/motion';
+import { addPopupTabSelectionListener } from './tabs';
 
+const PLAYGROUND_PANEL_ID = 'playgroundPanel';
 const SETTINGS_GROUP_COLLAPSED_CLASS = 'settings-group-collapsed';
 const SETTINGS_GROUP_ANIMATION_MS = 180;
 const SETTINGS_GROUP_ANIMATION_FALLBACK_MS = SETTINGS_GROUP_ANIMATION_MS + 50;
@@ -45,6 +47,8 @@ const APPEARANCE_MORE_SETTINGS_TOGGLE_CONTAINER_DISMISSED_CLASS =
 const TRANSLATION_TARGET_ICON_CLASS = 'option-icon translation-target-icon';
 
 let lastKnownTranslationTarget = DEFAULT_OPTIONS.lastTranslationTarget;
+let playgroundPanelActive = false;
+let playgroundProfileRequested = false;
 let playgroundProfileRequestToken = 0;
 let playgroundProfileStatsRequestToken = 0;
 const settingsGroupVisibilityTokens = new WeakMap<HTMLElement, number>();
@@ -69,6 +73,11 @@ export function initSettingsControls(popupLocale: string): void {
     playgroundDisplayName,
     playgroundProfileToggle
   } = settingsControls;
+
+  addPopupTabSelectionListener((panelId) => {
+    playgroundPanelActive = panelId === PLAYGROUND_PANEL_ID;
+    if (playgroundPanelActive) requestPlaygroundProfile();
+  });
 
   preparePopupTranslationIcon();
   populateChatSkinOptions(chatSkin);
@@ -156,7 +165,7 @@ export function initSettingsControls(popupLocale: string): void {
   playgroundEnabled.addEventListener('change', () => {
     const enabled = playgroundEnabled.checked;
     if (enabled) animatePopupPlaygroundIcon();
-    updatePlaygroundProfile(enabled);
+    updatePlaygroundProfile(enabled, enabled);
     updatePlaygroundGamesVisibility(enabled, true);
     save({ playgroundEnabled: enabled });
   });
@@ -213,7 +222,7 @@ export function applyOptionsToControls(options: Partial<Options>): void {
   startupEffect.checked = normalized.startupEffect && !startupEffect.disabled;
   playgroundEnabled.checked = normalized.playgroundEnabled;
   playgroundGamesAvailable.checked = normalized.playgroundGamesAvailable;
-  updatePlaygroundProfile(normalized.playgroundEnabled);
+  updatePlaygroundProfile(normalized.playgroundEnabled, playgroundPanelActive);
   updatePlaygroundGamesVisibility(normalized.playgroundEnabled);
 }
 
@@ -340,7 +349,13 @@ function followScrollableElementBottom(element: HTMLElement): () => void {
   };
 }
 
-function updatePlaygroundProfile(playgroundEnabled: boolean): void {
+function updatePlaygroundProfile(enabled: boolean, requestImmediately = false): void {
+  playgroundProfileRequested = false;
+  resetPlaygroundProfile();
+  if (enabled && requestImmediately) requestPlaygroundProfile();
+}
+
+function resetPlaygroundProfile(): void {
   const settingsControls = getSettingsControls();
   if (!settingsControls) return;
 
@@ -352,7 +367,7 @@ function updatePlaygroundProfile(playgroundEnabled: boolean): void {
     playgroundProfileWins,
     playgroundProfileWinsCount
   } = settingsControls;
-  const token = ++playgroundProfileRequestToken;
+  ++playgroundProfileRequestToken;
   ++playgroundProfileStatsRequestToken;
   setPlaygroundProfileDetailsExpanded(false);
   playgroundProfile.hidden = true;
@@ -363,20 +378,39 @@ function updatePlaygroundProfile(playgroundEnabled: boolean): void {
   playgroundDisplayName.setCustomValidity('');
   playgroundProfileName.textContent = '';
   updatePlaygroundProfileWins(playgroundProfileWins, playgroundProfileWinsCount, 0);
+}
 
-  if (!playgroundEnabled) return;
+function requestPlaygroundProfile(): void {
+  const settingsControls = getSettingsControls();
+  if (
+    !settingsControls ||
+    !settingsControls.playgroundEnabled.checked ||
+    playgroundProfileRequested
+  ) {
+    return;
+  }
+
+  playgroundProfileRequested = true;
+  const token = ++playgroundProfileRequestToken;
+  ++playgroundProfileStatsRequestToken;
 
   chrome.runtime.sendMessage(
     { type: PLAYGROUND_PROFILE_MESSAGE_TYPE },
     (response?: PlaygroundProfileResponse) => {
       if (token !== playgroundProfileRequestToken) return;
-      if (chrome.runtime.lastError || !response?.ok) return;
+      if (chrome.runtime.lastError || !response?.ok) {
+        playgroundProfileRequested = false;
+        return;
+      }
 
       const displayName =
         typeof response.profile?.displayName === 'string'
           ? response.profile.displayName.trim()
           : '';
-      if (!displayName) return;
+      if (!displayName) {
+        playgroundProfileRequested = false;
+        return;
+      }
 
       renderPlaygroundProfile(response.profile, { winsLoading: true });
       requestPlaygroundProfileStats(response.profile.userId);

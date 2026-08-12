@@ -459,8 +459,8 @@
     "appearance": {
       "message": "外觀"
     },
-    "more": {
-      "message": "更多"
+    "showMore": {
+      "message": "顯示更多"
     },
     "performance": {
       "message": "效能"
@@ -472,7 +472,7 @@
       "message": "在訊息繁忙的聊天室中使用輕量聊天動態以提升效能。"
     },
     "liteModeHelper": {
-      "message": "使用更快、更輕量的聊天動態。必要時會自動返回 YouTube 聊天。"
+      "message": "使用更快、更輕量的聊天動態以提升效能。"
     },
     "startupShimmer": {
       "message": "啟動動畫"

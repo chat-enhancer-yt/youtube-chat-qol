@@ -439,7 +439,7 @@
       "message": "Choose whether translations replace the original message or appear below it."
     },
     "translationDisplayHelper": {
-      "message": "Replace the message or show the translation below."
+      "message": "Choose how translations are shown."
     },
     "replaceMessage": {
       "message": "Replace"
@@ -462,8 +462,8 @@
     "appearance": {
       "message": "Appearance"
     },
-    "more": {
-      "message": "More"
+    "showMore": {
+      "message": "Show more"
     },
     "performance": {
       "message": "Performance"
@@ -475,7 +475,7 @@
       "message": "Use a lightweight chat feed to improve performance in busy chats."
     },
     "liteModeHelper": {
-      "message": "Use a faster, lightweight chat feed. Returns to YouTube chat automatically if needed."
+      "message": "Use a faster, lightweight chat feed to improve performance."
     },
     "startupShimmer": {
       "message": "Startup animation"

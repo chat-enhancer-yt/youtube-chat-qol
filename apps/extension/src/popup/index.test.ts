@@ -44,7 +44,7 @@ describe('popup', () => {
         </div>
         <div id="appearanceMoreSettingsToggleContainer">
           <button id="appearanceMoreSettingsToggle" type="button" aria-expanded="false" aria-controls="appearanceMoreSettingsGroup">
-            <span data-i18n="more">More</span>
+            <span data-i18n="showMore">Show more</span>
           </button>
         </div>
       </section>
@@ -550,6 +550,8 @@ describe('popup', () => {
     expect(document.querySelector<HTMLElement>('#settingsPanel')?.hidden).toBe(false);
     expect(document.querySelector<HTMLElement>('#bookmarksPanel')?.hidden).toBe(true);
     expect(document.querySelector<HTMLElement>('#playgroundPanel')?.hidden).toBe(true);
+    expect(document.querySelector('#bookmarksCount')?.textContent).toBe('1');
+    expect(document.querySelector('.bookmark-row')).toBeNull();
     document.querySelector<HTMLButtonElement>('#bookmarksTab')?.click();
 
     expect(
@@ -565,6 +567,12 @@ describe('popup', () => {
     expect(document.querySelector<HTMLImageElement>('.bookmark-avatar img')?.src).toBe(
       'https://yt3.ggpht.com/avatar=s88-c-k'
     );
+    expect(
+      document.querySelector<HTMLImageElement>('.bookmark-avatar img')?.getAttribute('loading')
+    ).toBe('lazy');
+    expect(
+      document.querySelector<HTMLImageElement>('.bookmark-avatar img')?.getAttribute('decoding')
+    ).toBe('async');
     expect(document.querySelector('.bookmark-avatar-open-icon')).not.toBeNull();
     const bookmarkTime = document.querySelector<HTMLTimeElement>('.bookmark-message-time');
     expect(bookmarkTime?.parentElement?.classList.contains('bookmark-message-header')).toBe(true);
@@ -1112,6 +1120,7 @@ describe('popup', () => {
     }) as never);
 
     await import('./index');
+    document.querySelector<HTMLButtonElement>('#bookmarksTab')?.click();
     vi.mocked(chrome.storage.local.get).mockImplementationOnce(((
       keys: unknown,
       callback?: (items: Record<string, unknown>) => void
@@ -1366,6 +1375,11 @@ describe('popup', () => {
     expect(startupEffect.checked).toBe(true);
     expect(liteModeEnabled.checked).toBe(true);
     expect(playgroundEnabled.checked).toBe(true);
+    expect(chrome.runtime.sendMessage).not.toHaveBeenCalledWith(
+      { type: PLAYGROUND_PROFILE_MESSAGE_TYPE },
+      expect.any(Function)
+    );
+    document.querySelector<HTMLButtonElement>('#playgroundTab')?.click();
     expect(playgroundProfile.hidden).toBe(false);
     expect(playgroundProfileDetails.hidden).toBe(true);
     expect(playgroundProfileAvatar.textContent).toBe('T');
@@ -1603,6 +1617,9 @@ describe('popup', () => {
       '.playground-profile-wins-spinner'
     )!;
 
+    expect(playgroundProfile.hidden).toBe(true);
+    expect(statsCallbacks).toHaveLength(0);
+    document.querySelector<HTMLButtonElement>('#playgroundTab')?.click();
     expect(playgroundProfile.hidden).toBe(false);
     expect(playgroundProfileName.textContent).toBe('Player SLOW');
     expect(playgroundProfileWins.getAttribute('aria-busy')).toBe('true');
@@ -1622,6 +1639,19 @@ describe('popup', () => {
     expect(spinner.hidden).toBe(true);
     expect(playgroundProfileWinsCount.hidden).toBe(false);
     expect(playgroundProfileWinsCount.textContent).toBe('12');
+
+    document.querySelector<HTMLButtonElement>('#settingsTab')?.click();
+    document.querySelector<HTMLButtonElement>('#playgroundTab')?.click();
+    expect(
+      vi
+        .mocked(chrome.runtime.sendMessage)
+        .mock.calls.filter(
+          ([message]) =>
+            typeof message === 'object' &&
+            message !== null &&
+            (message as { type?: string }).type === PLAYGROUND_PROFILE_MESSAGE_TYPE
+        )
+    ).toHaveLength(1);
   });
 
   it('ignores stale, failed, and blank Playground profile responses', async () => {
@@ -1658,6 +1688,9 @@ describe('popup', () => {
     const playgroundProfile = document.querySelector<HTMLElement>('#playgroundProfile')!;
     const playgroundProfileName = document.querySelector<HTMLElement>('#playgroundProfileName')!;
 
+    expect(profileCallbacks).toHaveLength(0);
+    document.querySelector<HTMLButtonElement>('#playgroundTab')?.click();
+    expect(profileCallbacks).toHaveLength(1);
     playgroundEnabled.checked = false;
     playgroundEnabled.dispatchEvent(new Event('change', { bubbles: true }));
     profileCallbacks[0]?.({
@@ -1865,6 +1898,7 @@ describe('popup', () => {
       document.querySelectorAll<HTMLOptionElement>('#targetLanguage option')
     ).find((option) => option.value === 'ja');
     expect(japanese?.textContent).toBe('Japanese');
+    expect(displayNamesSpy).toHaveBeenCalledTimes(1);
 
     document.querySelector<HTMLSelectElement>('#translationDisplay')!.value = 'replace';
     document

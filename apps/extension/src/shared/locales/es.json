@@ -459,8 +459,8 @@
     "appearance": {
       "message": "Apariencia"
     },
-    "more": {
-      "message": "Más"
+    "showMore": {
+      "message": "Mostrar más"
     },
     "performance": {
       "message": "Rendimiento"
@@ -472,7 +472,7 @@
       "message": "Usa un chat más ligero para mejorar el rendimiento en chats con mucha actividad."
     },
     "liteModeHelper": {
-      "message": "Usa un chat más rápido y ligero. Vuelve automáticamente al chat de YouTube si es necesario."
+      "message": "Usa un chat más rápido y ligero para mejorar el rendimiento."
     },
     "startupShimmer": {
       "message": "Animación inicial"

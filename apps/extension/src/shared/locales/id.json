@@ -462,8 +462,8 @@
     "appearance": {
       "message": "Tampilan"
     },
-    "more": {
-      "message": "Lainnya"
+    "showMore": {
+      "message": "Tampilkan lainnya"
     },
     "performance": {
       "message": "Performa"
@@ -475,7 +475,7 @@
       "message": "Gunakan feed chat ringan untuk meningkatkan performa di chat yang ramai."
     },
     "liteModeHelper": {
-      "message": "Gunakan feed chat yang lebih cepat dan ringan. Otomatis kembali ke chat YouTube jika diperlukan."
+      "message": "Gunakan feed chat yang lebih cepat dan ringan untuk meningkatkan performa."
     },
     "startupShimmer": {
       "message": "Animasi awal"

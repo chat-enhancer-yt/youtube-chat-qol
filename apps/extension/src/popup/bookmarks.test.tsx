@@ -81,9 +81,13 @@ describe('popup bookmark filter', () => {
 
     filter.value = 'LAUNCH WINDOW OPENS';
     filter.dispatchEvent(new Event('input'));
+    await vi.waitFor(() => expect(rememberedUserRow.hidden).toBe(true));
     expect(bookmarkRow.hidden).toBe(false);
     expect(rememberedUserRow.hidden).toBe(true);
-    expect(document.querySelector('#bookmarksCount')?.textContent).toBe('2');
+    expect(document.querySelector('#bookmarksCount')?.textContent).toBe('1');
+    expect(document.querySelector('#bookmarksCount')?.getAttribute('aria-label')).toBe(
+      'savedItemsCount:1'
+    );
     expect(
       Array.from(bookmarkRow.querySelectorAll('.bookmark-search-highlight')).map(
         (highlight) => highlight.textContent
@@ -92,15 +96,18 @@ describe('popup bookmark filter', () => {
 
     filter.value = 'LAUNCH  WINDOW OPENS';
     filter.dispatchEvent(new Event('input'));
-    expect(bookmarkRow.hidden).toBe(true);
+    await vi.waitFor(() => expect(bookmarkRow.hidden).toBe(true));
     expect(rememberedUserRow.hidden).toBe(true);
+    expect(document.querySelector('#bookmarksCount')?.textContent).toBe('0');
     expect(document.querySelector('.bookmark-search-highlight')).toBeNull();
     expect(document.querySelector<HTMLElement>('.bookmarks-filter-empty')?.hidden).toBe(false);
 
     filter.value = 'garden stream';
     filter.dispatchEvent(new Event('input'));
+    await vi.waitFor(() => expect(rememberedUserRow.hidden).toBe(false));
     expect(bookmarkRow.hidden).toBe(true);
     expect(rememberedUserRow.hidden).toBe(false);
+    expect(document.querySelector('#bookmarksCount')?.textContent).toBe('1');
     expect(bookmarkRow.querySelector('.bookmark-search-highlight')).toBeNull();
     expect(
       Array.from(rememberedUserRow.querySelectorAll('.bookmark-search-highlight')).map(
@@ -110,6 +117,7 @@ describe('popup bookmark filter', () => {
 
     filter.value = 'beta garden';
     filter.dispatchEvent(new Event('input'));
+    await vi.waitFor(() => expect(rememberedUserRow.hidden).toBe(true));
     expect(bookmarkRow.hidden).toBe(true);
     expect(rememberedUserRow.hidden).toBe(true);
     expect(document.querySelector('.bookmark-search-highlight')).toBeNull();
@@ -117,11 +125,11 @@ describe('popup bookmark filter', () => {
     expect(document.querySelector('.bookmarks-filter-empty')?.textContent).toBe(
       'noMatchingSavedItems'
     );
-    expect(document.querySelector('#bookmarksCount')?.textContent).toBe('2');
+    expect(document.querySelector('#bookmarksCount')?.textContent).toBe('0');
 
     filter.value = '';
     filter.dispatchEvent(new Event('input'));
-    expect(bookmarkRow.hidden).toBe(false);
+    await vi.waitFor(() => expect(bookmarkRow.hidden).toBe(false));
     expect(rememberedUserRow.hidden).toBe(false);
     expect(document.querySelector('.bookmark-search-highlight')).toBeNull();
     expect(bookmarkRow.querySelector('.bookmark-message')?.textContent).toBe(

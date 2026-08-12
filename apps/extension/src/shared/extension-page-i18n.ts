@@ -1,6 +1,8 @@
 /**
  * Browser-native localization helpers shared by extension-owned pages.
  */
+const languageDisplayNamesByLocale = new Map<string, Intl.DisplayNames | null>();
+
 export function localizeExtensionPage(preserveExistingCopy = false): string {
   const locale = getBrowserUiLocale();
   document.documentElement.lang = locale;
@@ -72,8 +74,19 @@ export function getExtensionMessage(
 }
 
 export function getLocalizedLanguageLabel(languageCode: string, locale: string): string {
+  let displayNames = languageDisplayNamesByLocale.get(locale);
+  if (displayNames === undefined) {
+    try {
+      displayNames = new Intl.DisplayNames([locale], { type: 'language' });
+      languageDisplayNamesByLocale.set(locale, displayNames);
+    } catch {
+      languageDisplayNamesByLocale.set(locale, null);
+      return '';
+    }
+  }
+
   try {
-    const displayName = new Intl.DisplayNames([locale], { type: 'language' }).of(languageCode);
+    const displayName = displayNames?.of(languageCode);
     if (displayName) return displayName;
   } catch {
     // Fall back to the static English catalog from LANGUAGE_OPTIONS.

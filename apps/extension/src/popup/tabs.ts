@@ -14,6 +14,7 @@ const NESTED_SCROLL_TARGET_SELECTOR = '[data-popup-scroll-target]';
 const POPUP_TAB_HIGHLIGHT_ANIMATED_CLASS = 'popup-tab-highlight-animated';
 const POPUP_LAST_TAB_STORAGE_KEY = 'ytcqPopupLastTab';
 const popupScrollbarTargets = new WeakMap<HTMLElement, HTMLElement>();
+const popupTabSelectionListeners = new Set<(panelId: string) => void>();
 let popupActiveScrollbar: HTMLElement | null = null;
 let popupScrollbarDragState: {
   pointerId: number;
@@ -28,6 +29,12 @@ let popupScrollFadeRefreshTimer = 0;
 let popupTabSelectedByUser = false;
 let popupTabList: HTMLElement | null = null;
 let previewedPopupTab: HTMLButtonElement | null = null;
+
+export function addPopupTabSelectionListener(listener: (panelId: string) => void): void {
+  popupTabSelectionListeners.add(listener);
+  const activePanel = controls.tabPanels.find((panel) => !panel.hidden);
+  if (activePanel) listener(activePanel.id);
+}
 
 export function initPopupTabs(): void {
   initPopupScrollFades();
@@ -128,16 +135,16 @@ function initPopupScrollFades(): void {
     .forEach(initPopupScrollbar);
   controls.tabPanels.forEach((panel) => {
     panel.addEventListener('scroll', updatePopupScrollFades, { passive: true });
-    panel.addEventListener('click', schedulePopupScrollFadeUpdate);
-    panel.addEventListener('change', schedulePopupScrollFadeUpdate);
-    panel.addEventListener('input', schedulePopupScrollFadeUpdate);
+    panel.addEventListener('click', deferPopupScrollFadeUpdate);
+    panel.addEventListener('change', deferPopupScrollFadeUpdate);
+    panel.addEventListener('input', deferPopupScrollFadeUpdate);
   });
   document
     .querySelectorAll<HTMLElement>(NESTED_SCROLL_TARGET_SELECTOR)
     .forEach((target) =>
       target.addEventListener('scroll', updatePopupScrollFades, { passive: true })
     );
-  window.addEventListener('resize', schedulePopupScrollFadeUpdate);
+  window.addEventListener('resize', deferPopupScrollFadeUpdate);
 
   schedulePopupScrollFadeUpdate();
 }
@@ -148,6 +155,10 @@ export function refreshPopupScrollFades(): void {
 
 function schedulePopupScrollFadeUpdate(): void {
   updatePopupScrollFades();
+  deferPopupScrollFadeUpdate();
+}
+
+function deferPopupScrollFadeUpdate(): void {
   if (popupScrollFadeRefreshTimer) window.clearTimeout(popupScrollFadeRefreshTimer);
   popupScrollFadeRefreshTimer = window.setTimeout(() => {
     popupScrollFadeRefreshTimer = 0;
@@ -427,6 +438,7 @@ function selectPopupTab(targetId: string): void {
     panel.hidden = panel.id !== targetId;
   });
 
+  popupTabSelectionListeners.forEach((listener) => listener(targetId));
   syncPopupTabHighlight();
   schedulePopupScrollFadeUpdate();
 }

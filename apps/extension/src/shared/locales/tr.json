@@ -462,8 +462,8 @@
     "appearance": {
       "message": "Görünüm"
     },
-    "more": {
-      "message": "Daha fazla"
+    "showMore": {
+      "message": "Daha fazla göster"
     },
     "performance": {
       "message": "Performans"
@@ -475,7 +475,7 @@
       "message": "Yoğun sohbetlerde performansı artırmak için hafif sohbet akışını kullanın."
     },
     "liteModeHelper": {
-      "message": "Daha hızlı ve hafif bir sohbet akışı kullanın. Gerektiğinde otomatik olarak YouTube sohbetine döner."
+      "message": "Performansı artırmak için daha hızlı ve hafif bir sohbet akışı kullanın."
     },
     "startupShimmer": {
       "message": "Başlangıç animasyonu"

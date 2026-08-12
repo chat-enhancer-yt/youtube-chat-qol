@@ -17,8 +17,8 @@ import {
 import {
   BOOKMARKS_STORAGE_KEY,
   LEGACY_BOOKMARKS_STORAGE_KEY,
-  bookmarkAuthorsMatch,
   getBookmarkAuthorColor,
+  getBookmarkAuthorKey,
   getBookmarkTargetUrl,
   normalizeStoredBookmarks,
   serializeBookmarks,
@@ -27,13 +27,19 @@ import {
 import { appendRichMessageText } from '../youtube/rich-text';
 import { controls } from './controls';
 import { getExtensionMessage } from './i18n';
-import { refreshPopupScrollFades } from './tabs';
+import { addPopupTabSelectionListener, refreshPopupScrollFades } from './tabs';
 
+const BOOKMARKS_PANEL_ID = 'bookmarksPanel';
+const BOOKMARK_SEARCH_HIGHLIGHT_CLASS = 'bookmark-search-highlight';
 const recentlyRemovedBookmarks = new Map<string, BookmarkRecord>();
 const recentlyRemovedAvatarRings = new Map<string, AvatarRingRecord>();
+const highlightedSavedItemRows = new Set<HTMLElement>();
 let currentBookmarks = new Map<string, BookmarkRecord>();
 let currentAvatarRings = new Map<string, AvatarRingRecord>();
-const BOOKMARK_SEARCH_HIGHLIGHT_CLASS = 'bookmark-search-highlight';
+let compactTimeFormatter: Intl.DateTimeFormat | null = null;
+let fullDateTimeFormatter: Intl.DateTimeFormat | null = null;
+let savedItemsFilterFrame = 0;
+let savedItemsRenderPending = true;
 
 type SavedItemEntry =
   | {
@@ -54,11 +60,20 @@ type SavedItemSource = Pick<BookmarkRecord, 'sourceTitle' | 'sourceUrl'> & {
   message?: BookmarkRecord['message'];
 };
 
+interface AvatarRingLookup {
+  byAuthor: Map<string, AvatarRingRecord>;
+  byChannel: Map<string, AvatarRingRecord>;
+  withoutChannelByAuthor: Map<string, AvatarRingRecord>;
+}
+
 export function initBookmarksPanel(): void {
   const { bookmarksCount, bookmarksFilter, bookmarksList } = controls;
   if (!bookmarksCount || !bookmarksList) return;
 
-  bookmarksFilter?.addEventListener('input', applySavedItemsFilter);
+  bookmarksFilter?.addEventListener('input', scheduleSavedItemsFilter);
+  addPopupTabSelectionListener((panelId) => {
+    if (panelId === BOOKMARKS_PANEL_ID) renderSavedItemsIfActive();
+  });
   refreshSavedItems();
   chrome.storage.onChanged.addListener(handleSavedItemsStorageChange);
 }
@@ -74,7 +89,7 @@ function refreshSavedItems(): void {
         hasBookmarks ? values[BOOKMARKS_STORAGE_KEY] : values[LEGACY_BOOKMARKS_STORAGE_KEY]
       );
       currentAvatarRings = normalizeStoredAvatarRings(values[AVATAR_RINGS_STORAGE_KEY]);
-      renderSavedItems();
+      savedItemsChanged();
 
       if (hasBookmarks) {
         if (hasLegacyBookmarks) chrome.storage.local.remove(LEGACY_BOOKMARKS_STORAGE_KEY);
@@ -109,13 +124,67 @@ function handleSavedItemsStorageChange(
     currentAvatarRings = normalizeStoredAvatarRings(changes[AVATAR_RINGS_STORAGE_KEY].newValue);
     changed = true;
   }
-  if (changed) renderSavedItems();
+  if (changed) savedItemsChanged();
+}
+
+function savedItemsChanged(): void {
+  savedItemsRenderPending = true;
+  updateSavedItemsCount();
+  renderSavedItemsIfActive();
+}
+
+function updateSavedItemsCount(): void {
+  if (!controls.bookmarksCount) return;
+
+  const query = controls.bookmarksFilter?.value.toLowerCase() || '';
+  const activeCount = query
+    ? countMatchingSavedItems(currentBookmarks, currentAvatarRings, query)
+    : currentBookmarks.size + currentAvatarRings.size;
+  controls.bookmarksCount.textContent = String(activeCount);
+  controls.bookmarksCount.setAttribute(
+    'aria-label',
+    getExtensionMessage('savedItemsCount', String(activeCount))
+  );
+}
+
+function countMatchingSavedItems(
+  bookmarks: Map<string, BookmarkRecord>,
+  avatarRings: Map<string, AvatarRingRecord>,
+  query: string
+): number {
+  let matchingCount = 0;
+  bookmarks.forEach((record, key) => {
+    const entry: SavedItemEntry = { active: true, key, kind: 'bookmark', record };
+    if (getSavedItemSearchText(entry).includes(query)) matchingCount += 1;
+  });
+  avatarRings.forEach((record, key) => {
+    const entry: SavedItemEntry = { active: true, key, kind: 'avatar-ring', record };
+    if (getSavedItemSearchText(entry).includes(query)) matchingCount += 1;
+  });
+  return matchingCount;
+}
+
+function renderSavedItemsIfActive(): void {
+  if (!savedItemsRenderPending || !isBookmarksPanelActive()) return;
+  renderSavedItems();
+}
+
+function isBookmarksPanelActive(): boolean {
+  const panel = controls.tabPanels.find((candidate) => candidate.id === BOOKMARKS_PANEL_ID);
+  return !panel || !panel.hidden;
 }
 
 function renderSavedItems(): void {
   if (!controls.bookmarksCount || !controls.bookmarksList) return;
 
+  if (savedItemsFilterFrame) {
+    window.cancelAnimationFrame(savedItemsFilterFrame);
+    savedItemsFilterFrame = 0;
+  }
+  savedItemsRenderPending = false;
+  highlightedSavedItemRows.clear();
   const previousBookmarkRingColors = getRenderedBookmarkRingColors(controls.bookmarksList);
+  const avatarRingLookup = createAvatarRingLookup(currentAvatarRings.values());
   const entries = getVisibleSavedItemEntries().sort((firstEntry, secondEntry) => {
     const firstTime = getSavedItemAddedAt(firstEntry);
     const secondTime = getSavedItemAddedAt(secondEntry);
@@ -126,12 +195,6 @@ function renderSavedItems(): void {
     );
   });
 
-  const activeCount = currentBookmarks.size + currentAvatarRings.size;
-  controls.bookmarksCount.textContent = String(activeCount);
-  controls.bookmarksCount.setAttribute(
-    'aria-label',
-    getExtensionMessage('savedItemsCount', String(activeCount))
-  );
   controls.bookmarksList.replaceChildren();
   controls.bookmarksList.classList.toggle('bookmarks-list-empty', entries.length === 0);
 
@@ -147,7 +210,7 @@ function renderSavedItems(): void {
 
   controls.bookmarksList.append(
     ...entries.map((entry) =>
-      createSavedItemRow(entry, previousBookmarkRingColors.get(entry.key) || '')
+      createSavedItemRow(entry, previousBookmarkRingColors.get(entry.key) || '', avatarRingLookup)
     ),
     el<HTMLParagraphElement>(
       <p class="bookmarks-empty bookmarks-filter-empty" hidden>
@@ -158,10 +221,19 @@ function renderSavedItems(): void {
   applySavedItemsFilter();
 }
 
+function scheduleSavedItemsFilter(): void {
+  if (savedItemsFilterFrame) return;
+  savedItemsFilterFrame = window.requestAnimationFrame(() => {
+    savedItemsFilterFrame = 0;
+    applySavedItemsFilter();
+  });
+}
+
 function applySavedItemsFilter(): void {
   const { bookmarksFilter, bookmarksList } = controls;
   if (!bookmarksFilter || !bookmarksList) return;
 
+  clearSavedItemSearchHighlights();
   const query = bookmarksFilter.value.toLowerCase();
   const rows = Array.from(bookmarksList.querySelectorAll<HTMLElement>('.bookmark-row'));
   let hasVisibleRow = false;
@@ -170,7 +242,10 @@ function applySavedItemsFilter(): void {
     const searchText = row.dataset.bookmarkSearch || '';
     const matches = searchText.includes(query);
     row.hidden = !matches;
-    updateSavedItemSearchHighlights(row, matches ? query : '');
+    if (matches && query) {
+      updateSavedItemSearchHighlights(row, query);
+      highlightedSavedItemRows.add(row);
+    }
     hasVisibleRow ||= matches;
   }
 
@@ -178,18 +253,25 @@ function applySavedItemsFilter(): void {
   const filterEmpty = bookmarksList.querySelector<HTMLElement>('.bookmarks-filter-empty');
   if (filterEmpty) filterEmpty.hidden = !noMatches;
   bookmarksList.classList.toggle('bookmarks-list-empty', noMatches);
+  updateSavedItemsCount();
   refreshPopupScrollFades();
+}
+
+function clearSavedItemSearchHighlights(): void {
+  highlightedSavedItemRows.forEach((row) => {
+    const copy = row.querySelector<HTMLElement>('.bookmark-copy');
+    if (!copy) return;
+    const highlights = copy.querySelectorAll<HTMLElement>(`.${BOOKMARK_SEARCH_HIGHLIGHT_CLASS}`);
+    if (!highlights.length) return;
+    highlights.forEach((highlight) => highlight.replaceWith(...Array.from(highlight.childNodes)));
+    copy.normalize();
+  });
+  highlightedSavedItemRows.clear();
 }
 
 function updateSavedItemSearchHighlights(row: HTMLElement, query: string): void {
   const copy = row.querySelector<HTMLElement>('.bookmark-copy');
   if (!copy) return;
-
-  copy
-    .querySelectorAll<HTMLElement>(`.${BOOKMARK_SEARCH_HIGHLIGHT_CLASS}`)
-    .forEach((highlight) => highlight.replaceWith(...Array.from(highlight.childNodes)));
-  copy.normalize();
-  if (!query) return;
 
   const textNodes: Text[] = [];
   const walker = document.createTreeWalker(copy, NodeFilter.SHOW_TEXT);
@@ -303,14 +385,57 @@ function getSavedItemAddedAt(entry: SavedItemEntry): number {
   return entry.kind === 'bookmark' ? entry.record.savedAt : entry.record.addedAt;
 }
 
-function createSavedItemRow(entry: SavedItemEntry, previousAvatarRingColor = ''): HTMLElement {
+function createSavedItemRow(
+  entry: SavedItemEntry,
+  previousAvatarRingColor: string,
+  avatarRingLookup: AvatarRingLookup
+): HTMLElement {
   const row =
     entry.kind === 'bookmark'
-      ? createBookmarkRow(entry.key, entry.record, entry.active, previousAvatarRingColor)
+      ? createBookmarkRow(
+          entry.key,
+          entry.record,
+          entry.active,
+          previousAvatarRingColor,
+          findAvatarRing(entry.record, avatarRingLookup)
+        )
       : createAvatarRingRow(entry.key, entry.record, entry.active, previousAvatarRingColor);
   row.dataset.bookmarkKey = entry.key;
   row.dataset.bookmarkSearch = getSavedItemSearchText(entry);
   return row;
+}
+
+function createAvatarRingLookup(records: Iterable<AvatarRingRecord>): AvatarRingLookup {
+  const lookup: AvatarRingLookup = {
+    byAuthor: new Map(),
+    byChannel: new Map(),
+    withoutChannelByAuthor: new Map()
+  };
+
+  for (const record of records) {
+    const authorKey = getBookmarkAuthorKey({ authorName: record.authorName });
+    const channelKey = getBookmarkAuthorKey({ channelId: record.channelId });
+    if (authorKey && !lookup.byAuthor.has(authorKey)) lookup.byAuthor.set(authorKey, record);
+    if (channelKey && !lookup.byChannel.has(channelKey)) lookup.byChannel.set(channelKey, record);
+    if (!channelKey && authorKey && !lookup.withoutChannelByAuthor.has(authorKey)) {
+      lookup.withoutChannelByAuthor.set(authorKey, record);
+    }
+  }
+
+  return lookup;
+}
+
+function findAvatarRing(
+  bookmark: BookmarkRecord,
+  lookup: AvatarRingLookup
+): AvatarRingRecord | undefined {
+  const authorKey = getBookmarkAuthorKey({ authorName: bookmark.authorName });
+  const channelKey = getBookmarkAuthorKey({ channelId: bookmark.channelId });
+  if (!channelKey) return authorKey ? lookup.byAuthor.get(authorKey) : undefined;
+  return (
+    lookup.byChannel.get(channelKey) ||
+    (authorKey ? lookup.withoutChannelByAuthor.get(authorKey) : undefined)
+  );
 }
 
 function getSavedItemSearchText(entry: SavedItemEntry): string {
@@ -333,12 +458,10 @@ function createBookmarkRow(
   key: string,
   record: BookmarkRecord,
   active: boolean,
-  previousAvatarRingColor: string
+  previousAvatarRingColor: string,
+  avatarRing: AvatarRingRecord | undefined
 ): HTMLElement {
   const channelUrl = getSavedItemChannelUrl(record);
-  const avatarRing = Array.from(currentAvatarRings.values()).find((candidate) =>
-    bookmarkAuthorsMatch(record, candidate)
-  );
   const hasAvatarRing = Boolean(avatarRing);
   const avatar = createSavedItemAvatar(
     record,
@@ -514,7 +637,13 @@ function createSavedItemAvatar(
   animateAvatarRingOut = false
 ): HTMLElement {
   const content = record.avatarUrl ? (
-    <img src={record.avatarUrl} alt="" referrerPolicy="no-referrer" />
+    <img
+      src={record.avatarUrl}
+      alt=""
+      decoding="async"
+      loading="lazy"
+      referrerPolicy="no-referrer"
+    />
   ) : (
     getSavedItemAuthorInitial(record.authorName)
   );
@@ -643,9 +772,8 @@ function updateStoredBookmarks(update: (records: Map<string, BookmarkRecord>) =>
     const records = normalizeStoredBookmarks((stored || {})[BOOKMARKS_STORAGE_KEY]);
     update(records);
     currentBookmarks = records;
-    chrome.storage.local.set({ [BOOKMARKS_STORAGE_KEY]: serializeBookmarks(records) }, () =>
-      renderSavedItems()
-    );
+    savedItemsChanged();
+    chrome.storage.local.set({ [BOOKMARKS_STORAGE_KEY]: serializeBookmarks(records) });
   });
 }
 
@@ -654,9 +782,8 @@ function updateStoredAvatarRings(update: (records: Map<string, AvatarRingRecord>
     const records = normalizeStoredAvatarRings((stored || {})[AVATAR_RINGS_STORAGE_KEY]);
     update(records);
     currentAvatarRings = records;
-    chrome.storage.local.set({ [AVATAR_RINGS_STORAGE_KEY]: serializeAvatarRings(records) }, () =>
-      renderSavedItems()
-    );
+    savedItemsChanged();
+    chrome.storage.local.set({ [AVATAR_RINGS_STORAGE_KEY]: serializeAvatarRings(records) });
   });
 }
 
@@ -666,17 +793,19 @@ function getSavedItemAuthorInitial(authorName: string): string {
 }
 
 function formatFullDateTime(timestamp: number): string {
-  return new Intl.DateTimeFormat(undefined, {
+  fullDateTimeFormatter ??= new Intl.DateTimeFormat(undefined, {
     dateStyle: 'medium',
     timeStyle: 'short'
-  }).format(timestamp);
+  });
+  return fullDateTimeFormatter.format(timestamp);
 }
 
 function formatCompactTime(timestamp: number): string {
-  return new Intl.DateTimeFormat(undefined, {
+  compactTimeFormatter ??= new Intl.DateTimeFormat(undefined, {
     hour: '2-digit',
     minute: '2-digit'
-  }).format(timestamp);
+  });
+  return compactTimeFormatter.format(timestamp);
 }
 
 function getSavedItemChannelUrl(record: Pick<SavedItemAuthor, 'authorName' | 'channelId'>): string {

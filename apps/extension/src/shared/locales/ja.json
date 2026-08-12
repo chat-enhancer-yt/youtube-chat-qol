@@ -462,7 +462,7 @@
     "appearance": {
       "message": "表示"
     },
-    "more": {
+    "showMore": {
       "message": "もっと見る"
     },
     "performance": {
@@ -475,7 +475,7 @@
       "message": "活発なチャットでのパフォーマンスを向上させる軽量チャットフィードを使用します。"
     },
     "liteModeHelper": {
-      "message": "より高速で軽量なチャットフィードを使用します。必要に応じて自動的に YouTube チャットに戻ります。"
+      "message": "パフォーマンスを向上させるため、より高速で軽量なチャットフィードを使用します。"
     },
     "startupShimmer": {
       "message": "起動時のアニメーション"

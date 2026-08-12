@@ -140,12 +140,16 @@ export const bookmarkPopupRenderingScenario: BrowserScenario = async ({ context 
               labelHeight: bookmarksLabel.getBoundingClientRect().height,
               labelScrollWidth: bookmarksLabel.scrollWidth,
               lineHeight: Number.parseFloat(styles.lineHeight),
-              scrollWidth: element.scrollWidth
+              scrollWidth: element.scrollWidth,
+              tabHeight: element.querySelector('#settingsTab')?.getBoundingClientRect().height,
+              tabListHeight: element.getBoundingClientRect().height
             };
           });
           expect(dimensions.scrollWidth).toBe(dimensions.clientWidth);
           expect(dimensions.labelScrollWidth).toBe(dimensions.labelClientWidth);
           expect(dimensions.labelHeight).toBeLessThanOrEqual(dimensions.lineHeight);
+          expect(dimensions.tabHeight).toBe(24);
+          expect(dimensions.tabListHeight).toBe(30);
         });
         await test.step('Render bookmark scroll fades above the list content', async () => {
           const shell = popup.locator('.bookmarks-list-shell');
@@ -161,15 +165,26 @@ export const bookmarkPopupRenderingScenario: BrowserScenario = async ({ context 
           await expect(list).toHaveCSS('scrollbar-width', 'none');
           const scrollMetrics = await list.evaluate((element) => {
             const listElement = element as HTMLElement;
+            const listBounds = listElement.getBoundingClientRect();
+            const scrollbar = listElement.parentElement?.querySelector<HTMLElement>(
+              '.popup-scrollbar'
+            );
+            const scrollbarBounds = scrollbar?.getBoundingClientRect();
             const thumb = listElement.parentElement?.querySelector<HTMLElement>(
               '.popup-scrollbar-thumb'
             );
             return {
+              listRight: listBounds.right,
+              popupRight: document.body.getBoundingClientRect().right,
+              scrollbarLeft: scrollbarBounds?.left || 0,
+              scrollbarRight: scrollbarBounds?.right || 0,
               thumbHeight: thumb?.getBoundingClientRect().height || 0,
               thumbWidth: thumb?.getBoundingClientRect().width || 0,
               nativeScrollbarWidth: listElement.offsetWidth - listElement.clientWidth
             };
           });
+          expect(scrollMetrics.scrollbarLeft).toBeGreaterThanOrEqual(scrollMetrics.listRight);
+          expect(scrollMetrics.scrollbarRight).toBeLessThanOrEqual(scrollMetrics.popupRight);
           expect(scrollMetrics.thumbHeight).toBeGreaterThan(0);
           expect(scrollMetrics.thumbWidth).toBe(5);
           expect(scrollMetrics.nativeScrollbarWidth).toBe(0);
@@ -208,11 +223,13 @@ export const bookmarkPopupRenderingScenario: BrowserScenario = async ({ context 
           const bookmarkRow = popup.locator('.bookmark-row:not(.avatar-ring-row)');
           const rememberedUserRow = popup.locator('.avatar-ring-row');
           const noMatches = popup.locator('.bookmarks-filter-empty');
+          const filteredCount = popup.locator('#bookmarksCount');
 
           await filter.fill('DELIBERATELY LONG SAVED MESSAGE');
           await expect(bookmarkRow).toBeVisible();
           await expect(rememberedUserRow).toBeHidden();
           await expect(noMatches).toBeHidden();
+          await expect(filteredCount).toHaveText('1');
           const highlights = bookmarkRow.locator('.bookmark-search-highlight');
           await expect(highlights).toHaveText(['deliberately long saved message']);
           await expect(highlights.first()).toHaveCSS(
@@ -224,18 +241,21 @@ export const bookmarkPopupRenderingScenario: BrowserScenario = async ({ context 
           await expect(bookmarkRow).toBeHidden();
           await expect(rememberedUserRow).toBeHidden();
           await expect(noMatches).toBeVisible();
+          await expect(filteredCount).toHaveText('0');
           await expect(popup.locator('.bookmark-search-highlight')).toHaveCount(0);
 
           await filter.fill('archiveviewer deliberately');
           await expect(bookmarkRow).toBeHidden();
           await expect(rememberedUserRow).toBeHidden();
           await expect(noMatches).toBeVisible();
+          await expect(filteredCount).toHaveText('0');
           await expect(popup.locator('.bookmark-search-highlight')).toHaveCount(0);
 
           await filter.clear();
           await expect(bookmarkRow).toBeVisible();
           await expect(rememberedUserRow).toBeVisible();
           await expect(noMatches).toBeHidden();
+          await expect(filteredCount).toHaveText('2');
           await expect(popup.locator('.bookmark-search-highlight')).toHaveCount(0);
         });
         await test.step('Color remembered authors and animate their rings on and off', async () => {

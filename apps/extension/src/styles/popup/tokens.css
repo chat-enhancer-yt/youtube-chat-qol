@@ -15,8 +15,7 @@
   --ytcq-popup-text: #0f0f0f;
   --ytcq-popup-secondary-text: #606060;
   --ytcq-popup-action: #065fd4;
-  --ytcq-popup-logo-red-start: #fe0031;
-  --ytcq-popup-logo-red-end: #fd0032;
+  --ytcq-popup-logo-red: #fd0032;
   --ytcq-popup-squircle-corner-shape: squircle;
   /* Circular fallbacks read rounder than squircles, especially on compact UI. */
   --ytcq-popup-squircle-radius-small: 5px;

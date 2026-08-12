@@ -459,8 +459,8 @@
     "appearance": {
       "message": "Weergave"
     },
-    "more": {
-      "message": "Meer"
+    "showMore": {
+      "message": "Meer tonen"
     },
     "performance": {
       "message": "Prestaties"
@@ -472,7 +472,7 @@
       "message": "Gebruik een lichte chatfeed voor betere prestaties in drukke chats."
     },
     "liteModeHelper": {
-      "message": "Gebruik een snellere, lichte chatfeed. Schakelt indien nodig automatisch terug naar YouTube-chat."
+      "message": "Gebruik een snellere, lichte chatfeed voor betere prestaties."
     },
     "startupShimmer": {
       "message": "Startanimatie"

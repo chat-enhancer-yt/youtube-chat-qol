@@ -55,6 +55,7 @@ async function resetExtensionFromPopup(context: BrowserContext): Promise<void> {
       await popup.locator('#resetExtension').click();
       await expect(popup.locator('.popup-reset-dialog-message')).toBeVisible();
       await expect(popup.locator('.popup-reset-dialog-list li')).toHaveCount(9);
+      await expectResetDialogActionFeedback(popup);
       await popup.locator('.popup-reset-dialog-backdrop').click({ position: { x: 2, y: 2 } });
       await expect(popup.locator('.popup-reset-dialog-backdrop')).toHaveCount(0);
 
@@ -66,6 +67,31 @@ async function resetExtensionFromPopup(context: BrowserContext): Promise<void> {
     } finally {
       await popup.close();
     }
+  });
+}
+
+async function expectResetDialogActionFeedback(popup: Page): Promise<void> {
+  await test.step('Show flat hover feedback on reset actions', async () => {
+    const close = popup.locator('.popup-reset-dialog-cancel');
+    const confirm = popup.locator('.popup-reset-dialog-confirm');
+    const initialCloseBackground = await close.evaluate(
+      (element) => getComputedStyle(element).backgroundColor
+    );
+    const initialConfirmBackground = await confirm.evaluate(
+      (element) => getComputedStyle(element).backgroundColor
+    );
+
+    await close.hover();
+    await expect
+      .poll(() => close.evaluate((element) => getComputedStyle(element).backgroundColor))
+      .not.toBe(initialCloseBackground);
+
+    await confirm.hover();
+    await expect
+      .poll(() => confirm.evaluate((element) => getComputedStyle(element).backgroundColor))
+      .not.toBe(initialConfirmBackground);
+    await expect(confirm).toHaveCSS('background-image', 'none');
+    await expect(confirm).toHaveCSS('box-shadow', 'none');
   });
 }
 

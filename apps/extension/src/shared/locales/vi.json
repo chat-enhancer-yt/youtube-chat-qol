@@ -459,8 +459,8 @@
     "appearance": {
       "message": "Giao diện"
     },
-    "more": {
-      "message": "Thêm"
+    "showMore": {
+      "message": "Hiển thị thêm"
     },
     "performance": {
       "message": "Hiệu suất"
@@ -472,7 +472,7 @@
       "message": "Sử dụng bảng tin trò chuyện gọn nhẹ để cải thiện hiệu suất trong các cuộc trò chuyện đông người."
     },
     "liteModeHelper": {
-      "message": "Sử dụng bảng tin trò chuyện nhanh và nhẹ hơn. Tự động quay lại trò chuyện YouTube khi cần."
+      "message": "Sử dụng bảng tin trò chuyện nhanh và nhẹ hơn để cải thiện hiệu suất."
     },
     "startupShimmer": {
       "message": "Hoạt ảnh khởi động"

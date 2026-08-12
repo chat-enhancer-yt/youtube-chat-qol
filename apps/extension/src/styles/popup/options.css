@@ -14,6 +14,7 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) 120px;
   column-gap: 10px;
+  row-gap: 2px;
   align-items: center;
 }
 
@@ -150,7 +151,7 @@
   color: var(--ytcq-popup-secondary-text);
   background: var(--ytcq-popup-control-tint);
   font-size: 11px;
-  font-weight: 500;
+  font-weight: 400;
   line-height: 14px;
   cursor: pointer;
 }
@@ -161,7 +162,7 @@
   border-right: 1.5px solid currentColor;
   border-bottom: 1.5px solid currentColor;
   content: "";
-  opacity: 0.72;
+  opacity: 0.58;
   transform: translateY(-1.5px) rotate(45deg);
 }
 
@@ -173,5 +174,10 @@
 }
 
 .appearance-more-settings-toggle:focus-visible {
-  box-shadow: inset 0 0 0 2px var(--ytcq-popup-action);
+  box-shadow: none;
+}
+
+.appearance-more-settings-toggle:focus-visible span {
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }

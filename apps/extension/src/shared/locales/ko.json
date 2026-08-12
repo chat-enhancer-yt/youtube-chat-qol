@@ -459,7 +459,7 @@
     "appearance": {
       "message": "모양"
     },
-    "more": {
+    "showMore": {
       "message": "더 보기"
     },
     "performance": {
@@ -472,7 +472,7 @@
       "message": "활발한 채팅에서 성능을 높이기 위해 가벼운 채팅 피드를 사용합니다."
     },
     "liteModeHelper": {
-      "message": "더 빠르고 가벼운 채팅 피드를 사용합니다. 필요한 경우 YouTube 채팅으로 자동 전환됩니다."
+      "message": "성능을 높이기 위해 더 빠르고 가벼운 채팅 피드를 사용합니다."
     },
     "startupShimmer": {
       "message": "시작 애니메이션"

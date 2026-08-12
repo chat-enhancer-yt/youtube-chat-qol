@@ -38,6 +38,7 @@ export const popupSettingsBehaviorScenario: BrowserScenario = async ({ context }
     const popup = await openExtensionPopup(context);
 
     try {
+      await expectPopupOptionCopyGap(popup);
       await changePopupTranslationTarget({ context, popup });
       await changePopupTranslationDisplay({ context, popup });
       await changePopupMessageDensity({ context, popup });
@@ -49,6 +50,20 @@ export const popupSettingsBehaviorScenario: BrowserScenario = async ({ context }
     }
   });
 };
+
+async function expectPopupOptionCopyGap(popup: Page): Promise<void> {
+  await test.step('Keep option help text close to its title', async () => {
+    await expect
+      .poll(() =>
+        popup.locator('.option-control').first().evaluate((option) => {
+          const title = option.querySelector('.option-title')?.getBoundingClientRect();
+          const helper = option.querySelector('.option-helper')?.getBoundingClientRect();
+          return title && helper ? helper.top - title.bottom : null;
+        })
+      )
+      .toBe(2);
+  });
+}
 
 async function toggleTranslationFromChatSettings({
   context,
@@ -152,6 +167,9 @@ async function changePopupLiteMode({
     await expect(
       popup.locator('label:has(#liteModeEnabled) .option-beta-badge')
     ).toHaveText('Beta');
+    await expect(popup.locator('label:has(#liteModeEnabled) .option-helper')).toHaveText(
+      'Use a faster, lightweight chat feed to improve performance.'
+    );
     await popup.locator('#liteModeEnabled').setChecked(true);
     await expectStorageValue(context, 'liteModeEnabled', true);
   });
@@ -208,10 +226,37 @@ async function changePopupStartupEffect({
     const moreSettings = popup.locator('#appearanceMoreSettingsToggle');
     const control = popup.locator('#startupEffect');
     await expect(group).toBeHidden();
-    await expect(moreSettings).toHaveText('More');
+    await expect(moreSettings).toHaveText('Show more');
     await expect(moreSettings).toHaveAttribute('aria-expanded', 'false');
     await expect(moreSettings).toHaveAttribute('aria-controls', 'appearanceMoreSettingsGroup');
     await expectMoreSettingsChevronOffset(moreSettings, -1.5);
+    await expect
+      .poll(() =>
+        moreSettings.evaluate((element) => {
+          const styles = getComputedStyle(element);
+          const playgroundIdentity = document.querySelector('.playground-profile');
+          return {
+            hasBackground: styles.backgroundColor !== 'rgba(0, 0, 0, 0)',
+            matchesPlaygroundIdentityBackground:
+              playgroundIdentity !== null &&
+              styles.backgroundColor === getComputedStyle(playgroundIdentity).backgroundColor,
+            borderStyle: styles.borderStyle,
+            borderWidth: styles.borderWidth,
+            boxShadow: styles.boxShadow,
+            fontWeight: styles.fontWeight,
+            outlineStyle: styles.outlineStyle
+          };
+        })
+      )
+      .toEqual({
+        hasBackground: true,
+        matchesPlaygroundIdentityBackground: true,
+        borderStyle: 'solid',
+        borderWidth: '1px',
+        boxShadow: 'none',
+        fontWeight: '400',
+        outlineStyle: 'none'
+      });
     await expect
       .poll(async () => {
         const [buttonBounds, sectionBounds] = await Promise.all([

@@ -459,8 +459,8 @@
     "appearance": {
       "message": "Apparence"
     },
-    "more": {
-      "message": "Plus"
+    "showMore": {
+      "message": "Afficher plus"
     },
     "performance": {
       "message": "Performances"
@@ -472,7 +472,7 @@
       "message": "Utilisez un flux de chat léger pour améliorer les performances dans les chats très actifs."
     },
     "liteModeHelper": {
-      "message": "Utilisez un flux de chat plus rapide et léger. Retourne automatiquement au chat YouTube si nécessaire."
+      "message": "Utilisez un flux de chat plus rapide et léger pour améliorer les performances."
     },
     "startupShimmer": {
       "message": "Animation de démarrage"

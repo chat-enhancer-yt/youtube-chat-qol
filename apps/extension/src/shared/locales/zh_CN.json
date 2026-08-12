@@ -462,8 +462,8 @@
     "appearance": {
       "message": "外观"
     },
-    "more": {
-      "message": "更多"
+    "showMore": {
+      "message": "显示更多"
     },
     "performance": {
       "message": "性能"
@@ -475,7 +475,7 @@
       "message": "在消息繁忙的聊天中使用轻量聊天信息流以提升性能。"
     },
     "liteModeHelper": {
-      "message": "使用更快、更轻量的聊天信息流。必要时会自动返回 YouTube 聊天。"
+      "message": "使用更快、更轻量的聊天信息流以提升性能。"
     },
     "startupShimmer": {
       "message": "启动动画"

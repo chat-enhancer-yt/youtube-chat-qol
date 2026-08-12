@@ -459,8 +459,8 @@
     "appearance": {
       "message": "Wygląd"
     },
-    "more": {
-      "message": "Więcej"
+    "showMore": {
+      "message": "Pokaż więcej"
     },
     "performance": {
       "message": "Wydajność"
@@ -472,7 +472,7 @@
       "message": "Użyj lekkiego kanału czatu, aby poprawić wydajność w aktywnych czatach."
     },
     "liteModeHelper": {
-      "message": "Użyj szybszego, lekkiego kanału czatu. W razie potrzeby automatycznie wraca do czatu YouTube."
+      "message": "Użyj szybszego, lekkiego kanału czatu, aby poprawić wydajność."
     },
     "startupShimmer": {
       "message": "Animacja startowa"
