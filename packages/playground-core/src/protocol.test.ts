@@ -4,7 +4,7 @@ interface PlaygroundBackendGlobal {
   YTCQ_PLAYGROUND_BACKEND_ORIGIN?: string;
 }
 
-describe('playground protocol backend origin', () => {
+describe('playground protocol', () => {
   afterEach(() => {
     delete (globalThis as PlaygroundBackendGlobal).YTCQ_PLAYGROUND_BACKEND_ORIGIN;
   });
@@ -71,5 +71,39 @@ describe('playground protocol backend origin', () => {
       'replay-trivia': 2
     })).toBe(true);
     expect(protocol.filterCompatiblePlaygroundGames(['chess', 'bounty-hunting'], undefined)).toEqual(['chess']);
+  });
+
+  it('classifies terminal statuses for every Playground game', async () => {
+    vi.resetModules();
+
+    const protocol = await import('./protocol');
+
+    expect(protocol.PLAYGROUND_GAME_STATUSES.chess).toEqual([
+      'active', 'checkmate', 'draw', 'resigned'
+    ]);
+    expect(protocol.PLAYGROUND_GAME_STATUSES['bounty-hunting']).toEqual([
+      'active', 'countdown', 'finished', 'preparing', 'ready', 'roundOver'
+    ]);
+    expect(protocol.PLAYGROUND_GAME_STATUSES['replay-trivia']).toEqual([
+      'preparing', 'countdown', 'question', 'reveal', 'score', 'finished'
+    ]);
+    expect(protocol.PLAYGROUND_GAME_STATUSES['stick-around']).toEqual([
+      'ready', 'countdown', 'active', 'finished'
+    ]);
+    expect(protocol.PLAYGROUND_TERMINAL_GAME_STATUSES).toEqual({
+      'bounty-hunting': ['finished'],
+      chess: ['checkmate', 'draw', 'resigned'],
+      'replay-trivia': ['finished'],
+      'stick-around': ['finished']
+    });
+    expect(protocol.isPlaygroundGameTerminal({ gameType: 'chess', status: 'active' })).toBe(false);
+    expect(protocol.isPlaygroundGameTerminal({ gameType: 'chess', status: 'checkmate' })).toBe(true);
+    expect(protocol.isPlaygroundGameTerminal({ gameType: 'chess', status: 'draw' })).toBe(true);
+    expect(protocol.isPlaygroundGameTerminal({ gameType: 'chess', status: 'resigned' })).toBe(true);
+    expect(protocol.isPlaygroundGameTerminal({ gameType: 'bounty-hunting', status: 'roundOver' })).toBe(false);
+    expect(protocol.isPlaygroundGameTerminal({ gameType: 'bounty-hunting', status: 'finished' })).toBe(true);
+    expect(protocol.isPlaygroundGameTerminal({ gameType: 'replay-trivia', status: 'score' })).toBe(false);
+    expect(protocol.isPlaygroundGameTerminal({ gameType: 'replay-trivia', status: 'finished' })).toBe(true);
+    expect(protocol.isPlaygroundGameTerminal({ gameType: 'stick-around', status: 'finished' })).toBe(true);
   });
 });

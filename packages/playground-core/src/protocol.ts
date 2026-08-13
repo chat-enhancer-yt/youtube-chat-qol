@@ -78,11 +78,44 @@ export interface PublicInvite {
   toUser: PublicUserIdentity;
 }
 
+/** Canonical statuses for each game. */
+export const PLAYGROUND_GAME_STATUSES = {
+  'bounty-hunting': ['active', 'countdown', 'finished', 'preparing', 'ready', 'roundOver'],
+  chess: ['active', 'checkmate', 'draw', 'resigned'],
+  'replay-trivia': ['preparing', 'countdown', 'question', 'reveal', 'score', 'finished'],
+  'stick-around': ['ready', 'countdown', 'active', 'finished']
+} as const satisfies Record<GameId, readonly [string, ...string[]]>;
+
+type PlaygroundGameStatus<TGameId extends GameId> =
+  typeof PLAYGROUND_GAME_STATUSES[TGameId][number];
+
+/** Statuses that end each game. */
+export const PLAYGROUND_TERMINAL_GAME_STATUSES = {
+  'bounty-hunting': ['finished'],
+  chess: ['checkmate', 'draw', 'resigned'],
+  'replay-trivia': ['finished'],
+  'stick-around': ['finished']
+} as const satisfies {
+  [TGameId in GameId]: readonly PlaygroundGameStatus<TGameId>[];
+};
+
+export type BountyHuntingGameStatus = PlaygroundGameStatus<'bounty-hunting'>;
+export type ChessGameStatus = PlaygroundGameStatus<'chess'>;
+export type ReplayTriviaGameStatus = PlaygroundGameStatus<'replay-trivia'>;
+export type StickAroundGameStatus = PlaygroundGameStatus<'stick-around'>;
+
 export interface PublicGame {
   gameId: string;
   gameType: GameId;
   players?: Partial<Record<string, PublicUserIdentity>>;
   status: string;
+}
+
+export function isPlaygroundGameTerminal(
+  game: Pick<PublicGame, 'gameType' | 'status'>
+): boolean {
+  return PLAYGROUND_TERMINAL_GAME_STATUSES[game.gameType]
+    .some((status) => status === game.status);
 }
 
 export interface IncompatibleActiveGame {

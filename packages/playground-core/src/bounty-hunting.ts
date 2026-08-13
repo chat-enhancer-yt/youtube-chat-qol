@@ -22,7 +22,7 @@ export const BOUNTY_HUNTING_BOUNTY_DESCRIPTION_KEYS = [
   'gamesBountyHuntingBountyVerifiedAuthor'
 ] as const;
 
-export type BountyHuntingGameStatus = 'active' | 'countdown' | 'finished' | 'preparing' | 'ready' | 'roundOver';
+export type { BountyHuntingGameStatus } from './protocol';
 export type BountyHuntingPlayerRole = 'guest' | 'host';
 export type BountyHuntingBountyDescriptionKey = typeof BOUNTY_HUNTING_BOUNTY_DESCRIPTION_KEYS[number];
 

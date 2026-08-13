@@ -1,4 +1,8 @@
-import type { PublicGame, PublicUserIdentity } from '@chatenhancer/playground-core/protocol';
+import type {
+  ChessGameStatus,
+  PublicGame,
+  PublicUserIdentity
+} from '@chatenhancer/playground-core/protocol';
 
 export type ChessPieceColor = 'black' | 'white';
 export type ChessPromotionPiece = 'b' | 'n' | 'q' | 'r';
@@ -16,7 +20,7 @@ export interface PublicChessGame extends PublicGame {
   lastMoveSan?: string;
   pgn: string;
   players: Record<ChessPieceColor, PublicUserIdentity>;
-  status: 'active' | 'checkmate' | 'draw' | 'resigned';
+  status: ChessGameStatus;
   turn: ChessPieceColor;
   winner?: ChessPieceColor;
 }

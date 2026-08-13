@@ -1,7 +1,11 @@
-import type { PublicGame, PublicUserIdentity } from './protocol';
+import type {
+  PublicGame,
+  PublicUserIdentity,
+  StickAroundGameStatus
+} from './protocol';
 
 export type StickAroundPlayerRole = 'guest' | 'host';
-export type StickAroundGameStatus = 'ready' | 'countdown' | 'active' | 'finished' | 'desynced';
+export type { StickAroundGameStatus } from './protocol';
 
 export const STICK_AROUND_COUNTDOWN_MS = 3000;
 export const STICK_AROUND_INPUT_RATE_MS = 33;

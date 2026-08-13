@@ -91,7 +91,7 @@ export type ReplayTriviaQuestionsBackgroundResponse =
     status?: number;
   };
 
-export type ReplayTriviaGameStatus = 'preparing' | 'countdown' | 'question' | 'reveal' | 'score' | 'finished';
+export type { ReplayTriviaGameStatus } from './protocol';
 export type ReplayTriviaPlayerRole = 'guest' | 'host';
 
 export function parseReplayTriviaExpectedPhaseStartedAt(

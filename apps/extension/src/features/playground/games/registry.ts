@@ -7,18 +7,18 @@
  */
 import { createGamesIcon } from '../../../shared/icons';
 import { t } from '../../../shared/i18n';
-import type {
-  GameId,
-  PlaygroundActionError,
-  PublicGame,
-  ServerMessage
+import {
+  isPlaygroundGameTerminal,
+  type GameId,
+  type PlaygroundActionError,
+  type PublicGame,
+  type ServerMessage
 } from '@chatenhancer/playground-core/protocol';
 import { isLiveChatReplayUrl } from '../../../youtube/timestamps';
 import type { PlaygroundClientState } from './client';
 import { ENABLED_GAMES } from './enabled-games';
 import type {
   AnyEnabledGame,
-  AnyGamePanelAdapter,
   GameDefinition,
   GamePanelMount,
   SendGameAction
@@ -31,9 +31,10 @@ let activeGamePanel: ActiveGamePanel | null = null;
 const gamePanelPreferences = new Map<GameId, GamePanelPreferences>();
 
 interface ActiveGamePanel {
-  adapter: AnyGamePanelAdapter;
-  gameType: GameId;
+  enabledGame: AnyEnabledGame;
+  game: PublicGame;
   mount: GamePanelMount;
+  sendGameAction: SendGameAction;
   shell?: GamePanelShell;
   shellController?: AbortController;
 }
@@ -144,6 +145,17 @@ export function closeActiveGamePanel({
   disposeGamePanel(panel, { notify });
 }
 
+function closeActiveGamePanelFromControl(): void {
+  const panel = getConnectedActiveGamePanel();
+  if (!panel) return;
+
+  const shouldLeave = isPlaygroundGameTerminal(panel.game);
+  const gameId = panel.mount.gameId;
+  const sendGameAction = panel.sendGameAction;
+  closeActiveGamePanel({ animateToGamesButton: !shouldLeave });
+  if (shouldLeave) sendGameAction(gameId, 'leave');
+}
+
 export function isActiveGamePanelOpen(): boolean {
   return Boolean(getConnectedActiveGamePanel());
 }
@@ -173,11 +185,8 @@ export function openSupportedGamePanel(
   if (definition.surface === 'chat-overlay') {
     if (!adapter.mountOverlay) return;
     const mount = adapter.mountOverlay(game, {
-      closePanel: (closeOptions) => closeActiveGamePanel({
-        ...closeOptions,
-        animateToGamesButton: true
-      }),
       currentUserId,
+      onClose: closeActiveGamePanelFromControl,
       onPanelChange: () => {
         closeDisconnectedActiveGamePanel();
         onPanelChange();
@@ -186,10 +195,12 @@ export function openSupportedGamePanel(
     });
     if (!mount) return;
     activeGamePanel = {
-      adapter,
-      gameType: game.gameType,
-      mount
+      enabledGame,
+      game,
+      mount,
+      sendGameAction
     };
+    syncActiveGamePanelCloseLabel(activeGamePanel);
     return;
   }
 
@@ -198,9 +209,9 @@ export function openSupportedGamePanel(
   const shell = createGamePanelShell({
     ariaLabel: title,
     classNamePrefix: definition.classNamePrefix,
-    closeLabel: t('gamesHide'),
+    closeLabel: getGamePanelCloseLabel(game),
     icon: createGamesIcon(),
-    onClose: () => closeActiveGamePanel({ animateToGamesButton: true }),
+    onClose: closeActiveGamePanelFromControl,
     signal: shellController.signal,
     subtitle: getGameOpponentLabel(game, currentUserId),
     title
@@ -257,19 +268,21 @@ export function openSupportedGamePanel(
     }
   }
   activeGamePanel = {
-    adapter,
-    gameType: game.gameType,
+    enabledGame,
+    game,
     mount,
+    sendGameAction,
     shell,
     shellController
   };
+  syncActiveGamePanelCloseLabel(activeGamePanel);
 }
 
 export function updateOpenGamePanel(nextState: PlaygroundClientState): void {
   const panel = getConnectedActiveGamePanel();
   if (!panel) return;
 
-  const { adapter, gameType, mount, shell } = panel;
+  const { enabledGame, mount, shell } = panel;
   const overlay = mount.statusOverlay || shell?.statusOverlay;
   if (!shell && !overlay) {
     if (nextState.status === 'disconnected') {
@@ -318,7 +331,7 @@ export function updateOpenGamePanel(nextState: PlaygroundClientState): void {
   }
 
   const game = nextState.games.find((candidate) => candidate.gameId === activeGameId);
-  if (!game || game.gameType !== gameType) {
+  if (!game || game.gameType !== enabledGame.definition.id) {
     if (overlay?.has({ keyPrefix: 'game-ended:', owner: 'system' })) return;
 
     overlay?.show({
@@ -331,10 +344,26 @@ export function updateOpenGamePanel(nextState: PlaygroundClientState): void {
   }
 
   overlay?.clear({ owner: 'system' });
-  adapter.updatePanel(game, {
+  panel.game = game;
+  syncActiveGamePanelCloseLabel(panel);
+  enabledGame.adapter.updatePanel(game, {
     clientState: nextState,
     currentUserId,
   });
+}
+
+function getGamePanelCloseLabel(game: PublicGame): string {
+  return t(isPlaygroundGameTerminal(game) ? 'gamesLeave' : 'gamesHide');
+}
+
+function syncActiveGamePanelCloseLabel(panel: ActiveGamePanel): void {
+  const label = getGamePanelCloseLabel(panel.game);
+  const closeButton = panel.shell?.closeButton;
+  if (closeButton) {
+    closeButton.setAttribute('aria-label', label);
+    closeButton.title = label;
+  }
+  panel.mount.setCloseLabel?.(label);
 }
 
 function getEnabledGame(game: PublicGame | undefined): AnyEnabledGame | null {

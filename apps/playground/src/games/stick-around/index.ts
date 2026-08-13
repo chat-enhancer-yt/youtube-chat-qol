@@ -6,7 +6,12 @@
  * the authoritative world snapshot.
  */
 import { z } from 'zod';
-import { PLAYGROUND_GAME_VERSIONS, type PublicUserIdentity } from '../../protocol/messages';
+import {
+  isPlaygroundGameTerminal,
+  PLAYGROUND_GAME_STATUSES,
+  PLAYGROUND_GAME_VERSIONS,
+  type PublicUserIdentity
+} from '../../protocol/messages';
 import { ProtocolError } from '../../protocol/validation';
 import type {
   PublicStickAroundGame,
@@ -191,7 +196,7 @@ const StickAroundGameRecordSchema = z.strictObject({
   roundStartedAt: FiniteNumberSchema.optional(),
   simulation: StickAroundSimulationSchema.optional(),
   startedAt: NonNegativeIntegerSchema.optional(),
-  status: z.enum(['ready', 'countdown', 'active', 'finished']),
+  status: z.enum(PLAYGROUND_GAME_STATUSES['stick-around']),
   winnerUserId: NonEmptyStringSchema.nullable().optional()
 });
 
@@ -249,7 +254,7 @@ export const stickAroundGameModule: GameModule = {
     return stickGame.status === 'finished' ? stickGame.winnerUserId || null : null;
   },
   isTerminal(game) {
-    return assertStickAroundGame(game).status === 'finished';
+    return isPlaygroundGameTerminal(assertStickAroundGame(game));
   },
   isStoredGameRecord(value): value is StickAroundGameRecord {
     return StickAroundGameRecordSchema.safeParse(value).success;

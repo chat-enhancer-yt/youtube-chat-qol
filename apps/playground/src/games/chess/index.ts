@@ -7,6 +7,8 @@
 import { Chess } from 'chess.js';
 import { z } from 'zod';
 import {
+  isPlaygroundGameTerminal,
+  PLAYGROUND_GAME_STATUSES,
   PLAYGROUND_GAME_VERSIONS,
   type PublicGame,
   type PublicUserIdentity
@@ -20,7 +22,7 @@ import type {
 } from '../types';
 
 const PlayerColorSchema = z.enum(['black', 'white']);
-const ChessGameStatusSchema = z.enum(['active', 'checkmate', 'draw', 'resigned']);
+const ChessGameStatusSchema = z.enum(PLAYGROUND_GAME_STATUSES.chess);
 const ChessPromotionPieceSchema = z.enum(['b', 'n', 'q', 'r']);
 const ChessSquareSchema = z.string().regex(/^[a-h][1-8]$/);
 const ChessLastMoveSchema = z.strictObject({
@@ -109,7 +111,7 @@ export const chessGameModule: GameModule = {
     return getChessWinnerUserId(assertChessGame(game));
   },
   isTerminal(game) {
-    return assertChessGame(game).status !== 'active';
+    return isPlaygroundGameTerminal(assertChessGame(game));
   },
   isStoredGameRecord(value): value is ChessGameRecord {
     return ChessGameRecordSchema.safeParse(value).success;

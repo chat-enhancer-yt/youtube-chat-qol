@@ -49,8 +49,8 @@ export interface GamePanelMountContext {
 }
 
 export interface GameOverlayMountContext {
-  closePanel: CloseGamePanel;
   currentUserId: string;
+  onClose: () => void;
   onPanelChange: () => void;
   sendGameAction: SendGameAction;
 }
@@ -60,6 +60,7 @@ export interface GamePanelMount {
   gameId: string;
   isConnected?(): boolean;
   setCompactMode?(compact: boolean): void;
+  setCloseLabel?(label: string): void;
   statusOverlay?: GamePanelStatusOverlay;
   surface?: HTMLElement;
 }

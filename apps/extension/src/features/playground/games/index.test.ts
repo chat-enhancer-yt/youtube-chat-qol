@@ -1156,6 +1156,49 @@ describe('playground games header button', () => {
     )).toHaveLength(1);
   });
 
+  it('leaves a terminal floating game from the panel close button', () => {
+    const header = createHeader();
+    document.body.append(header);
+    setOptions({ ...DEFAULT_OPTIONS, playgroundEnabled: true, playgroundGamesAvailable: true });
+
+    wireGamesButton();
+    header.querySelector<HTMLButtonElement>('.ytcq-games-button')!.click();
+    const game = createChessGame();
+    lastMockPort()?.emit(createSnapshotMessage({
+      ...createLobbySnapshot(),
+      games: [game],
+      invites: []
+    }));
+    getActionButton('Resume').click();
+
+    const closeButton = document.querySelector<HTMLButtonElement>('.ytcq-chess-game-close')!;
+    expect(closeButton.getAttribute('aria-label')).toBe('Hide');
+    lastMockPort()?.emit({
+      message: {
+        game: {
+          ...game,
+          status: 'checkmate',
+          winner: 'white'
+        } as PublicGame,
+        type: 'gameUpdated'
+      },
+      type: 'ytcq:playground:server-message'
+    });
+
+    expect(closeButton.getAttribute('aria-label')).toBe('Leave');
+    expect(closeButton.title).toBe('Leave');
+    closeButton.click();
+
+    expect(document.querySelector('.ytcq-chess-game-panel')).toBeNull();
+    expect(minimizeAnimationMocks.animateGameSurfaceToGamesButton).not.toHaveBeenCalled();
+    expect(lastMockPort()?.messages.at(-1)).toEqual({
+      action: 'leave',
+      gameId: 'game-1',
+      payload: undefined,
+      type: 'ytcq:playground:game-action'
+    });
+  });
+
   it('remembers compact mode only when resuming an active Bounty Hunting game', () => {
     vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(createMockCanvasContext() as unknown as CanvasRenderingContext2D);
     const header = createHeader();
@@ -1409,6 +1452,51 @@ describe('playground games header button', () => {
     expect(document.querySelector('.ytcq-stick-around-overlay')).toBeNull();
     gamesButton.click();
     expect(getActionButtonLabels()).toEqual(['Resume', 'Leave']);
+  });
+
+  it('leaves a terminal chat-overlay game from its close button', () => {
+    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(createMockCanvasContext() as unknown as CanvasRenderingContext2D);
+    const header = createHeader();
+    const feed = document.createElement('yt-live-chat-item-list-renderer');
+    document.body.append(header, feed);
+    setOptions({ ...DEFAULT_OPTIONS, playgroundEnabled: true, playgroundGamesAvailable: true });
+
+    wireGamesButton();
+    header.querySelector<HTMLButtonElement>('.ytcq-games-button')!.click();
+    const game = createStickAroundGame();
+    lastMockPort()?.emit(createSnapshotMessage({
+      ...createLobbySnapshot(),
+      games: [game],
+      invites: []
+    }));
+    getActionButton('Resume').click();
+
+    const closeButton = document.querySelector<HTMLButtonElement>('.ytcq-stick-around-close')!;
+    expect(closeButton.getAttribute('aria-label')).toBe('Hide');
+    lastMockPort()?.emit({
+      message: {
+        game: {
+          ...game,
+          status: 'finished',
+          winnerUserId: 'me-user'
+        } as PublicStickAroundGame,
+        type: 'gameUpdated'
+      },
+      type: 'ytcq:playground:server-message'
+    });
+
+    expect(closeButton.getAttribute('aria-label')).toBe('Leave');
+    expect(closeButton.title).toBe('Leave');
+    closeButton.click();
+
+    expect(document.querySelector('.ytcq-stick-around-overlay')).toBeNull();
+    expect(minimizeAnimationMocks.animateGameSurfaceToGamesButton).not.toHaveBeenCalled();
+    expect(lastMockPort()?.messages.at(-1)).toEqual({
+      action: 'leave',
+      gameId: 'game-stick-around',
+      payload: undefined,
+      type: 'ytcq:playground:game-action'
+    });
   });
 
   it('keeps lobby buttons stable during active Stick Around game updates', () => {
@@ -2362,6 +2450,7 @@ function createMockCanvasContext(): Partial<CanvasRenderingContext2D> {
     setTransform: vi.fn(),
     stroke: vi.fn(),
     strokeRect: vi.fn(),
+    strokeText: vi.fn(),
     translate: vi.fn()
   };
 }

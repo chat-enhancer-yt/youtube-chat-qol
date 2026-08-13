@@ -7,6 +7,8 @@
  */
 import { z } from 'zod';
 import {
+  isPlaygroundGameTerminal,
+  PLAYGROUND_GAME_STATUSES,
   PLAYGROUND_GAME_VERSIONS,
   type PublicGame,
   type PublicUserIdentity
@@ -138,7 +140,7 @@ const BountyHuntingGameRecordSchema = z.strictObject({
     host: z.number().int().nonnegative()
   }),
   startedAt: z.number().int().nonnegative().optional(),
-  status: z.enum(['active', 'countdown', 'finished', 'preparing', 'ready', 'roundOver'])
+  status: z.enum(PLAYGROUND_GAME_STATUSES['bounty-hunting'])
 });
 
 export type BountyHuntingClaimWitness = z.infer<typeof BountyHuntingClaimWitnessSchema>;
@@ -223,7 +225,7 @@ export const bountyHuntingGameModule: GameModule = {
     return bountyGame.status === 'finished' ? getBountyHuntingWinnerUserId(bountyGame) : null;
   },
   isTerminal(game) {
-    return assertBountyHuntingGame(game).status === 'finished';
+    return isPlaygroundGameTerminal(assertBountyHuntingGame(game));
   },
   isStoredGameRecord(value): value is BountyHuntingGameRecord {
     return BountyHuntingGameRecordSchema.safeParse(value).success;

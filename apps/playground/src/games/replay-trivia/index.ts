@@ -7,6 +7,8 @@
  */
 import { z } from 'zod';
 import {
+  isPlaygroundGameTerminal,
+  PLAYGROUND_GAME_STATUSES,
   PLAYGROUND_GAME_VERSIONS,
   type PlaygroundUserLanguage,
   type PublicGame,
@@ -106,7 +108,7 @@ const ReplayTriviaGameRecordSchema = z.strictObject({
     host: z.number().int().nonnegative()
   }),
   startedAt: z.number().int().nonnegative().optional(),
-  status: z.enum(['preparing', 'countdown', 'question', 'reveal', 'score', 'finished'])
+  status: z.enum(PLAYGROUND_GAME_STATUSES['replay-trivia'])
 });
 
 type ChoiceIndex = z.infer<typeof ReplayTriviaChoiceSchema>;
@@ -178,7 +180,7 @@ export const replayTriviaGameModule: GameModule = {
     return triviaGame.status === 'finished' ? getReplayTriviaWinnerUserId(triviaGame) : null;
   },
   isTerminal(game) {
-    return assertReplayTriviaGame(game).status === 'finished';
+    return isPlaygroundGameTerminal(assertReplayTriviaGame(game));
   },
   isStoredGameRecord(value): value is ReplayTriviaGameRecord {
     return ReplayTriviaGameRecordSchema.safeParse(value).success;

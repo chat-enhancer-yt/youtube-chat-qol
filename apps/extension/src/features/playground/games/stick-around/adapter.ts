@@ -14,6 +14,7 @@ import {
   getStickAroundOverlayStatusOverlay,
   isStickAroundOverlayConnected,
   openStickAroundOverlay,
+  setStickAroundOverlayCloseLabel,
   updateStickAroundOverlay
 } from './overlay';
 import { renderStickAroundPreview } from './preview';
@@ -42,13 +43,14 @@ export const stickAroundGame: EnabledGame<PublicStickAroundGame> = {
 };
 
 function mountStickAroundOverlay(game: PublicStickAroundGame, context: GameOverlayMountContext): GamePanelMount | null {
-  const { closePanel, currentUserId, onPanelChange, sendGameAction } = context;
-  const opened = openStickAroundOverlay(game, currentUserId, sendGameAction, onPanelChange, closePanel);
+  const { currentUserId, onClose, onPanelChange, sendGameAction } = context;
+  const opened = openStickAroundOverlay(game, currentUserId, sendGameAction, onPanelChange, onClose);
   if (!opened) return null;
   return {
     close: closeStickAroundOverlay,
     gameId: game.gameId,
     isConnected: isStickAroundOverlayConnected,
+    setCloseLabel: setStickAroundOverlayCloseLabel,
     statusOverlay: getStickAroundOverlayStatusOverlay(),
     surface: getStickAroundOverlayElement()
   };

@@ -8,7 +8,7 @@ import {
 import { CHAT_MESSAGE_SELECTOR } from '../../../../youtube/selectors';
 import { findChatScroller, keepChatAtLiveEdge } from '../../../../youtube/chat-scroll';
 import type { RichTextSegment } from '../../../../youtube/rich-text';
-import type { CloseGamePanel, SendGameAction } from '../adapter';
+import type { SendGameAction } from '../adapter';
 import { createGameOverlayShell, type GameOverlayShell } from '../overlay-shell';
 import { createGameSoundController, type GameSoundController } from '../sound';
 import {
@@ -184,7 +184,7 @@ export function openStickAroundOverlay(
   currentUserId: string,
   sendGameAction: SendGameAction,
   onPanelChange: () => void,
-  closePanel: CloseGamePanel
+  onClose: () => void
 ): boolean {
   closeStickAroundOverlay({ notify: false });
 
@@ -197,7 +197,7 @@ export function openStickAroundOverlay(
     classNamePrefix: 'ytcq-stick-around',
     closeLabel: t('gamesHide'),
     icon: createGamesIcon(),
-    onClose: () => closePanel(),
+    onClose,
     signal: listeners.signal,
     subtitle: getStickAroundOverlayOpponentLabel(game, currentUserId),
     title: t('gamesStickAround')
@@ -352,6 +352,13 @@ export function isStickAroundOverlayConnected(): boolean {
   return Boolean(activeStickAroundOverlay?.root.isConnected);
 }
 
+export function setStickAroundOverlayCloseLabel(label: string): void {
+  const closeButton = activeStickAroundOverlay?.shell.closeButton;
+  if (!closeButton) return;
+  closeButton.setAttribute('aria-label', label);
+  closeButton.title = label;
+}
+
 export function getStickAroundOverlayElement(): HTMLElement | undefined {
   return activeStickAroundOverlay?.root;
 }
@@ -425,7 +432,7 @@ function syncStickAroundServerClock(
 
 function shouldAnimateStickAroundEffects(runtime: StickAroundOverlayRuntime): boolean {
   return (
-    (runtime.game.status === 'finished' || runtime.game.status === 'desynced') &&
+    runtime.game.status === 'finished' &&
     (runtime.simulation.shake > 0 || runtime.simulation.particles.length > 0)
   );
 }
@@ -1276,7 +1283,6 @@ function getCanvasStatusText(runtime: StickAroundOverlayRuntime, now: number): s
     return t('gamesStickAroundStarting', { seconds });
   }
   if (game.status === 'finished') return getWinnerStatusText(game, game.winnerUserId);
-  if (game.status === 'desynced') return t('gamesStickAroundDesynced');
   return null;
 }
 
