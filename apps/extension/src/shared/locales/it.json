@@ -639,6 +639,24 @@
     "filterBookmarks": {
       "message": "Filtra segnalibri"
     },
+    "selectSavedItems": {
+      "message": "Seleziona"
+    },
+    "selectAllSavedItems": {
+      "message": "Seleziona tutto"
+    },
+    "removeSelectedSavedItems": {
+      "message": "Rimuovi selezionati"
+    },
+    "selectedSavedItemsCount": {
+      "message": "{count} selezionati"
+    },
+    "removedSavedItemsCount": {
+      "message": "{count} rimossi"
+    },
+    "undo": {
+      "message": "Annulla"
+    },
     "noMatchingSavedItems": {
       "message": "Nessun elemento salvato corrispondente."
     },

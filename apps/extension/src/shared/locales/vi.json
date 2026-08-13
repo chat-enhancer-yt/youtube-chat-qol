@@ -636,6 +636,24 @@
     "filterBookmarks": {
       "message": "Lọc dấu trang"
     },
+    "selectSavedItems": {
+      "message": "Chọn"
+    },
+    "selectAllSavedItems": {
+      "message": "Chọn tất cả"
+    },
+    "removeSelectedSavedItems": {
+      "message": "Xóa mục đã chọn"
+    },
+    "selectedSavedItemsCount": {
+      "message": "Đã chọn {count}"
+    },
+    "removedSavedItemsCount": {
+      "message": "Đã xóa {count}"
+    },
+    "undo": {
+      "message": "Hoàn tác"
+    },
     "noMatchingSavedItems": {
       "message": "Không có mục đã lưu phù hợp."
     },

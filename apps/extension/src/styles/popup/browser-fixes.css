@@ -6,6 +6,7 @@
 }
 
 .header-actions,
+.bookmarks-header-button,
 .bookmarks-filter input,
 .popup-reset-dialog-button,
 .playground-display-name-field input,
@@ -18,7 +19,8 @@ input[type="number"] {
 .popup-reset-dialog,
 .settings-section,
 .playground-profile,
-.bookmarks-header {
+.bookmarks-header,
+.bookmarks-undo {
   border-radius: var(--ytcq-popup-squircle-radius-surface);
 }
 

@@ -639,6 +639,24 @@
     "filterBookmarks": {
       "message": "Фильтр закладок"
     },
+    "selectSavedItems": {
+      "message": "Выбрать"
+    },
+    "selectAllSavedItems": {
+      "message": "Выбрать все"
+    },
+    "removeSelectedSavedItems": {
+      "message": "Удалить выбранное"
+    },
+    "selectedSavedItemsCount": {
+      "message": "Выбрано: {count}"
+    },
+    "removedSavedItemsCount": {
+      "message": "Удалено: {count}"
+    },
+    "undo": {
+      "message": "Отменить"
+    },
     "noMatchingSavedItems": {
       "message": "Нет подходящих сохранённых элементов."
     },

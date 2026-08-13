@@ -639,6 +639,24 @@
     "filterBookmarks": {
       "message": "Filter bookmarks"
     },
+    "selectSavedItems": {
+      "message": "Select"
+    },
+    "selectAllSavedItems": {
+      "message": "Select all"
+    },
+    "removeSelectedSavedItems": {
+      "message": "Remove selected"
+    },
+    "selectedSavedItemsCount": {
+      "message": "{count} selected"
+    },
+    "removedSavedItemsCount": {
+      "message": "{count} removed"
+    },
+    "undo": {
+      "message": "Undo"
+    },
     "noMatchingSavedItems": {
       "message": "No matching saved items."
     },

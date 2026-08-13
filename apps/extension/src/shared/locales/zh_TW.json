@@ -636,6 +636,24 @@
     "filterBookmarks": {
       "message": "篩選書籤"
     },
+    "selectSavedItems": {
+      "message": "選取"
+    },
+    "selectAllSavedItems": {
+      "message": "全選"
+    },
+    "removeSelectedSavedItems": {
+      "message": "移除所選項目"
+    },
+    "selectedSavedItemsCount": {
+      "message": "已選取 {count} 個項目"
+    },
+    "removedSavedItemsCount": {
+      "message": "已移除 {count} 個項目"
+    },
+    "undo": {
+      "message": "復原"
+    },
     "noMatchingSavedItems": {
       "message": "沒有相符的已儲存項目。"
     },

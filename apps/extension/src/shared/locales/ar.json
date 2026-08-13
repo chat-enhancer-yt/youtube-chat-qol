@@ -639,6 +639,24 @@
     "filterBookmarks": {
       "message": "تصفية الإشارات"
     },
+    "selectSavedItems": {
+      "message": "تحديد"
+    },
+    "selectAllSavedItems": {
+      "message": "تحديد الكل"
+    },
+    "removeSelectedSavedItems": {
+      "message": "إزالة المحدد"
+    },
+    "selectedSavedItemsCount": {
+      "message": "تم تحديد {count}"
+    },
+    "removedSavedItemsCount": {
+      "message": "تمت إزالة {count}"
+    },
+    "undo": {
+      "message": "تراجع"
+    },
     "noMatchingSavedItems": {
       "message": "لا توجد عناصر محفوظة مطابقة"
     },

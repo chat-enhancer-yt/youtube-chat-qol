@@ -639,6 +639,24 @@
     "filterBookmarks": {
       "message": "बुकमार्क फ़िल्टर करें"
     },
+    "selectSavedItems": {
+      "message": "चुनें"
+    },
+    "selectAllSavedItems": {
+      "message": "सभी चुनें"
+    },
+    "removeSelectedSavedItems": {
+      "message": "चुने हुए हटाएँ"
+    },
+    "selectedSavedItemsCount": {
+      "message": "{count} चुने गए"
+    },
+    "removedSavedItemsCount": {
+      "message": "{count} हटाए गए"
+    },
+    "undo": {
+      "message": "वापस लाएँ"
+    },
     "noMatchingSavedItems": {
       "message": "कोई मेल खाता सहेजा गया आइटम नहीं है।"
     },

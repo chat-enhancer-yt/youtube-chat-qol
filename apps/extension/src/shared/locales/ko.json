@@ -636,6 +636,24 @@
     "filterBookmarks": {
       "message": "북마크 필터링"
     },
+    "selectSavedItems": {
+      "message": "선택"
+    },
+    "selectAllSavedItems": {
+      "message": "모두 선택"
+    },
+    "removeSelectedSavedItems": {
+      "message": "선택 항목 삭제"
+    },
+    "selectedSavedItemsCount": {
+      "message": "{count}개 선택됨"
+    },
+    "removedSavedItemsCount": {
+      "message": "{count}개 삭제됨"
+    },
+    "undo": {
+      "message": "실행 취소"
+    },
     "noMatchingSavedItems": {
       "message": "일치하는 저장된 항목이 없습니다."
     },

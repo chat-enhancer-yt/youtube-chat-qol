@@ -126,6 +126,9 @@ async function changePopupTranslationTarget({
   popup: Page;
 }): Promise<void> {
   await test.step('Set popup translation target', async () => {
+    await expect(
+      popup.locator('.option-control:has(#targetLanguage) .option-title > span:last-child')
+    ).toHaveText('Chat translation');
     await popup.locator('#targetLanguage').selectOption('ja');
     await expectStorageValue(context, 'targetLanguage', 'ja');
     await expectStorageValue(context, 'lastTranslationTarget', 'ja');
@@ -141,6 +144,13 @@ async function changePopupTranslationDisplay({
 }): Promise<void> {
   await test.step('Set popup translation display mode', async () => {
     const icon = popup.locator('.translation-display-icon');
+    await expect(
+      popup.locator('.option-control:has(#translationDisplay) .option-title > span:last-child')
+    ).toHaveText('Translation appearance');
+    await expect(popup.locator('#translationDisplay option[value="replace"]')).toHaveText(
+      'Replace text'
+    );
+    await expect(popup.locator('#translationDisplay')).toHaveCSS('width', '132px');
     await expect(icon.locator('.translation-display-message')).toHaveCount(2);
     await expect(icon.locator('.translation-display-flow')).toHaveCount(1);
     await popup.locator('#translationDisplay').selectOption('below');
@@ -249,10 +259,10 @@ async function changePopupStartupEffect({
         })
       )
       .toEqual({
-        hasBackground: true,
-        matchesPlaygroundIdentityBackground: true,
-        borderStyle: 'solid',
-        borderWidth: '1px',
+        hasBackground: false,
+        matchesPlaygroundIdentityBackground: false,
+        borderStyle: 'none',
+        borderWidth: '0px',
         boxShadow: 'none',
         fontWeight: '400',
         outlineStyle: 'none'
@@ -266,16 +276,33 @@ async function changePopupStartupEffect({
         if (!buttonBounds || !sectionBounds) return null;
         return {
           height: buttonBounds.height,
-          widthInset: sectionBounds.width - buttonBounds.width
+          isCentered:
+            Math.abs(
+              buttonBounds.x + buttonBounds.width / 2 -
+                (sectionBounds.x + sectionBounds.width / 2)
+            ) <= 1,
+          isCompact: buttonBounds.width < sectionBounds.width / 2
         };
       })
-      .toEqual({ height: 24, widthInset: 16 });
+      .toEqual({ height: 20, isCentered: true, isCompact: true });
 
+    await option.evaluate((element) => {
+      const captureRevealAnimation = (event: Event): void => {
+        const animationEvent = event as AnimationEvent;
+        if (animationEvent.animationName !== 'ytcq-popup-option-added') return;
+        element.dataset.revealAnimation = animationEvent.animationName;
+        element.dataset.revealAnimationDuration = getComputedStyle(element).animationDuration;
+        element.removeEventListener('animationstart', captureRevealAnimation);
+      };
+      element.addEventListener('animationstart', captureRevealAnimation);
+    });
     await moreSettings.click();
     await expect(moreSettings).toHaveAttribute('aria-expanded', 'true');
     await expect(moreSettings).toBeHidden();
     await expect(group).toBeVisible();
     await expect(option).toBeVisible();
+    await expect(option).toHaveAttribute('data-reveal-animation', 'ytcq-popup-option-added');
+    await expect(option).toHaveAttribute('data-reveal-animation-duration', '0.72s');
     await expect(group.locator(':scope > .appearance-more-settings-content')).toHaveCSS(
       'min-height',
       '0px'

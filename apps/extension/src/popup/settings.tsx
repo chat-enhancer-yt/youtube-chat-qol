@@ -44,6 +44,8 @@ const SETTINGS_GROUP_ANIMATION_MS = 180;
 const SETTINGS_GROUP_ANIMATION_FALLBACK_MS = SETTINGS_GROUP_ANIMATION_MS + 50;
 const APPEARANCE_MORE_SETTINGS_TOGGLE_CONTAINER_DISMISSED_CLASS =
   'appearance-more-settings-toggle-container-dismissed';
+const APPEARANCE_MORE_SETTINGS_REVEALED_CLASS = 'appearance-more-settings-group-revealed';
+const APPEARANCE_MORE_SETTINGS_REVEAL_ANIMATION = 'ytcq-popup-option-added';
 const TRANSLATION_TARGET_ICON_CLASS = 'option-icon translation-target-icon';
 
 let lastKnownTranslationTarget = DEFAULT_OPTIONS.lastTranslationTarget;
@@ -155,6 +157,7 @@ export function initSettingsControls(popupLocale: string): void {
       settingsPanel && !prefersReducedMotion()
         ? followScrollableElementBottom(settingsPanel)
         : () => undefined;
+    flashRevealedSettingsGroup(appearanceMoreSettingsGroup);
     updateSettingsGroupVisibility(appearanceMoreSettingsGroup, true, true, () => {
       stopFollowingPanelBottom();
       appearanceMoreSettingsToggleContainer.hidden = true;
@@ -257,6 +260,18 @@ function populateMessageDensityOptions(messageDensity: HTMLSelectElement): void 
       createSelectOption(id, getExtensionMessage(labelMessage))
     )
   );
+}
+
+function flashRevealedSettingsGroup(group: HTMLElement): void {
+  if (prefersReducedMotion()) return;
+
+  const handleAnimationEnd = (event: AnimationEvent): void => {
+    if (event.animationName !== APPEARANCE_MORE_SETTINGS_REVEAL_ANIMATION) return;
+    group.classList.remove(APPEARANCE_MORE_SETTINGS_REVEALED_CLASS);
+    group.removeEventListener('animationend', handleAnimationEnd);
+  };
+  group.addEventListener('animationend', handleAnimationEnd);
+  group.classList.add(APPEARANCE_MORE_SETTINGS_REVEALED_CLASS);
 }
 
 function updatePlaygroundGamesVisibility(playgroundEnabled: boolean, animated = false): void {

@@ -639,6 +639,24 @@
     "filterBookmarks": {
       "message": "ブックマークを絞り込む"
     },
+    "selectSavedItems": {
+      "message": "選択"
+    },
+    "selectAllSavedItems": {
+      "message": "すべて選択"
+    },
+    "removeSelectedSavedItems": {
+      "message": "選択項目を削除"
+    },
+    "selectedSavedItemsCount": {
+      "message": "{count} 件選択"
+    },
+    "removedSavedItemsCount": {
+      "message": "{count} 件削除"
+    },
+    "undo": {
+      "message": "元に戻す"
+    },
     "noMatchingSavedItems": {
       "message": "一致する保存済みアイテムはありません。"
     },

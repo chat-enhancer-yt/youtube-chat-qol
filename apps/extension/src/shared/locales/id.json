@@ -639,6 +639,24 @@
     "filterBookmarks": {
       "message": "Filter bookmark"
     },
+    "selectSavedItems": {
+      "message": "Pilih"
+    },
+    "selectAllSavedItems": {
+      "message": "Pilih semua"
+    },
+    "removeSelectedSavedItems": {
+      "message": "Hapus yang dipilih"
+    },
+    "selectedSavedItemsCount": {
+      "message": "{count} dipilih"
+    },
+    "removedSavedItemsCount": {
+      "message": "{count} dihapus"
+    },
+    "undo": {
+      "message": "Urungkan"
+    },
     "noMatchingSavedItems": {
       "message": "Tidak ada item tersimpan yang cocok."
     },

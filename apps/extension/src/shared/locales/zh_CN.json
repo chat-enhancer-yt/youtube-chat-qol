@@ -639,6 +639,24 @@
     "filterBookmarks": {
       "message": "筛选书签"
     },
+    "selectSavedItems": {
+      "message": "选择"
+    },
+    "selectAllSavedItems": {
+      "message": "全选"
+    },
+    "removeSelectedSavedItems": {
+      "message": "移除所选项"
+    },
+    "selectedSavedItemsCount": {
+      "message": "已选择 {count} 项"
+    },
+    "removedSavedItemsCount": {
+      "message": "已移除 {count} 项"
+    },
+    "undo": {
+      "message": "撤销"
+    },
     "noMatchingSavedItems": {
       "message": "没有匹配的已保存项目。"
     },

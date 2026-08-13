@@ -37,7 +37,7 @@ describe('popup', () => {
         <input id="sound" type="checkbox">
         <div id="appearanceMoreSettingsGroup" hidden>
           <div class="appearance-more-settings-content">
-            <label id="startupEffectOption">
+            <label id="startupEffectOption" class="option option-toggle">
               <input id="startupEffect" type="checkbox">
             </label>
           </div>
@@ -354,9 +354,24 @@ describe('popup', () => {
     ).toBe(true);
     expect(appearanceMoreSettingsGroup.hidden).toBe(false);
     expect(appearanceMoreSettingsGroup.classList.contains('settings-group-collapsed')).toBe(true);
+    expect(
+      appearanceMoreSettingsGroup.classList.contains(
+        'appearance-more-settings-group-revealed'
+      )
+    ).toBe(true);
     expect(settingsPanel.scrollTop).toBe(settingsPanel.scrollHeight);
     await vi.advanceTimersByTimeAsync(0);
     expect(appearanceMoreSettingsGroup.classList.contains('settings-group-collapsed')).toBe(false);
+    const animationEnd = new Event('animationend', { bubbles: true });
+    Object.defineProperty(animationEnd, 'animationName', {
+      value: 'ytcq-popup-option-added'
+    });
+    appearanceMoreSettingsGroup.querySelector('.option')?.dispatchEvent(animationEnd);
+    expect(
+      appearanceMoreSettingsGroup.classList.contains(
+        'appearance-more-settings-group-revealed'
+      )
+    ).toBe(false);
     finishTransition('opacity');
     expect(toggleContainer.hidden).toBe(false);
     finishTransition();
@@ -1867,6 +1882,12 @@ describe('popup', () => {
     ).toBe(false);
     expect(
       document.querySelector('.game-invites-icon')?.classList.contains('ytcq-game-controller-hop')
+    ).toBe(false);
+    document.querySelector<HTMLButtonElement>('#appearanceMoreSettingsToggle')?.click();
+    expect(
+      document
+        .querySelector('#appearanceMoreSettingsGroup')
+        ?.classList.contains('appearance-more-settings-group-revealed')
     ).toBe(false);
   });
 

@@ -636,6 +636,24 @@
     "filterBookmarks": {
       "message": "סינון סימניות"
     },
+    "selectSavedItems": {
+      "message": "בחירה"
+    },
+    "selectAllSavedItems": {
+      "message": "בחירת הכול"
+    },
+    "removeSelectedSavedItems": {
+      "message": "הסרת הפריטים שנבחרו"
+    },
+    "selectedSavedItemsCount": {
+      "message": "נבחרו {count}"
+    },
+    "removedSavedItemsCount": {
+      "message": "הוסרו {count}"
+    },
+    "undo": {
+      "message": "ביטול"
+    },
     "noMatchingSavedItems": {
       "message": "אין פריטים שמורים תואמים."
     },

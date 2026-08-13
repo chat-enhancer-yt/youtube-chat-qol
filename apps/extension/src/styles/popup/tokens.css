@@ -48,9 +48,9 @@
 
 .brand-link,
 .header-actions,
+.bookmarks-header-button,
 .bookmarks-filter input,
 .bookmarks-count,
-.appearance-more-settings-toggle,
 .popup-reset-dialog,
 .popup-reset-dialog-button,
 .popup-tabs,
@@ -60,6 +60,7 @@
 .playground-profile,
 .playground-display-name-field input,
 .bookmarks-header,
+.bookmarks-undo,
 .bookmark-row,
 .option:hover,
 .option-beta-badge,

@@ -58,7 +58,7 @@
           <label class="option option-control" title="Choose the language chat messages should be translated into. &quot;Off&quot; disables automatic translation." data-i18n-title="chooseTranslationLanguageTitle">
             <span class="option-title">
               <span class="option-icon translation-target-icon" aria-hidden="true"></span>
-              <span data-i18n="translateTo">Target language</span>
+              <span data-i18n="onboardingChatTranslation">Chat translation</span>
             </span>
             <span class="option-helper" data-i18n="translationOffHelper">Pick a language to enable automatic translation.</span>
             <select id="targetLanguage" title="Choose the language chat messages should be translated into. &quot;Off&quot; disables automatic translation." data-i18n-title="chooseTranslationLanguageTitle"></select>
@@ -79,11 +79,11 @@
                   </g>
                 </g>
               </svg>
-              <span data-i18n="display">Display</span>
+              <span data-i18n="onboardingTranslationAppearance">Translation appearance</span>
             </span>
-            <span class="option-helper" data-i18n="translationDisplayHelper">Choose how translations are shown.</span>
+            <span class="option-helper" data-i18n="onboardingTranslationDisplayHelper">Choose how translations are shown.</span>
             <select id="translationDisplay" title="Choose whether translations replace the original message or appear below it." data-i18n-title="translationDisplayTitle">
-              <option value="replace" data-i18n="replaceMessage">Replace</option>
+              <option value="replace" data-i18n="onboardingReplaceText">Replace text</option>
               <option value="below" data-i18n="showBelow">Show below</option>
             </select>
           </label>
@@ -188,17 +188,53 @@
         <div id="bookmarksPanel" class="popup-tab-panel" role="tabpanel" aria-labelledby="bookmarksTab" data-popup-tab-panel hidden>
           <section class="bookmarks-section" aria-label="Bookmarks" data-i18n-aria-label="bookmarks">
             <div class="bookmarks-header">
-              <label class="bookmarks-filter">
-                <svg viewBox="0 -960 960 960" aria-hidden="true" focusable="false">
-                  <path d="M784-120 532-372q-30 24-69 38t-83 14q-109 0-184.5-75.5T120-580q0-109 75.5-184.5T380-840q109 0 184.5 75.5T640-580q0 44-14 83t-38 69l252 252-56 56ZM380-400q75 0 127.5-52.5T560-580q0-75-52.5-127.5T380-760q-75 0-127.5 52.5T200-580q0 75 52.5 127.5T380-400Z"></path>
-                </svg>
-                <input id="bookmarksFilter" type="search" autocomplete="off" spellcheck="false" placeholder="Filter bookmarks" aria-controls="bookmarksList" title="Filter bookmarks" aria-label="Filter bookmarks" data-i18n-placeholder="filterBookmarks" data-i18n-title="filterBookmarks" data-i18n-aria-label="filterBookmarks">
-              </label>
+              <div id="bookmarksBrowseControls" class="bookmarks-browse-controls">
+                <label class="bookmarks-filter">
+                  <svg viewBox="0 -960 960 960" aria-hidden="true" focusable="false">
+                    <path d="M784-120 532-372q-30 24-69 38t-83 14q-109 0-184.5-75.5T120-580q0-109 75.5-184.5T380-840q109 0 184.5 75.5T640-580q0 44-14 83t-38 69l252 252-56 56ZM380-400q75 0 127.5-52.5T560-580q0-75-52.5-127.5T380-760q-75 0-127.5 52.5T200-580q0 75 52.5 127.5T380-400Z"></path>
+                  </svg>
+                  <input id="bookmarksFilter" type="search" autocomplete="off" spellcheck="false" placeholder="Filter bookmarks" aria-controls="bookmarksList" title="Filter bookmarks" aria-label="Filter bookmarks" data-i18n-placeholder="filterBookmarks" data-i18n-title="filterBookmarks" data-i18n-aria-label="filterBookmarks">
+                </label>
+                <button id="bookmarksSelect" class="bookmarks-header-button bookmarks-select-button" type="button" title="Select" aria-label="Select" data-i18n-title="selectSavedItems" data-i18n-aria-label="selectSavedItems">
+                  <svg class="bookmarks-button-icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false">
+                    <path d="M222-200 80-342l56-56 85 85 170-170 56 57-225 226Zm0-320L80-662l56-56 85 85 170-170 56 57-225 226Zm298 240v-80h360v80H520Zm0-320v-80h360v80H520Z"></path>
+                  </svg>
+                  <span data-i18n="selectSavedItems">Select</span>
+                </button>
+              </div>
+              <div id="bookmarksSelectionControls" class="bookmarks-selection-controls" hidden>
+                <button id="bookmarksCancelSelection" class="bookmarks-selection-cancel" type="button" title="Close" aria-label="Close" data-i18n-title="close" data-i18n-aria-label="close">
+                  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M18.3 5.71a1 1 0 0 0-1.41 0L12 10.59 7.11 5.7A1 1 0 0 0 5.7 7.11L10.59 12 5.7 16.89a1 1 0 1 0 1.41 1.41L12 13.41l4.89 4.89a1 1 0 0 0 1.41-1.41L13.41 12l4.89-4.89a1 1 0 0 0 0-1.4Z"></path>
+                  </svg>
+                </button>
+                <span id="bookmarksSelectionCount" class="bookmarks-selection-count" aria-live="polite">0 selected</span>
+                <button id="bookmarksSelectAll" class="bookmarks-header-button bookmarks-select-all-button" type="button" title="Select all" aria-label="Select all" data-i18n-title="selectAllSavedItems" data-i18n-aria-label="selectAllSavedItems">
+                  <svg class="bookmarks-button-icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false">
+                    <path d="m424-296 282-282-56-56-226 226-114-114-56 56 170 170Zm56 216q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"></path>
+                  </svg>
+                  <span data-i18n="selectAllSavedItems">Select all</span>
+                </button>
+                <button id="bookmarksRemoveSelected" class="bookmarks-header-button bookmarks-icon-button bookmarks-remove-selected" type="button" title="Remove selected" aria-label="Remove selected" disabled data-i18n-title="removeSelectedSavedItems" data-i18n-aria-label="removeSelectedSavedItems">
+                  <svg class="bookmarks-button-icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false">
+                    <path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z"></path>
+                  </svg>
+                </button>
+              </div>
             </div>
             <div class="bookmarks-list-shell" data-popup-scroll-fade-region>
               <span class="popup-scrollbar" aria-hidden="true" hidden>
                 <span class="popup-scrollbar-thumb"></span>
               </span>
+              <div id="bookmarksUndo" class="bookmarks-undo" hidden>
+                <span id="bookmarksUndoCount" role="status" aria-live="polite">0 removed</span>
+                <button id="bookmarksUndoButton" class="bookmarks-undo-button" type="button" title="Undo" aria-label="Undo" data-i18n-title="undo" data-i18n-aria-label="undo">
+                  <svg viewBox="0 -960 960 960" aria-hidden="true" focusable="false">
+                    <path d="M280-200v-80h284q63 0 109.5-40T720-420q0-60-46.5-100T564-560H312l104 104-56 56-200-200 200-200 56 56-104 104h252q97 0 166.5 63T800-420q0 94-69.5 157T564-200H280Z"></path>
+                  </svg>
+                  <span data-i18n="undo">Undo</span>
+                </button>
+              </div>
               <div id="bookmarksList" class="bookmarks-list" aria-live="polite" data-popup-scroll-target></div>
             </div>
           </section>

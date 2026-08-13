@@ -636,6 +636,24 @@
     "filterBookmarks": {
       "message": "กรองบุ๊กมาร์ก"
     },
+    "selectSavedItems": {
+      "message": "เลือก"
+    },
+    "selectAllSavedItems": {
+      "message": "เลือกทั้งหมด"
+    },
+    "removeSelectedSavedItems": {
+      "message": "นำรายการที่เลือกออก"
+    },
+    "selectedSavedItemsCount": {
+      "message": "เลือกแล้ว {count} รายการ"
+    },
+    "removedSavedItemsCount": {
+      "message": "นำออกแล้ว {count} รายการ"
+    },
+    "undo": {
+      "message": "เลิกทำ"
+    },
     "noMatchingSavedItems": {
       "message": "ไม่มีรายการที่บันทึกไว้ตรงกัน"
     },

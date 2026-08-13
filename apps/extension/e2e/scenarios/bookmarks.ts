@@ -311,6 +311,219 @@ export const bookmarkPopupRenderingScenario: BrowserScenario = async ({ context 
           await expect(
             popup.locator('.avatar-ring-row-removed .bookmark-name')
           ).not.toHaveClass(/bookmark-name-remembered/);
+          const bookmarksList = popup.locator('#bookmarksList');
+          await bookmarksList.evaluate((list) => {
+            const captureArrivalAnimation = (event: Event): void => {
+              const animationEvent = event as AnimationEvent;
+              if (animationEvent.animationName !== 'ytcq-popup-bookmark-row-added') return;
+              list.dataset.savedItemArrivalAnimation = animationEvent.animationName;
+              list.dataset.savedItemArrivalAnimationDuration = getComputedStyle(
+                event.target as Element
+              ).animationDuration;
+              list.removeEventListener('animationstart', captureArrivalAnimation);
+            };
+            list.addEventListener('animationstart', captureArrivalAnimation);
+          });
+          await popup.locator('.avatar-ring-row-removed .avatar-ring-action-button').click();
+          const restoredRow = popup.locator(
+            '.avatar-ring-row:not(.avatar-ring-row-removed)'
+          );
+          await expect(restoredRow).toBeVisible();
+          await expect(bookmarksList).toHaveAttribute(
+            'data-saved-item-arrival-animation',
+            'ytcq-popup-bookmark-row-added'
+          );
+          await expect(bookmarksList).toHaveAttribute(
+            'data-saved-item-arrival-animation-duration',
+            '0.72s'
+          );
+        });
+        await test.step('Select, remove, and restore mixed saved items as one batch', async () => {
+          const browseControls = popup.locator('#bookmarksBrowseControls');
+          const selectionControls = popup.locator('#bookmarksSelectionControls');
+          const selectionCount = popup.locator('#bookmarksSelectionCount');
+          const checkboxes = popup.locator('.bookmark-selection-checkbox');
+          const selectableRows = popup.locator(
+            '.bookmark-row[data-saved-item-active="true"]'
+          );
+
+          await expect(popup.locator('#bookmarksSelect .bookmarks-button-icon')).toBeVisible();
+          await popup.locator('#bookmarksSelect').click();
+          await expect(browseControls).toBeHidden();
+          await expect(selectionControls).toBeVisible();
+          await expect(popup.locator('#bookmarksSelectAll .bookmarks-button-icon')).toBeVisible();
+          await expect(
+            popup.locator('#bookmarksRemoveSelected .bookmarks-button-icon')
+          ).toBeVisible();
+          await expect(popup.locator('#bookmarksSelectAll')).toHaveText('Select all');
+          await expect(checkboxes).toHaveCount(2);
+          await expect
+            .poll(() =>
+              checkboxes.first().evaluate((checkbox) => {
+                const style = getComputedStyle(checkbox);
+                return {
+                  borderWidth: style.borderWidth,
+                  hasFill: style.backgroundColor !== 'rgba(0, 0, 0, 0)',
+                  hasSoftRing: style.boxShadow !== 'none'
+                };
+              })
+            )
+            .toEqual({ borderWidth: '0px', hasFill: false, hasSoftRing: true });
+          await selectableRows.first().locator('.bookmark-copy').click();
+          await expect(selectableRows.first()).toHaveClass(/bookmark-row-selected/);
+          await expect
+            .poll(() =>
+              selectableRows.first().evaluate((row) => getComputedStyle(row).boxShadow)
+            )
+            .toBe('none');
+          await selectableRows.last().locator('.bookmark-copy').click();
+          await expect
+            .poll(() =>
+              checkboxes.evaluateAll((elements) =>
+                elements.every((element) => (element as HTMLInputElement).checked)
+              )
+            )
+            .toBe(true);
+          await expect(selectionCount).toHaveText('2 selected');
+          await expect(popup.locator('#bookmarksSelectAll')).toBeDisabled();
+          await expect
+            .poll(() =>
+              popup.locator('#bookmarksRemoveSelected').evaluate((button) => {
+                const modalButton = document.createElement('button');
+                modalButton.className = 'popup-reset-dialog-button';
+                document.body.append(modalButton);
+                const buttonStyle = getComputedStyle(button);
+                const modalButtonStyle = getComputedStyle(modalButton);
+                const result = {
+                  cornerShapeMatches:
+                    buttonStyle.getPropertyValue('corner-shape') ===
+                    modalButtonStyle.getPropertyValue('corner-shape'),
+                  radiusMatches: buttonStyle.borderRadius === modalButtonStyle.borderRadius
+                };
+                modalButton.remove();
+                return result;
+              })
+            )
+            .toEqual({ cornerShapeMatches: true, radiusMatches: true });
+          await expect
+            .poll(() =>
+              popup.locator('#bookmarksRemoveSelected').evaluate((button) => {
+                const probe = document.createElement('span');
+                probe.style.background = 'var(--ytcq-popup-logo-red)';
+                document.body.append(probe);
+                const destructiveRed = getComputedStyle(probe).backgroundColor;
+                probe.remove();
+                return getComputedStyle(button).backgroundColor === destructiveRed;
+              })
+            )
+            .toBe(true);
+
+          const listShell = popup.locator('.bookmarks-list-shell');
+          const listShellBoundsBeforeUndo = await listShell.evaluate((element) => {
+            const bounds = element.getBoundingClientRect();
+            return {
+              height: Math.round(bounds.height),
+              top: Math.round(bounds.top)
+            };
+          });
+
+          await popup.locator('#bookmarksRemoveSelected').click();
+          await expect
+            .poll(async () => {
+              const values = await getExtensionStorageValues(context, 'local', [
+                AVATAR_RINGS_STORAGE_KEY,
+                BOOKMARKS_STORAGE_KEY
+              ]);
+              return [
+                Object.keys(values[AVATAR_RINGS_STORAGE_KEY] || {}).length,
+                Object.keys(values[BOOKMARKS_STORAGE_KEY] || {}).length
+              ];
+            })
+            .toEqual([0, 0]);
+          await expect(popup.locator('#bookmarksCount')).toHaveText('0');
+          await expect(popup.locator('.bookmark-row')).toHaveCount(0);
+          await expect(popup.locator('#bookmarksUndo')).toBeVisible();
+          await expect(popup.locator('#bookmarksUndoCount')).toHaveText('2 removed');
+          await expect(popup.locator('#bookmarksUndoButton svg')).toBeVisible();
+          await expect
+            .poll(() =>
+              listShell.evaluate((element) => {
+                const bounds = element.getBoundingClientRect();
+                return {
+                  height: Math.round(bounds.height),
+                  top: Math.round(bounds.top)
+                };
+              })
+            )
+            .toEqual(listShellBoundsBeforeUndo);
+          await expect
+            .poll(() =>
+              popup.locator('#bookmarksUndo').evaluate((undo) => {
+                const shell = undo.parentElement;
+                const header = shell?.previousElementSibling;
+                const list = shell?.querySelector('#bookmarksList');
+                const undoStyle = getComputedStyle(undo);
+                const headerStyle = header ? getComputedStyle(header) : null;
+                const listStyle = list ? getComputedStyle(list) : null;
+                const undoBounds = undo.getBoundingClientRect();
+                const shellBounds = shell?.getBoundingClientRect();
+                const isRtl = getComputedStyle(undo).direction === 'rtl';
+                return {
+                  bottomInset: shellBounds
+                    ? Math.round(shellBounds.bottom - undoBounds.bottom)
+                    : null,
+                  cornerShapeMatches:
+                    undoStyle.getPropertyValue('corner-shape') ===
+                    headerStyle?.getPropertyValue('corner-shape'),
+                  hasElevation: undoStyle.boxShadow !== 'none',
+                  inlineInset: shellBounds
+                    ? Math.round(
+                        isRtl
+                          ? shellBounds.right - undoBounds.right
+                          : undoBounds.left - shellBounds.left
+                      )
+                    : null,
+                  isInsideListShell: shell?.classList.contains('bookmarks-list-shell') === true,
+                  isOverlay: undoStyle.position === 'absolute',
+                  listBottomPadding: listStyle?.paddingBottom,
+                  radiusMatches: undoStyle.borderRadius === headerStyle?.borderRadius
+                };
+              })
+            )
+            .toEqual({
+              bottomInset: 8,
+              cornerShapeMatches: true,
+              hasElevation: true,
+              inlineInset: 8,
+              isInsideListShell: true,
+              isOverlay: true,
+              listBottomPadding: '46px',
+              radiusMatches: true
+            });
+
+          await popup.locator('#bookmarksUndoButton').click();
+          await expect
+            .poll(async () => {
+              const values = await getExtensionStorageValues(context, 'local', [
+                AVATAR_RINGS_STORAGE_KEY,
+                BOOKMARKS_STORAGE_KEY
+              ]);
+              return [
+                Object.keys(values[AVATAR_RINGS_STORAGE_KEY] || {}).length,
+                Object.keys(values[BOOKMARKS_STORAGE_KEY] || {}).length
+              ];
+            })
+            .toEqual([1, 1]);
+          await expect(popup.locator('.bookmark-row-removed')).toHaveCount(0);
+          await expect(popup.locator('#bookmarksUndo')).toBeHidden();
+          await expect
+            .poll(() =>
+              popup
+                .locator('#bookmarksList')
+                .evaluate((list) => getComputedStyle(list).paddingBottom)
+            )
+            .toBe('0px');
+          await expect(popup.locator('#bookmarksCount')).toHaveText('2');
         });
 
         const dimensions = await message.evaluate((element) => ({

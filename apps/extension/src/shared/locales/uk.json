@@ -636,6 +636,24 @@
     "filterBookmarks": {
       "message": "Фільтрувати закладки"
     },
+    "selectSavedItems": {
+      "message": "Вибрати"
+    },
+    "selectAllSavedItems": {
+      "message": "Вибрати все"
+    },
+    "removeSelectedSavedItems": {
+      "message": "Видалити вибране"
+    },
+    "selectedSavedItemsCount": {
+      "message": "Вибрано: {count}"
+    },
+    "removedSavedItemsCount": {
+      "message": "Видалено: {count}"
+    },
+    "undo": {
+      "message": "Скасувати"
+    },
     "noMatchingSavedItems": {
       "message": "Немає відповідних збережених елементів."
     },

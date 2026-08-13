@@ -636,6 +636,24 @@
     "filterBookmarks": {
       "message": "Lesezeichen filtern"
     },
+    "selectSavedItems": {
+      "message": "Auswählen"
+    },
+    "selectAllSavedItems": {
+      "message": "Alle auswählen"
+    },
+    "removeSelectedSavedItems": {
+      "message": "Auswahl entfernen"
+    },
+    "selectedSavedItemsCount": {
+      "message": "{count} ausgewählt"
+    },
+    "removedSavedItemsCount": {
+      "message": "{count} entfernt"
+    },
+    "undo": {
+      "message": "Rückgängig"
+    },
     "noMatchingSavedItems": {
       "message": "Keine passenden gespeicherten Elemente."
     },

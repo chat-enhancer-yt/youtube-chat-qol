@@ -639,6 +639,24 @@
     "filterBookmarks": {
       "message": "Yer imlerini filtrele"
     },
+    "selectSavedItems": {
+      "message": "Seç"
+    },
+    "selectAllSavedItems": {
+      "message": "Tümünü seç"
+    },
+    "removeSelectedSavedItems": {
+      "message": "Seçilenleri kaldır"
+    },
+    "selectedSavedItemsCount": {
+      "message": "{count} seçildi"
+    },
+    "removedSavedItemsCount": {
+      "message": "{count} kaldırıldı"
+    },
+    "undo": {
+      "message": "Geri al"
+    },
     "noMatchingSavedItems": {
       "message": "Eşleşen kayıtlı öğe yok."
     },

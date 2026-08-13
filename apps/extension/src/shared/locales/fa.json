@@ -636,6 +636,24 @@
     "filterBookmarks": {
       "message": "فیلتر کردن نشانک‌ها"
     },
+    "selectSavedItems": {
+      "message": "انتخاب"
+    },
+    "selectAllSavedItems": {
+      "message": "انتخاب همه"
+    },
+    "removeSelectedSavedItems": {
+      "message": "حذف موارد انتخاب‌شده"
+    },
+    "selectedSavedItemsCount": {
+      "message": "{count} مورد انتخاب شد"
+    },
+    "removedSavedItemsCount": {
+      "message": "{count} مورد حذف شد"
+    },
+    "undo": {
+      "message": "واگرد"
+    },
     "noMatchingSavedItems": {
       "message": "هیچ مورد ذخیره‌شدهٔ منطبقی نیست."
     },

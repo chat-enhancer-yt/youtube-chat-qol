@@ -636,6 +636,24 @@
     "filterBookmarks": {
       "message": "Filtruj zakładki"
     },
+    "selectSavedItems": {
+      "message": "Wybierz"
+    },
+    "selectAllSavedItems": {
+      "message": "Wybierz wszystko"
+    },
+    "removeSelectedSavedItems": {
+      "message": "Usuń zaznaczone"
+    },
+    "selectedSavedItemsCount": {
+      "message": "Wybrano: {count}"
+    },
+    "removedSavedItemsCount": {
+      "message": "Usunięto: {count}"
+    },
+    "undo": {
+      "message": "Cofnij"
+    },
     "noMatchingSavedItems": {
       "message": "Brak pasujących zapisanych elementów."
     },

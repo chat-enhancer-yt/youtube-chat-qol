@@ -636,6 +636,24 @@
     "filterBookmarks": {
       "message": "Bladwijzers filteren"
     },
+    "selectSavedItems": {
+      "message": "Selecteren"
+    },
+    "selectAllSavedItems": {
+      "message": "Alles selecteren"
+    },
+    "removeSelectedSavedItems": {
+      "message": "Selectie verwijderen"
+    },
+    "selectedSavedItemsCount": {
+      "message": "{count} geselecteerd"
+    },
+    "removedSavedItemsCount": {
+      "message": "{count} verwijderd"
+    },
+    "undo": {
+      "message": "Ongedaan maken"
+    },
     "noMatchingSavedItems": {
       "message": "Geen overeenkomende opgeslagen items."
     },
