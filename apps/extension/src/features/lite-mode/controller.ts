@@ -13,6 +13,7 @@ import {
   cleanupStaleLiteModeDom,
   discardNativeList,
   findNativeList,
+  getNativePresentationEndId,
   inspectDetachedNativeLists,
   isNativeFeedDiscarded,
   NATIVE_HIDDEN_CLASS,
@@ -133,8 +134,14 @@ export function startLiteMode(options: StartLiteModeOptions = {}): void {
   setLiteModeBootstrapIntent(true);
   store = createLiteChatStore();
   const initialFeedState = getYouTubeChatFeedRecordState();
+  const nativeList = findNativeList();
+  const nativePresentationEndId = nativeList
+    ? getNativePresentationEndId(nativeList)
+    : '';
   renderer = createLiteChatRenderer(store, {
+    lastLiveBatchIntervalMs: initialFeedState.lastLiveBatchIntervalMs,
     lastLiveBatchReceivedAt: initialFeedState.lastLiveBatchReceivedAt,
+    nativePresentationEndId: nativePresentationEndId || undefined,
     onRowRendered: (row, record, source) => {
       try {
         rowRenderedCallback?.(row, record, source);

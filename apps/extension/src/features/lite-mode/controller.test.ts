@@ -9,6 +9,8 @@ import {
 const { getYouTubeChatFeedRecordStateMock, requestNativeChatRestoreMock } = vi.hoisted(() => ({
   getYouTubeChatFeedRecordStateMock: vi.fn<
     () => {
+      lastLiveBatchIntervalMs?: number;
+      lastLiveBatchReceivedAt?: number;
       ready: boolean;
       records: YouTubeChatMessageRecord[];
     }
@@ -129,6 +131,36 @@ describe('Lite mode controller', () => {
       automaticFailure: false,
       message: 'Loading chat'
     });
+  });
+
+  it('paces the unseen transport tail from the last row Native presented', async () => {
+    vi.spyOn(Math, 'random').mockReturnValue(0.5);
+    const nativeList = document.querySelector<HTMLElement>('yt-live-chat-item-list-renderer')!;
+    appendNativeMessage(nativeList, 'native-older');
+    appendNativeMessage(nativeList, 'native-end');
+    const initialRecords = [
+      createRecord('native-older', 'Native older'),
+      createRecord('native-end', 'Native end'),
+      createRecord('queued-one', 'Queued one'),
+      createRecord('queued-two', 'Queued two'),
+      createRecord('queued-three', 'Queued three')
+    ];
+    getYouTubeChatFeedRecordStateMock.mockReturnValue({
+      lastLiveBatchIntervalMs: 480,
+      lastLiveBatchReceivedAt: Date.now(),
+      ready: true,
+      records: initialRecords
+    });
+
+    startLiteMode({ clearCooldown: true });
+
+    expect(getLiteMessageIds()).toEqual(['native-older', 'native-end']);
+    await vi.advanceTimersByTimeAsync(120);
+    expect(getLiteMessageIds()).toEqual(['native-older', 'native-end']);
+    await vi.advanceTimersByTimeAsync(50);
+    expect(getLiteMessageIds()).toEqual(['native-older', 'native-end', 'queued-one']);
+    await vi.advanceTimersByTimeAsync(400);
+    expect(getLiteMessageIds()).toEqual(initialRecords.map((record) => record.id));
   });
 
   it('reveals retained messages that are outside the mounted Lite window', () => {
@@ -1502,6 +1534,11 @@ function appendNativeMessage(nativeList: HTMLElement, id: string): HTMLElement {
   message.id = id;
   nativeList.append(message);
   return message;
+}
+
+function getLiteMessageIds(): string[] {
+  return Array.from(document.querySelectorAll<HTMLElement>('.ytcq-lite-message'))
+    .map((message) => message.dataset.messageId || '');
 }
 
 function notifyLiteElementAdded(element: Element, target: Node): void {

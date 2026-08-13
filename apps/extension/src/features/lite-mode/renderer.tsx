@@ -60,7 +60,9 @@ export type LiteChatRowRenderedCallback = (
 ) => void;
 
 export interface CreateLiteChatRendererOptions {
+  lastLiveBatchIntervalMs?: number;
   lastLiveBatchReceivedAt?: number;
+  nativePresentationEndId?: string;
   onRowRendered?: LiteChatRowRenderedCallback;
   renderLimit?: number;
   timestampsVisible?: boolean;
@@ -107,6 +109,7 @@ export function createLiteChatRenderer(
   let destroyed = false;
   let scrollFrame = 0;
   let activeScrollPointer: ActiveScrollPointer | null = null;
+  let nativePresentationEndId = options.nativePresentationEndId?.trim() || '';
   let livePresentationAnchorAt = performance.now();
   let lastLiveBatchAt: number | null = null;
   let lastLiveBatchReceivedAt =
@@ -318,9 +321,10 @@ export function createLiteChatRenderer(
 
     if (!change.reset) {
       removePendingLivePresentationIds(change.removedIds);
-      stageLiveAdditions(change, actionOrigin);
-      ensureRetainedLivePresentationRow();
     }
+    stageInitialHandoff(actionOrigin);
+    if (!change.reset) stageLiveAdditions(change, actionOrigin);
+    ensureRetainedLivePresentationRow();
 
     if (followingLiveEdge || doesStoreChangeAffectFrozenWindow(change)) {
       renderRecords(change);
@@ -329,6 +333,44 @@ export function createLiteChatRenderer(
     if (followingLiveEdge) {
       pinScrollToBottom();
     }
+  }
+
+  function stageInitialHandoff(origin: YouTubeChatFeedBatchSource | null): void {
+    if (origin !== 'initial' || !nativePresentationEndId) return;
+
+    const records = store.getRecords();
+    const endIndex = records.findIndex((record) => record.id === nativePresentationEndId);
+    if (endIndex < 0) return;
+    nativePresentationEndId = '';
+
+    const idsToStage = records.slice(endIndex + 1).map((record) => record.id);
+    if (!idsToStage.length || document.visibilityState !== 'visible') return;
+
+    for (const id of idsToStage) {
+      pendingLivePresentationIdSet.add(id);
+      pendingLivePresentationIds.push(id);
+    }
+    inheritInitialHandoffCadence(idsToStage.length);
+    scheduleLivePresentation(getNextLivePresentationDelay(performance.now()));
+  }
+
+  function inheritInitialHandoffCadence(pendingCount: number): void {
+    const inheritedInterval =
+      typeof options.lastLiveBatchIntervalMs === 'number' &&
+      Number.isFinite(options.lastLiveBatchIntervalMs) &&
+      options.lastLiveBatchIntervalMs > 0
+        ? Math.min(options.lastLiveBatchIntervalMs, LIVE_PRESENTATION_DEFAULT_WINDOW_MS)
+        : LIVE_PRESENTATION_DEFAULT_WINDOW_MS;
+    const batchAge =
+      lastLiveBatchReceivedAt === null ? 0 : Math.max(0, Date.now() - lastLiveBatchReceivedAt);
+    const remainingInterval = Math.max(0, inheritedInterval - batchAge);
+    const minimumOrderedWindow = Math.min(
+      LIVE_PRESENTATION_DEFAULT_WINDOW_MS,
+      pendingCount * LIVE_PRESENTATION_MIN_INTERVAL_MS
+    );
+
+    liveBatchIntervals.push(Math.max(remainingInterval, minimumOrderedWindow));
+    lastLiveBatchAt = performance.now();
   }
 
   function stageLiveAdditions(

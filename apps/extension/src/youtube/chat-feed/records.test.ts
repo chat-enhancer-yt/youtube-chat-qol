@@ -83,6 +83,21 @@ describe('YouTube chat feed record store', () => {
     expect(records.getYouTubeChatFeedRecord('second')).toBeNull();
   });
 
+  it('tracks the interval between the latest live transport responses', async () => {
+    const records = await import('./records');
+    records.startYouTubeChatFeedRecordStore();
+
+    dispatchBatch({ ...createBatch(1, []), receivedAt: 1_000 });
+    dispatchBatch({ ...createBatch(2, []), receivedAt: 1_450 });
+
+    expect(records.getYouTubeChatFeedRecordState()).toEqual({
+      lastLiveBatchIntervalMs: 450,
+      lastLiveBatchReceivedAt: 1_450,
+      ready: true,
+      records: []
+    });
+  });
+
   it('marks a valid empty batch ready without inventing records', async () => {
     const records = await import('./records');
     records.startYouTubeChatFeedRecordStore();

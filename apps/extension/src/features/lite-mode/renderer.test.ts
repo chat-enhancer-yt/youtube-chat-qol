@@ -623,6 +623,49 @@ describe('Lite chat renderer', () => {
     renderer.destroy();
   });
 
+  it('paces initial records beyond the last row Native presented', async () => {
+    vi.useFakeTimers();
+    vi.spyOn(Math, 'random').mockReturnValue(0.5);
+    const store = createLiteChatStore();
+    const onRowRendered = vi.fn();
+    const renderer = createLiteChatRenderer(store, {
+      lastLiveBatchIntervalMs: 480,
+      lastLiveBatchReceivedAt: Date.now(),
+      nativePresentationEndId: 'native-end',
+      onRowRendered
+    });
+    document.body.append(renderer.root);
+    const initialActions = [
+      { type: 'upsert' as const, record: createRecord('native-older', 'Native older') },
+      { type: 'upsert' as const, record: createRecord('native-end', 'Native end') },
+      { type: 'upsert' as const, record: createRecord('queued-one', 'Queued one') },
+      { type: 'upsert' as const, record: createRecord('queued-two', 'Queued two') },
+      { type: 'upsert' as const, record: createRecord('queued-three', 'Queued three') }
+    ];
+
+    renderer.rememberActionSources(initialActions, 'initial');
+    store.apply(initialActions);
+
+    expect(getRenderedMessageIds(renderer.root)).toEqual(['native-older', 'native-end']);
+    expect(onRowRendered).toHaveBeenCalledTimes(2);
+    await vi.advanceTimersByTimeAsync(170);
+    expect(getRenderedMessageIds(renderer.root)).toEqual([
+      'native-older',
+      'native-end',
+      'queued-one'
+    ]);
+    await vi.advanceTimersByTimeAsync(400);
+    expect(getRenderedMessageIds(renderer.root)).toEqual(
+      initialActions.map(({ record }) => record.id)
+    );
+    expect(onRowRendered).toHaveBeenLastCalledWith(
+      expect.any(HTMLElement),
+      expect.objectContaining({ id: 'queued-three' }),
+      'existing'
+    );
+    renderer.destroy();
+  });
+
   it('keeps the existing fallback ceiling for a slow first live response', async () => {
     vi.useFakeTimers();
     vi.spyOn(Math, 'random').mockReturnValue(0.5);

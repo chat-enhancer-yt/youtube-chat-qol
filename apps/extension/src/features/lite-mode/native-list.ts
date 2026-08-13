@@ -1,5 +1,7 @@
 /** Native chat-list ownership for Lite mode. */
 
+import { getMessageStableId } from '../../youtube/messages';
+
 export const NATIVE_LIST_SELECTOR = ['yt-live-chat-item-list-renderer', '#chat > #item-list'].join(
   ','
 );
@@ -10,6 +12,15 @@ export const NATIVE_DISCARDED_ATTRIBUTE = 'data-ytcq-lite-native-discarded';
 // Kept only so a new extension build can recover DOM retained by an older one.
 export const NATIVE_RETAINER_ATTRIBUTE = 'data-ytcq-lite-native-retainer';
 const MAX_TRACKED_DETACHED_NATIVE_LISTS = 8;
+const NATIVE_FEED_MESSAGE_SELECTOR = [
+  'yt-gift-message-view-model',
+  'yt-live-chat-text-message-renderer',
+  'yt-live-chat-paid-message-renderer',
+  'yt-live-chat-membership-item-renderer',
+  'yt-live-chat-paid-sticker-renderer',
+  'yt-live-chat-sponsorships-gift-purchase-announcement-renderer',
+  'yt-live-chat-sponsorships-gift-redemption-announcement-renderer'
+].join(',');
 
 const detachedNativeListRefs: Array<WeakRef<HTMLElement>> = [];
 let detachedNativeListRepopulationCount = 0;
@@ -119,6 +130,24 @@ export function findNativeList(): HTMLElement | null {
       (element) => !element.closest(`template[${NATIVE_RETAINER_ATTRIBUTE}]`)
     ) || null
   );
+}
+
+/** Last normalized row Native has actually inserted into its visible list. */
+export function getNativePresentationEndId(nativeList: HTMLElement): string {
+  if (
+    nativeList.classList.contains(NATIVE_HIDDEN_CLASS) ||
+    nativeList.classList.contains(NATIVE_PENDING_SEED_CLASS) ||
+    nativeList.getAttribute('aria-hidden') === 'true'
+  ) {
+    return '';
+  }
+
+  const messages = nativeList.querySelectorAll<HTMLElement>(NATIVE_FEED_MESSAGE_SELECTOR);
+  for (let index = messages.length - 1; index >= 0; index -= 1) {
+    const id = getMessageStableId(messages[index]);
+    if (id) return id;
+  }
+  return '';
 }
 
 function mountNativeList(nativeList: HTMLElement): void {
