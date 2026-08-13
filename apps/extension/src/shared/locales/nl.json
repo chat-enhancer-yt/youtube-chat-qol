@@ -427,7 +427,7 @@
       "message": "Doeltaal"
     },
     "translationOffHelper": {
-      "message": "Kies een taal om automatische vertaling in te schakelen."
+      "message": "Vertaal inkomende chatberichten."
     },
     "display": {
       "message": "Weergave"

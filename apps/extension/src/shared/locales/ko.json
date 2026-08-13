@@ -427,7 +427,7 @@
       "message": "대상 언어"
     },
     "translationOffHelper": {
-      "message": "자동 번역을 활성화하려면 언어를 선택하세요."
+      "message": "수신되는 채팅 메시지를 번역합니다."
     },
     "display": {
       "message": "표시 방식"

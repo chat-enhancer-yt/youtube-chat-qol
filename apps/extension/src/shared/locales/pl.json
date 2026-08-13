@@ -427,7 +427,7 @@
       "message": "Język docelowy"
     },
     "translationOffHelper": {
-      "message": "Wybierz język, aby włączyć automatyczne tłumaczenie."
+      "message": "Tłumacz przychodzące wiadomości na czacie."
     },
     "display": {
       "message": "Wyświetlanie"

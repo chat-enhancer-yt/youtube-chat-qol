@@ -430,7 +430,7 @@
       "message": "目标语言"
     },
     "translationOffHelper": {
-      "message": "选择一种语言即可启用自动翻译。"
+      "message": "翻译收到的聊天消息。"
     },
     "display": {
       "message": "显示"

@@ -129,6 +129,9 @@ async function changePopupTranslationTarget({
     await expect(
       popup.locator('.option-control:has(#targetLanguage) .option-title > span:last-child')
     ).toHaveText('Chat translation');
+    await expect(
+      popup.locator('.option-control:has(#targetLanguage) .option-helper')
+    ).toHaveText('Translate incoming chat messages.');
     await popup.locator('#targetLanguage').selectOption('ja');
     await expectStorageValue(context, 'targetLanguage', 'ja');
     await expectStorageValue(context, 'lastTranslationTarget', 'ja');
@@ -150,7 +153,16 @@ async function changePopupTranslationDisplay({
     await expect(popup.locator('#translationDisplay option[value="replace"]')).toHaveText(
       'Replace text'
     );
-    await expect(popup.locator('#translationDisplay')).toHaveCSS('width', '132px');
+    await expect(popup.locator('#translationDisplay')).toHaveCSS('width', '120px');
+    await expect(popup.locator('#translationDisplay')).toHaveCSS('padding-left', '6px');
+    await expect(popup.locator('#translationDisplay')).toHaveCSS('padding-right', '20px');
+    await expect
+      .poll(() =>
+        popup
+          .locator('.option-control:has(#translationDisplay) .option-title > span:last-child')
+          .evaluate((label) => label.getBoundingClientRect().height)
+      )
+      .toBeLessThanOrEqual(16);
     await expect(icon.locator('.translation-display-message')).toHaveCount(2);
     await expect(icon.locator('.translation-display-flow')).toHaveCount(1);
     await popup.locator('#translationDisplay').selectOption('below');

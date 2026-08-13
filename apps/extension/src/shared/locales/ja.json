@@ -430,7 +430,7 @@
       "message": "翻訳先の言語"
     },
     "translationOffHelper": {
-      "message": "自動翻訳を有効にするには言語を選択してください。"
+      "message": "受信したチャット メッセージを翻訳します。"
     },
     "display": {
       "message": "表示"

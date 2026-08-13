@@ -427,7 +427,7 @@
       "message": "Zielsprache"
     },
     "translationOffHelper": {
-      "message": "Wähle eine Sprache aus, um die automatische Übersetzung zu aktivieren."
+      "message": "Eingehende Chatnachrichten übersetzen."
     },
     "display": {
       "message": "Anzeige"

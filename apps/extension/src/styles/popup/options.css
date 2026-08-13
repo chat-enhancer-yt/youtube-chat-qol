@@ -60,8 +60,8 @@
   align-self: end;
 }
 
-.option-control:has(#translationDisplay) {
-  grid-template-columns: minmax(0, 1fr) 132px;
+#translationDisplay {
+  padding-inline: 6px 20px;
 }
 
 .option-copy {

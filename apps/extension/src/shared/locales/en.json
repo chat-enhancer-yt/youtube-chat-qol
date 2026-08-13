@@ -430,7 +430,7 @@
       "message": "Target language"
     },
     "translationOffHelper": {
-      "message": "Pick a language to enable automatic translation."
+      "message": "Translate incoming chat messages."
     },
     "display": {
       "message": "Display"
