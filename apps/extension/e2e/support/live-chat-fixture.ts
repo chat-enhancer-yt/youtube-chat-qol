@@ -91,7 +91,7 @@ export function createLiveChatFixtureHtml({
       yt-live-chat-text-message-renderer > #content {
         flex: 1 1 auto;
         min-width: 0;
-        font-size: 13px;
+        font-size: 14px;
         line-height: 16px;
       }
 

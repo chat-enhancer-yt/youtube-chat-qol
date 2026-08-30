@@ -22,7 +22,7 @@
   color: var(--yt-live-chat-primary-text-color, #0f0f0f);
   background: var(--yt-live-chat-background-color, #fff);
   font-family: Roboto, Arial, sans-serif;
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.35;
 }
 
