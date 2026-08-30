@@ -10,6 +10,7 @@ import { minify as minifyHtml } from 'html-minifier-terser';
 import { copyFile, cp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { PROFILE_AVATAR_CSP_SOURCE } from '../../../apps/extension/src/shared/profile-avatar-policy.ts';
 import { generateIcons } from './generate-icons.ts';
 import { loadLocalEnv } from './lib/local-env.ts';
 import { syncExtensionLocales } from './sync-extension-locales.ts';
@@ -321,6 +322,7 @@ function createManifest(target) {
   if (target === 'safari' || usesLocalPlaygroundBackend) {
     const connectSources = [
       "'self'",
+      PROFILE_AVATAR_CSP_SOURCE,
       'https://translate.googleapis.com',
       'https://playground.chatenhancer.com',
       'wss://playground.chatenhancer.com'

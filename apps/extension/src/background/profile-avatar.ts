@@ -1,3 +1,5 @@
+import { isProfileAvatarCdnUrl } from '../shared/profile-avatar-policy';
+
 /**
  * Reads YouTube avatar bytes from the background context.
  *
@@ -7,7 +9,6 @@
  */
 const PROFILE_AVATAR_MESSAGE_TYPE = 'ytcq:profile-avatar-data';
 const MAX_PROFILE_AVATAR_BYTES = 512 * 1024;
-const PROFILE_AVATAR_HOSTS = new Set(['yt3.ggpht.com', 'yt4.ggpht.com']);
 const PROFILE_AVATAR_MIME_TYPES = new Set([
   'image/avif',
   'image/gif',
@@ -58,7 +59,7 @@ export async function getProfileAvatarDataUrl(value: unknown): Promise<string> {
 function normalizeProfileAvatarUrl(value: unknown): string {
   try {
     const url = new URL(String(value || '').trim());
-    if (url.protocol !== 'https:' || !PROFILE_AVATAR_HOSTS.has(url.hostname)) return '';
+    if (!isProfileAvatarCdnUrl(url)) return '';
     return url.toString();
   } catch {
     return '';
