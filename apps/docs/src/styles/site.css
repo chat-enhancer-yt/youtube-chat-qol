@@ -751,20 +751,6 @@ pagefind-modal:has(.pf-input:placeholder-shown) .site-search-empty-state {
   background: var(--background);
 }
 
-.hero::before {
-  content: "";
-  position: absolute;
-  z-index: 0;
-  inset: 0;
-  background:
-    linear-gradient(rgba(15, 23, 42, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(15, 23, 42, 0.03) 1px, transparent 1px);
-  background-position: -1px -1px;
-  background-size: 28px 28px;
-  mask-image: radial-gradient(ellipse closest-side at center, #000 54%, rgba(0, 0, 0, 0.78) 74%, transparent 100%);
-  pointer-events: none;
-}
-
 .hero-content {
   position: relative;
   z-index: 1;
