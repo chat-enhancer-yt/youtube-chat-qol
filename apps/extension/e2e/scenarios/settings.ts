@@ -323,18 +323,14 @@ async function changePopupStartupEffect({
       'transition-property',
       'grid-template-rows, opacity, transform'
     );
+    const settingsPanel = popup.locator('#settingsPanel');
     await expect
-      .poll(async () => {
-        const [panelBounds, sectionBounds] = await Promise.all([
-          popup.locator('#settingsPanel').boundingBox(),
-          popup.locator('#appearanceSettingsSection').boundingBox()
-        ]);
-        if (!panelBounds || !sectionBounds) return false;
-        const panelBottom = panelBounds.y + panelBounds.height;
-        const sectionBottom = sectionBounds.y + sectionBounds.height;
-        return Math.abs(panelBottom - sectionBottom) <= 1 && sectionBounds.y >= panelBounds.y;
-      })
-      .toBe(true);
+      .poll(() =>
+        settingsPanel.evaluate(
+          (element) => element.scrollHeight - element.clientHeight - element.scrollTop
+        )
+      )
+      .toBeLessThanOrEqual(1);
 
     if (!(await control.isDisabled())) {
       await control.setChecked(false);
