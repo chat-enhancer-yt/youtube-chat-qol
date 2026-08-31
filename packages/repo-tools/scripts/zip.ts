@@ -1,8 +1,8 @@
 /*
  * Release archive script.
  *
- * Packages built dist/extension-* folders into versioned browser-store zips
- * and adds the tracked source archive required by Firefox AMO.
+ * Packages built dist/extension-* folders into versioned browser-store zips.
+ * GitHub supplies the release source archive; Firefox downloads it when publishing.
  */
 import { mkdir, rm } from 'node:fs/promises';
 import path from 'node:path';
@@ -28,23 +28,6 @@ for (const target of targets) {
   run('zip', ['-r', zipPath, '.', '-x', '.DS_Store', '*/.DS_Store'], {
     cwd: extensionDir,
     stdio: 'inherit'
-  });
-}
-
-await createSourceArchive();
-
-async function createSourceArchive() {
-  const sourceZipPath = path.join(releaseDir, `youtube-chat-qol-${packageJson.version}-source.zip`);
-  await rm(sourceZipPath, { force: true });
-  const files = run('git', ['ls-files', '-z'], {
-    cwd: root,
-    encoding: 'buffer',
-    maxBuffer: 20 * 1024 * 1024
-  }).stdout;
-
-  run('zip', ['-q', '-@', sourceZipPath], {
-    cwd: root,
-    input: Buffer.from(files).toString('utf8').replaceAll('\0', '\n')
   });
 }
 

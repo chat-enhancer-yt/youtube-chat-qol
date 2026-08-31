@@ -2,15 +2,17 @@
  * Firefox Add-ons release submission.
  *
  * Uploads the Firefox release zip to AMO, waits for validation, then creates a
- * listed version with the tracked source archive attached. The script exits
- * successfully when AMO credentials are not configured so GitHub releases can
- * still be produced before store automation is enabled.
+ * listed version with GitHub's archive of the exact checked-out commit attached.
+ * The script exits successfully when AMO credentials are not configured so
+ * GitHub releases can still be produced before store automation is enabled.
  */
+import { spawnSync } from 'node:child_process';
 import { readFile } from 'node:fs/promises';
 import crypto from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import packageJson from '../../../package.json' with { type: 'json' };
+import { fetchGitHubSourceArchive } from './lib/github-source-archive.ts';
 import { loadLocalEnv } from './lib/local-env.ts';
 
 await loadLocalEnv();
@@ -18,7 +20,7 @@ await loadLocalEnv();
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
 const releaseDir = path.join(root, 'dist', 'release');
 const firefoxZipPath = path.join(releaseDir, `youtube-chat-qol-${packageJson.version}-firefox.zip`);
-const sourceZipPath = path.join(releaseDir, `youtube-chat-qol-${packageJson.version}-source.zip`);
+const sourceArchiveName = `youtube-chat-qol-${packageJson.version}-source.zip`;
 const apiBaseUrl = process.env.FIREFOX_AMO_API_BASE_URL || 'https://addons.mozilla.org/api/v5';
 const apiOrigin = new URL(apiBaseUrl).origin;
 const addonId = process.env.FIREFOX_AMO_ADDON_ID || 'chat-enhancer-for-youtube@chat-enhancer-yt.github.io';
@@ -34,9 +36,15 @@ if (missingEnv.length) {
   process.exit(0);
 }
 
+const sourceCommit = readHeadCommit();
+const sourceArchive = await fetchGitHubSourceArchive({
+  commit: sourceCommit,
+  repository: process.env.GITHUB_REPOSITORY || 'chatenhancer/youtube-chat-qol'
+});
+console.log(`Using GitHub source archive for ${sourceCommit}.`);
 const upload = await uploadPackage();
 const processedUpload = await waitForValidation(upload);
-await createVersion(processedUpload.uuid);
+await createVersion(processedUpload.uuid, sourceArchive);
 await updateVersionNotes();
 
 console.log(`Submitted Firefox Add-ons release ${packageJson.version}.`);
@@ -76,10 +84,12 @@ async function waitForValidation(upload) {
   throw new Error('Firefox upload validation did not finish in time.');
 }
 
-async function createVersion(uploadUuid) {
+async function createVersion(uploadUuid, sourceArchive) {
   const formData = new FormData();
   formData.append('upload', uploadUuid);
-  formData.append('source', await createFileBlob(sourceZipPath), path.basename(sourceZipPath));
+  formData.append('source', new Blob([Buffer.from(sourceArchive)], {
+    type: 'application/zip'
+  }), sourceArchiveName);
 
   if (process.env.FIREFOX_AMO_LICENSE) {
     formData.append('license', process.env.FIREFOX_AMO_LICENSE);
@@ -161,6 +171,17 @@ async function createFileBlob(filePath) {
   return new Blob([await readFile(filePath)], {
     type: 'application/zip'
   });
+}
+
+function readHeadCommit() {
+  const result = spawnSync('git', ['rev-parse', 'HEAD'], {
+    cwd: root,
+    encoding: 'utf8'
+  });
+  if (result.status !== 0) {
+    throw new Error(`Could not resolve the source commit: ${result.stderr || 'git rev-parse failed'}`);
+  }
+  return result.stdout.trim();
 }
 
 function delay(ms) {
