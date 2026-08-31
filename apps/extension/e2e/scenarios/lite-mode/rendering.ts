@@ -6,6 +6,7 @@ import {
   setExtensionStorageValues,
   withExtensionStorageValues
 } from '../../support/extension-storage';
+import { pauseMockFixtureMessages } from '../../support/mock-page';
 import type { BrowserScenario } from '../types';
 import {
   clearLiteTestCooldown,
@@ -185,6 +186,8 @@ export const liteModeMockRenderingAndFallbackScenario: BrowserScenario = async (
       });
 
       await test.step('Page away from and back toward the live edge with wheel input', async () => {
+        // Keep the paging contract independent of the fixture's timed background messages.
+        await pauseMockFixtureMessages(chat);
         await dispatchLiteBatch(
           chat,
           createBatch(
