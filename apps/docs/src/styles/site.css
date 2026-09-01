@@ -3823,7 +3823,7 @@ html[dir="rtl"] .forward-link-icon {
   left: 0;
   z-index: 2;
   display: none;
-  width: min(calc(var(--command-input-text-width, 18ch) + 70px), 100%);
+  width: 100%;
   overflow: hidden;
   color: var(--text);
   font: 500 15px/1.4 var(--font-body);
@@ -3841,6 +3841,7 @@ html[dir="rtl"] .forward-link-icon {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  width: 100%;
   max-width: 100%;
   transform: translateY(-50%);
 }
@@ -3848,7 +3849,7 @@ html[dir="rtl"] .forward-link-icon {
 .command-cycle-template {
   display: block;
   flex: 0 1 auto;
-  max-width: min(var(--command-input-text-width, 18ch), calc(100% - 70px));
+  max-width: calc(100% - 70px);
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -5100,10 +5101,11 @@ figcaption {
   .command-composer {
     gap: 8px;
     min-height: 54px;
-    padding: 6px 7px 6px 14px;
+    padding: 6px 14px;
   }
 
   .command-tab-hint {
+    margin-inline-start: auto;
     padding: 0;
     font-size: 12px;
   }
@@ -5121,6 +5123,10 @@ figcaption {
   .command-input-action svg {
     width: 28px;
     height: 28px;
+  }
+
+  .command-input-actions {
+    display: none;
   }
 
   .command-send-button {
