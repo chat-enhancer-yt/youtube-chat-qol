@@ -91,7 +91,7 @@ export const onboardingFeaturePreviewScenario: ExtensionScenario = async ({ cont
     );
     await expect(
       onboarding.locator('#previewPlaygroundCallout .preview-callout-link')
-    ).toHaveAttribute('href', 'https://www.chatenhancer.com/playground/');
+    ).toHaveAttribute('href', 'https://playground.chatenhancer.com/');
     await expect(
       onboarding.locator('#previewPlaygroundCallout .preview-callout-link')
     ).toHaveAttribute('target', '_blank');

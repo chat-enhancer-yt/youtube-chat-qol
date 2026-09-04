@@ -52,6 +52,14 @@ describe('onboarding settings', () => {
     expect(replaceOption?.textContent).toBe('Replace text');
   });
 
+  it('links the Playground option to the Playground site', () => {
+    const learnMoreLink = document.querySelector<HTMLAnchorElement>(
+      'label[for="onboardingPlaygroundEnabled"] .setting-helper a'
+    );
+
+    expect(learnMoreLink?.href).toBe('https://playground.chatenhancer.com/');
+  });
+
   it('uses the popup icon animations for matching onboarding settings', async () => {
     await import('./index');
 

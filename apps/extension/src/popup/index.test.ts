@@ -62,7 +62,7 @@ describe('popup', () => {
         <label id="playgroundOption" class="option option-toggle">
           <span class="option-helper">
             <span id="playgroundHelper">Play games with other extension users.</span>
-            <a class="option-helper-link" href="https://www.chatenhancer.com/privacy#playground" target="_blank" rel="noreferrer">Learn more</a>
+            <a class="option-helper-link" href="https://playground.chatenhancer.com/" target="_blank" rel="noreferrer">Learn more</a>
           </span>
           <input id="playgroundEnabled" type="checkbox">
         </label>
@@ -1807,6 +1807,7 @@ describe('popup', () => {
     const helperLink = document.querySelector<HTMLAnchorElement>('.option-helper-link')!;
 
     expect(playgroundEnabled.checked).toBe(false);
+    expect(helperLink.href).toBe('https://playground.chatenhancer.com/');
     helper.click();
     expect(playgroundEnabled.checked).toBe(true);
 
