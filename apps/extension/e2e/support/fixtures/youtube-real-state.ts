@@ -7,6 +7,9 @@ import type { RealYouTubeSession } from './browser-session';
 const CHAT_MENU_POPUP_SELECTOR = 'ytd-menu-popup-renderer';
 
 export async function resetRealYouTubeScenarioState(session: RealYouTubeSession): Promise<void> {
+  // Fresh profiles open onboarding, and prior scenarios can open a channel.
+  // Activate this worker's watch tab before interacting with YouTube's UI.
+  await session.page.bringToFront();
   // Reused live workers can encounter a pre-roll or mid-roll between tests,
   // temporarily replacing the chat frame with the ad player.
   await waitForYouTubeContentVideo(session.page);

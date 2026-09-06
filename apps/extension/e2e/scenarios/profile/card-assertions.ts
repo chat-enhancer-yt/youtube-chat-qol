@@ -146,9 +146,14 @@ export async function expectProfileChannelButtonOpensChannel(
     }
 
     try {
-      const popupPromise = context.waitForEvent('page');
-      await chat.locator('.ytcq-profile-card-channel').click();
-      const popup = await popupPromise;
+      const channelButton = chat.locator('.ytcq-profile-card-channel');
+      // Do not spend the popup timeout waiting for the button to become
+      // actionable. Await both operations so click failures are handled too.
+      await channelButton.click({ trial: true });
+      const [popup] = await Promise.all([
+        context.waitForEvent('page'),
+        channelButton.click()
+      ]);
 
       try {
         await expect

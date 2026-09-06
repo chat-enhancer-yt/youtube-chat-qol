@@ -35,11 +35,11 @@ export interface OpenedMessageMenu {
 export async function openSettingsMenu(chat: ChatSurface): Promise<Locator> {
   await test.step('Click chat settings menu button', async () => {
     await closeOpenMenus(chat);
-    const menuButton = chat.locator([
-      'yt-live-chat-header-renderer #live-chat-header-context-menu button',
-      'yt-live-chat-header-renderer #live-chat-header-context-menu yt-icon-button',
-      'yt-live-chat-header-renderer #live-chat-header-context-menu'
-    ].join(',')).first();
+    // A selector list followed by first() picks the outer container in DOM
+    // order, even when its center is outside the interactive button.
+    const menuButton = chat
+      .locator('yt-live-chat-header-renderer #live-chat-header-context-menu')
+      .getByRole('button');
     await menuButton.click({ timeout: 10_000 });
   });
 

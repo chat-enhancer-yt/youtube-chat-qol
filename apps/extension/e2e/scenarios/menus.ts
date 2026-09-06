@@ -18,6 +18,18 @@ export const settingsMenuScenario: BrowserScenario = async ({ chat }) => {
   await closeNativeMenuStep(chat, 'Close settings menu');
 };
 
+export const settingsMenuButtonTargetScenario: BrowserScenario = async ({ chat }) => {
+  await test.step('Keep the settings button off-center inside its header container', async () => {
+    await chat.locator('#live-chat-header-context-menu').evaluate((element) => {
+      (element as HTMLElement).style.paddingRight = '80px';
+    });
+  });
+
+  const menu = await openSettingsMenu(chat);
+  await expectSettingsMenuControlsInjected(menu);
+  await closeNativeMenuStep(chat, 'Close settings menu');
+};
+
 export const messageMenuScenario: BrowserScenario = async ({ chat }) => {
   const { menu } = await openMessageMenu(chat);
   await expectMessageMenuActionsInjected(menu);

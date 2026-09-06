@@ -15,6 +15,7 @@ import {
 import {
   messageMenuScenario,
   nativeMenuStacksAboveExtensionPanelScenario,
+  settingsMenuButtonTargetScenario,
   settingsMenuScenario
 } from '../../scenarios/menus';
 import { settingsMenuBehaviorScenario } from '../../scenarios/settings';
@@ -51,6 +52,12 @@ export const chatScenarios: readonly YouTubeScenario[] = [
     title: 'chat settings menu toggles persist options',
     run: settingsMenuBehaviorScenario,
     on: [...pair.liveLoggedIn, ...pair.liveLoggedOut]
+  },
+  {
+    title: 'chat settings open from the button inside a wider header control',
+    run: settingsMenuButtonTargetScenario,
+    on: [target.mockLiveLoggedOut],
+    reason: 'Requires deterministic header geometry with the button away from its container center.'
   },
   {
     title: 'native YouTube menus appear above extension panels',
