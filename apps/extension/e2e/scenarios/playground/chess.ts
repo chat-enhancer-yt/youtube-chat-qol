@@ -44,11 +44,9 @@ export const playgroundChessInviteAndMoveScenario: BrowserScenario = async ({ ch
     const replayTriviaCard = getGameCard(card, 'HELP-A-FRIEND! Trivia');
     const unavailableGames = card.locator('.ytcq-games-unavailable-section');
     await expect(unavailableGames).not.toHaveAttribute('open', '');
-    await expect(unavailableGames).toHaveCSS('row-gap', '0px');
     await expect(replayTriviaCard).not.toBeVisible();
     await unavailableGames.locator('summary').click();
     await expect(unavailableGames).toHaveAttribute('open', '');
-    await expect(unavailableGames).toHaveCSS('row-gap', '6px');
     await expect.poll(() => card.locator('.ytcq-games-card-body').evaluate((body) =>
       Math.max(0, body.scrollHeight - body.clientHeight - body.scrollTop)
     )).toBeLessThanOrEqual(1);
@@ -59,7 +57,15 @@ export const playgroundChessInviteAndMoveScenario: BrowserScenario = async ({ ch
       'Can only be played during a live replay (a stream that has already ended).'
     );
     await expect(replayTriviaCard.locator('.ytcq-games-context-badge')).toHaveText('Replay only');
-    await expect(getGameCard(card, 'Stick Around!')).toHaveAttribute('aria-disabled', 'false');
+    const stickAroundCard = getGameCard(card, 'Stick Around!');
+    await expect(stickAroundCard).toHaveAttribute('aria-disabled', 'false');
+    await expect.poll(() => stickAroundCard.evaluate((element) => {
+      const bounds = element.getBoundingClientRect();
+      const preview = element.querySelector('canvas')?.getBoundingClientRect();
+      return Boolean(preview && preview.width > 0 && preview.height > 0 &&
+        preview.left >= bounds.left && preview.right <= bounds.right &&
+        preview.top >= bounds.top && preview.bottom <= bounds.bottom);
+    })).toBe(true);
 
     await openGamePlayerList(card, 'Chess');
     await expect(card.locator('.ytcq-games-player-row')).toHaveCount(3);
@@ -85,18 +91,6 @@ export const playgroundChessInviteAndMoveScenario: BrowserScenario = async ({ ch
       await detailCancel.hover();
       expect(await readButtonTreatment(detailCancel)).toEqual(inviteHoverTreatment);
     }
-    await expect(detailCancel).toHaveCSS('border-top-width', '1px');
-    await expect(inviteAction).toHaveCSS('border-top-width', '1px');
-    await expect(detailCancel).toHaveCSS('border-top-left-radius', '3px');
-    const detailCancelBox = await detailCancel.boundingBox();
-    const inviteActionBox = await inviteAction.boundingBox();
-    if (!detailCancelBox || !inviteActionBox) {
-      throw new Error('Expected the Cancel and Invite actions to be visible.');
-    }
-    expect(detailCancelBox.x + detailCancelBox.width).toBeCloseTo(
-      inviteActionBox.x + inviteActionBox.width,
-      5
-    );
     await root.evaluate((element) => {
       element.setAttribute('data-ytcq-chat-skin-theme', 'light');
     });

@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, expect, it, vi } from 'vitest';
 import type { YouTubeChatFeedAction, YouTubeChatMessageRecord } from '../../youtube/chat-feed/protocol';
 import { createLiteChatStore } from './store';

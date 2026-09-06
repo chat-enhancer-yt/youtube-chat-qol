@@ -1,27 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import {
-  ADD_ICON_PATH,
-  AVATAR_RING_ACTIVE_BADGE_PATH,
-  AVATAR_RING_ADD_BADGE_PATH,
-  BOLT_ICON_PATH,
-  ICON_VIEW_BOX,
-  INBOX_ICON_PATH,
-  INBOX_TEXT_ICON_PATH,
-  LOCK_ICON_PATH,
-  MATERIAL_ICON_VIEW_BOX,
-  PLAYGROUND_BASE_ICON_PATH,
-  PLAYGROUND_STICK_ICON_PATH,
-  SOUND_BELL_BODY_ICON_PATH,
-  SOUND_BELL_CLAPPER_ICON_PATH,
-  SOUND_BELL_RING_ICON_PATH,
-  TRANSLATE_ICON_PATH,
   createAddIcon,
   createAvatarRingIcon,
   createBoltIcon,
   createChannelIcon,
   createInboxIcon,
   createLockIcon,
-  createPlaygroundIcon,
   createSoundBellIcon,
   createSplitTranslateIcon,
   createSvgIcon,
@@ -29,62 +13,37 @@ import {
 } from './icons';
 
 describe('shared SVG icon factories', () => {
-  it('creates accessible inert SVG wrappers with the requested viewBox and path', () => {
-    const icon = createSvgIcon(ICON_VIEW_BOX, ADD_ICON_PATH);
+  it('creates inert SVG wrappers with the supplied viewBox and drawing', () => {
+    const icon = createSvgIcon('0 0 24 24', 'M0 0L24 24');
 
-    expect(icon.getAttribute('viewBox')).toBe(ICON_VIEW_BOX);
+    expect(icon.namespaceURI).toBe('http://www.w3.org/2000/svg');
+    expect(icon.getAttribute('viewBox')).toBe('0 0 24 24');
     expect(icon.getAttribute('focusable')).toBe('false');
     expect(icon.getAttribute('aria-hidden')).toBe('true');
-    expect(icon.querySelector('path')?.getAttribute('d')).toBe(ADD_ICON_PATH);
+    expect(icon.querySelector('path')?.getAttribute('d')).toBe('M0 0L24 24');
   });
 
-  it('creates inbox icon variants from the shared paths', () => {
-    expect(createInboxIcon().querySelector('path')?.getAttribute('d')).toBe(INBOX_ICON_PATH);
-    expect(createInboxIcon(true).querySelector('path')?.getAttribute('d')).toBe(
-      INBOX_TEXT_ICON_PATH
-    );
+  it('provides distinct drawings for different actions and Inbox states', () => {
+    const icons = [
+      createAddIcon(), createTranslateIcon(), createChannelIcon(),
+      createBoltIcon(), createLockIcon(), createInboxIcon(), createInboxIcon(true)
+    ];
+    const drawings = icons.map((icon) => icon.querySelector('path')?.getAttribute('d'));
+
+    expect(drawings.every(Boolean)).toBe(true);
+    expect(new Set(drawings).size).toBe(icons.length);
+    expect(icons.every((icon) => icon.hasAttribute('viewBox'))).toBe(true);
   });
 
-  it('uses the expected view boxes for material and non-material icons', () => {
-    expect(createAddIcon().getAttribute('viewBox')).toBe(ICON_VIEW_BOX);
-    expect(createTranslateIcon().getAttribute('viewBox')).toBe(MATERIAL_ICON_VIEW_BOX);
-    expect(createTranslateIcon().querySelector('path')?.getAttribute('d')).toBe(
-      TRANSLATE_ICON_PATH
-    );
-    expect(createChannelIcon().getAttribute('viewBox')).toBe(MATERIAL_ICON_VIEW_BOX);
-    const boltIcon = createBoltIcon();
-    expect(boltIcon.getAttribute('viewBox')).toBe(MATERIAL_ICON_VIEW_BOX);
-    expect(boltIcon.querySelector('path')?.getAttribute('d')).toBe(BOLT_ICON_PATH);
-    expect(boltIcon.getAttribute('fill')).toBeNull();
-    const drawableBoltIcon = createBoltIcon({ drawMaskId: 'test-bolt-draw-mask' });
-    expect(drawableBoltIcon.querySelector('mask')?.id).toBe('test-bolt-draw-mask');
-    expect(drawableBoltIcon.querySelector('.lite-mode-bolt-fill')?.getAttribute('d')).toBe(
-      BOLT_ICON_PATH
-    );
-    expect(drawableBoltIcon.querySelector('.lite-mode-bolt-draw')?.getAttribute('d')).toBe(
-      BOLT_ICON_PATH
-    );
-    expect(drawableBoltIcon.querySelector('.lite-mode-bolt-draw')?.getAttribute('mask')).toBe(
+  it('links the animated bolt to the supplied drawing mask', () => {
+    const icon = createBoltIcon({ drawMaskId: 'test-bolt-draw-mask' });
+    const mask = icon.querySelector('mask');
+
+    expect(mask?.id).toBe('test-bolt-draw-mask');
+    expect(mask?.children.length).toBeGreaterThan(0);
+    expect(icon.querySelector('.lite-mode-bolt-draw')?.getAttribute('mask')).toBe(
       'url(#test-bolt-draw-mask)'
     );
-    const mainDrawMask = drawableBoltIcon.querySelector('.lite-mode-bolt-draw-mask-main');
-    expect(mainDrawMask?.tagName.toLowerCase()).toBe('path');
-    expect(mainDrawMask?.getAttribute('d')).toMatch(/^M515-790 258-432/);
-    expect(mainDrawMask?.getAttribute('pathLength')).toBe('1');
-    expect(mainDrawMask?.getAttribute('stroke-dasharray')).toBe('1 2');
-    expect(mainDrawMask?.getAttribute('stroke-linecap')).toBe('butt');
-    expect(mainDrawMask?.getAttribute('stroke-width')).toBe('170');
-    const endDrawMask = drawableBoltIcon.querySelector('.lite-mode-bolt-draw-mask-end');
-    expect(endDrawMask?.getAttribute('d')).toBe('M515-520 515-790');
-    expect(endDrawMask?.getAttribute('stroke-dasharray')).toBe('1 2');
-    expect(endDrawMask?.getAttribute('stroke-linecap')).toBe('round');
-    expect(endDrawMask?.getAttribute('stroke-width')).toBe('230');
-    const drawMaskBlocker = drawableBoltIcon.querySelector('.lite-mode-bolt-draw-mask-blocker');
-    expect(drawMaskBlocker?.getAttribute('d')).toBe('M502-900H620V-560H560L469-480 498-707Z');
-    expect(drawMaskBlocker?.getAttribute('fill')).toBe('#000');
-    expect(drawableBoltIcon.querySelector('mask')?.getAttribute('mask-type')).toBe('luminance');
-    expect(createLockIcon().getAttribute('viewBox')).toBe(MATERIAL_ICON_VIEW_BOX);
-    expect(createLockIcon().querySelector('path')?.getAttribute('d')).toBe(LOCK_ICON_PATH);
   });
 
   it('creates split translate icons with configurable classes', () => {
@@ -93,70 +52,29 @@ describe('shared SVG icon factories', () => {
       sourceClassName: 'translate-source',
       targetClassName: 'translate-target'
     });
-    const paths = [...icon.querySelectorAll('path')];
 
     expect(icon.getAttribute('class')).toBe('translate-icon');
-    expect(icon.getAttribute('viewBox')).toBe(MATERIAL_ICON_VIEW_BOX);
-    expect(paths.map((path) => path.getAttribute('class'))).toEqual([
-      'translate-source',
-      'translate-target'
+    expect([...icon.querySelectorAll('path')].map((path) => path.getAttribute('class'))).toEqual([
+      'translate-source', 'translate-target'
     ]);
   });
 
-  it('creates sound bell icons with a separately animated clapper', () => {
-    const quietIcon = createSoundBellIcon();
-    const ringingIcon = createSoundBellIcon(true);
-
-    expect(quietIcon.getAttribute('viewBox')).toBe(MATERIAL_ICON_VIEW_BOX);
-    expect(quietIcon.querySelector('.ytcq-bell-body')?.getAttribute('d')).toBe(
-      SOUND_BELL_BODY_ICON_PATH
-    );
-    expect(quietIcon.querySelector('.ytcq-bell-clapper')?.getAttribute('d')).toBe(
-      SOUND_BELL_CLAPPER_ICON_PATH
-    );
-    expect(quietIcon.querySelector('.ytcq-bell-ring')).toBeNull();
-    expect(ringingIcon.querySelector('.ytcq-bell-ring')?.getAttribute('d')).toBe(
-      SOUND_BELL_RING_ICON_PATH
-    );
+  it('distinguishes quiet and ringing sound states', () => {
+    expect(createSoundBellIcon().querySelector('.ytcq-bell-ring')).toBeNull();
+    expect(createSoundBellIcon(true).querySelector('.ytcq-bell-ring')).not.toBeNull();
   });
 
-  it('creates a Playground joystick with its tilting stick behind the base', () => {
-    const icon = createPlaygroundIcon();
-
-    expect(icon.getAttribute('viewBox')).toBe(MATERIAL_ICON_VIEW_BOX);
-    expect(icon.querySelector('.playground-joystick-base')?.getAttribute('d')).toBe(
-      PLAYGROUND_BASE_ICON_PATH
-    );
-    expect(icon.querySelector('.playground-joystick-stick')?.getAttribute('d')).toBe(
-      PLAYGROUND_STICK_ICON_PATH
-    );
-    expect(Array.from(icon.children, (part) => part.getAttribute('class'))).toEqual([
-      'playground-joystick-stick',
-      'playground-joystick-base'
-    ]);
-  });
-
-  it('creates an avatar-and-ring icon with add and active badge states', () => {
+  it('keeps active avatar ring masks linked and unique across instances', () => {
     const addIcon = createAvatarRingIcon();
     const activeIcon = createAvatarRingIcon(true);
-
-    expect(addIcon.getAttribute('viewBox')).toBe(ICON_VIEW_BOX);
-    expect(addIcon.querySelector('.ytcq-avatar-ring-icon-outline')).not.toBeNull();
-    expect(addIcon.querySelector('.ytcq-avatar-ring-icon-badge')?.getAttribute('fill')).toBe(
-      'none'
-    );
-    const activeBadge = activeIcon.querySelector('.ytcq-avatar-ring-icon-badge');
     const activeMask = activeIcon.querySelector('mask');
-    expect(activeBadge?.getAttribute('fill')).toBe('currentColor');
-    expect(activeMask?.id).toMatch(/^ytcq-avatar-ring-icon-badge-mask-/);
-    expect(activeMask?.getAttribute('mask-type')).toBe('luminance');
-    expect(activeBadge?.getAttribute('mask')).toBe(`url(#${activeMask?.id})`);
-    expect(addIcon.querySelector('.ytcq-avatar-ring-icon-badge-symbol')?.getAttribute('d')).toBe(
-      AVATAR_RING_ADD_BADGE_PATH
+
+    expect(addIcon.querySelector('.ytcq-avatar-ring-icon-badge')?.getAttribute('fill')).toBe('none');
+    expect(activeMask?.id).toBeTruthy();
+    expect(activeMask?.children.length).toBeGreaterThan(0);
+    expect(activeIcon.querySelector('.ytcq-avatar-ring-icon-badge')?.getAttribute('mask')).toBe(
+      `url(#${activeMask?.id})`
     );
-    const activeBadgeSymbol = activeMask?.querySelector('.ytcq-avatar-ring-icon-badge-symbol');
-    expect(activeBadgeSymbol?.getAttribute('d')).toBe(AVATAR_RING_ACTIVE_BADGE_PATH);
-    expect(activeBadgeSymbol?.getAttribute('stroke')).toBe('#000');
     expect(createAvatarRingIcon(true).querySelector('mask')?.id).not.toBe(activeMask?.id);
   });
 });

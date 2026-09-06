@@ -10,7 +10,6 @@ import { nativeYouTubePerformanceTest as test } from '../../support/fixtures/you
 import { withExtensionStorageValues } from '../../support/extension-storage';
 import {
   createPerformanceReport,
-  delay,
   formatMb,
   formatMs,
   formatNullableMb,
@@ -18,6 +17,7 @@ import {
   getPositiveIntegerEnv,
   withMockedPerformanceTranslationEndpoint,
   writePerformanceReport,
+  type MockTranslationStats,
   type BrowserPerfProbeSnapshot
 } from '../../support/performance';
 import {
@@ -33,8 +33,8 @@ const TRANSLATION_RESPONSE_DELAY_MS = 35;
 const TRANSLATION_FAILURE_EVERY = 5;
 // The queue intentionally drops stale work above its 300-entry cap, and the
 // native client can retire rows before they reach the extension observer. Two
-// hundred completed items still proves sustained multi-batch progress while
-// the quiet-time and heap assertions verify that the remaining work is bounded.
+// hundred distinct completed items (success or failure) proves sustained progress.
+// Success, rendering, request completion, and quiet time are asserted separately.
 const MIN_PROGRESS_ITEM_COUNT = Math.min(200, MESSAGE_COUNT);
 const CONTROLLED_RENDERER_SELECTOR = 'yt-live-chat-text-message-renderer[id^="ytcq-native-message-"]';
 
@@ -69,9 +69,14 @@ test('youtube-native performance: slow failing translation backlog remains bound
         createBacklogMessages()
       );
       const queueQuietMs = await waitForTranslationQueueToQuiet(translationStats);
-      const visibleTranslationCount = await chat.locator(
+      const translations = chat.locator(
         `${CONTROLLED_RENDERER_SELECTOR} .ytcq-translation[lang="${TARGET_LANGUAGE}"]`
-      ).count();
+      );
+      await expect(translations.first()).toContainText('YTCQ backlog translation');
+      const visibleTranslationCount = await translations.count();
+      if (translationStats.requestCount >= TRANSLATION_FAILURE_EVERY) {
+        expect(translationStats.failureCount, 'The workload must exercise provider failures.').toBeGreaterThan(0);
+      }
       const queuedMessageCount = await chat.locator(
         `${CONTROLLED_RENDERER_SELECTOR}[data-ytcq-translation-key]`
       ).count();
@@ -86,7 +91,8 @@ test('youtube-native performance: slow failing translation backlog remains bound
           { label: 'Continuation ingress', value: formatMs(continuationIngressMs), budget: formatMs(BUDGETS.continuationIngressMs) },
           { label: 'Queue quiet', value: formatMs(queueQuietMs), budget: formatMs(BUDGETS.queueQuietMs) },
           { label: 'Translation requests', value: translationStats.requestCount },
-          { label: 'Translation items', value: translationStats.translatedItemCount, budget: `>= ${MIN_PROGRESS_ITEM_COUNT}` },
+          { label: 'Completed distinct items', value: translationStats.completedItemCount, budget: `>= ${MIN_PROGRESS_ITEM_COUNT}` },
+          { label: 'Successfully translated items', value: translationStats.translatedItemCount },
           { label: 'Translation request successes', value: translationStats.successCount },
           { label: 'Translation request failures', value: translationStats.failureCount },
           { label: 'Retained controlled translations', value: visibleTranslationCount },
@@ -105,7 +111,7 @@ test('youtube-native performance: slow failing translation backlog remains bound
         heapGrowthMb,
         probe,
         queueQuietMs,
-        translatedItemCount: translationStats.translatedItemCount
+        completedItemCount: translationStats.completedItemCount
       });
     });
   });
@@ -119,23 +125,29 @@ function createBacklogMessages() {
   }));
 }
 
-async function waitForTranslationQueueToQuiet(stats: { requestCount: number; translatedItemCount: number }): Promise<number> {
+async function waitForTranslationQueueToQuiet(stats: MockTranslationStats): Promise<number> {
   const startedAt = performance.now();
-  await expect.poll(() => stats.translatedItemCount, {
-    message: 'Slow translation backlog should keep making request progress.',
-    timeout: BUDGETS.queueQuietMs
-  }).toBeGreaterThanOrEqual(MIN_PROGRESS_ITEM_COUNT);
+  let lastActivity = 0;
+  let lastChangedAt = startedAt;
 
-  let lastCount = stats.requestCount;
-  let lastChangedAt = performance.now();
-  while (performance.now() - startedAt < BUDGETS.queueQuietMs) {
-    await delay(150);
-    if (stats.requestCount !== lastCount) {
-      lastCount = stats.requestCount;
+  await expect.poll(() => {
+    const completed = stats.successCount + stats.failureCount;
+    const activity = stats.requestCount + completed;
+    if (activity !== lastActivity) {
+      lastActivity = activity;
       lastChangedAt = performance.now();
     }
-    if (performance.now() - lastChangedAt >= 700) break;
-  }
+    return {
+      completedItems: stats.completedItemCount,
+      progress: stats.completedItemCount >= MIN_PROGRESS_ITEM_COUNT,
+      succeeded: stats.successCount > 0,
+      outstandingRequests: stats.requestCount - completed,
+      quiet: performance.now() - lastChangedAt >= 700
+    };
+  }, {
+    message: 'Backlog must make progress, finish every provider request, and remain quiet.',
+    timeout: BUDGETS.queueQuietMs
+  }).toMatchObject({ progress: true, succeeded: true, outstandingRequests: 0, quiet: true });
 
   return performance.now() - startedAt;
 }
@@ -145,19 +157,19 @@ function assertPerformanceBudgets({
   heapGrowthMb,
   probe,
   queueQuietMs,
-  translatedItemCount
+  completedItemCount
 }: {
   continuationIngressMs: number;
   heapGrowthMb: number | null;
   probe: BrowserPerfProbeSnapshot;
   queueQuietMs: number;
-  translatedItemCount: number;
+  completedItemCount: number;
 }): void {
   expect.soft(continuationIngressMs, 'YouTube should consume the backlog continuations promptly.')
     .toBeLessThanOrEqual(BUDGETS.continuationIngressMs);
   expect.soft(queueQuietMs, 'The slow/failing translation queue should settle within the broad budget.')
     .toBeLessThanOrEqual(BUDGETS.queueQuietMs);
-  expect.soft(translatedItemCount, 'The queue should keep processing even when some translations fail.')
+  expect.soft(completedItemCount, 'The queue should keep processing even when some translations fail.')
     .toBeGreaterThanOrEqual(MIN_PROGRESS_ITEM_COUNT);
   expect.soft(probe.maxLongTaskMs, 'Slow translation responses should not create a catastrophic long task.')
     .toBeLessThanOrEqual(BUDGETS.maxLongTaskMs);

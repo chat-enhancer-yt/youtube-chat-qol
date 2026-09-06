@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { LIVE_EDGE_LEAVE_MESSAGE_TYPE } from '../shared/live-edge';
 

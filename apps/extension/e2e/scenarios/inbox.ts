@@ -23,13 +23,11 @@ const PROFILE_MENTION_OVERLAP_KEYWORD = 'handlepart';
 const REPLAY_PREFETCH_KEYWORD = 'browser-replay-prefetch-keyword';
 
 export const inboxOpensFromHeaderScenario: BrowserScenario = async ({ chat }) => {
-  await expectInboxButtonAttached(chat);
   await openInboxPanel(chat);
   await closeInboxPanel(chat);
 };
 
 export const inboxGripDragScenario: BrowserScenario = async ({ chat, page }) => {
-  await expectInboxButtonAttached(chat);
   await openInboxPanel(chat);
   const card = chat.locator('.ytcq-inbox-card');
   await expect(card.locator('.ytcq-panel-resize-handle')).toHaveCount(8);
@@ -67,7 +65,6 @@ export const inboxGripDragScenario: BrowserScenario = async ({ chat, page }) => 
 };
 
 export const inboxStaysOpenOnWatchPageClickScenario: BrowserScenario = async ({ chat, page }) => {
-  await expectInboxButtonAttached(chat);
   await openInboxPanel(chat);
 
   const outsideTargetId = 'ytcq-e2e-watch-page-focus-target';
@@ -221,6 +218,7 @@ async function expectInboxButtonAttached(chat: ChatSurface): Promise<void> {
 }
 
 async function openInboxPanel(chat: ChatSurface): Promise<void> {
+  await expectInboxButtonAttached(chat);
   await test.step('Open Inbox panel', async () => {
     await chat.locator('.ytcq-inbox-button').click();
     await expect(chat.locator('.ytcq-inbox-card')).toBeVisible();

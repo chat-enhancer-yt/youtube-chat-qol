@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, expect, it } from 'vitest';
 import deCatalog from '../../../../shared/locales/de.json';
 import esCatalog from '../../../../shared/locales/es.json';

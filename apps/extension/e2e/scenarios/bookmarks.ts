@@ -15,6 +15,7 @@ import {
 import { openMessageMenu, type OpenedMessageMenu } from '../support/menu-openers';
 import { isMockPageSurface } from '../support/mock-page';
 import { getRichVisibleText } from '../support/text';
+import { expectMessageMenuActionsInjected } from './menus';
 import type { BrowserScenario } from './types';
 
 interface StoredBookmarkRecord {
@@ -568,6 +569,7 @@ async function saveBookmarkFromMessageMenu(
   chat: Parameters<BrowserScenario>[0]['chat']
 ): Promise<OpenedMessageMenu> {
   const source = await openMessageMenu(chat);
+  await expectMessageMenuActionsInjected(source.menu);
 
   await test.step('Click Save in the message context menu', async () => {
     const saveAction = source.menu

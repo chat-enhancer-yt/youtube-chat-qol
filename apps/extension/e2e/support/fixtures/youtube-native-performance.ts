@@ -12,7 +12,7 @@ import {
 } from '../chrome';
 import { dumpDomOnFailure } from '../dom-dump';
 import { NativeChatTransport } from '../native-chat-transport';
-import { getLiveUrl, openLiveChat } from '../youtube-page';
+import { dismissYouTubeConsentIfPresent, getLiveUrl, openLiveChat } from '../youtube-page';
 import {
   getRealYouTubeBrowserUserAgent,
   shouldRunRealYouTubeHeadlessBrowserTest
@@ -55,6 +55,7 @@ export const nativeYouTubePerformanceTest = base.extend<NativePerformanceFixture
             text: '🙂'
           });
           await expect(chat.locator(`#${warmupMessageId}`)).toBeVisible({ timeout: 15_000 });
+          await dismissYouTubeConsentIfPresent(page);
           return chat;
         },
         page,

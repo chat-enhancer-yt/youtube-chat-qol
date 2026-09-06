@@ -1,5 +1,6 @@
 /** Browser scenarios for Playground Games. */
 import { expect } from '@playwright/test';
+import { getExtensionId } from '../../support/extension';
 import {
   createMockPlaygroundSnapshot,
   installMockPlaygroundBackend
@@ -70,7 +71,7 @@ export const playgroundReplayTriviaInviteScenario: BrowserScenario = async ({ ch
   });
 };
 
-export const playgroundReplayTriviaAnswerScenario: BrowserScenario = async ({ chat, context }) => {
+export const playgroundReplayTriviaAnswerScenario: BrowserScenario = async ({ chat, context, page }) => {
   const backend = await installMockPlaygroundBackend(context, {
     snapshot: createMockPlaygroundSnapshot()
   });
@@ -92,23 +93,53 @@ export const playgroundReplayTriviaAnswerScenario: BrowserScenario = async ({ ch
 
     const canvas = chat.locator('.ytcq-replay-trivia-canvas');
     await expect(canvas).toBeVisible();
-    await new Promise((resolve) => setTimeout(resolve, 3_100));
-    await dispatchReplayTriviaAnswerKey(canvas, '2');
-
-    const answer = await waitForGameAction(backend, 'answer');
-    expect(answer).toMatchObject({
-      action: 'answer',
-      gameId: 'browser-replay-trivia-game',
-      payload: {
-        choiceIndex: 1,
-        expectedPhaseStartedAt: phaseStartedAt
+    // Scope the clock to this content script; browser-wide virtual time survives navigation.
+    const extensionId = await getExtensionId(context);
+    const cdp = await context.newCDPSession(page);
+    let executionContextId: number | undefined;
+    cdp.on('Runtime.executionContextCreated', ({ context: executionContext }) => {
+      if (executionContext.origin === `chrome-extension://${extensionId}`) {
+        executionContextId = executionContext.id;
       }
     });
+    try {
+      await cdp.send('Runtime.enable');
+      expect(executionContextId, 'The extension content-script context must exist.').toBeDefined();
+      const { result } = await cdp.send('Runtime.evaluate', {
+        contextId: executionContextId,
+        expression: `(() => {
+          const original = performance.now;
+          performance.now = () => original.call(performance) + 3100;
+          return () => { performance.now = original; };
+        })()`
+      });
+      expect(result.objectId, 'The scoped clock must provide its cleanup function.').toBeDefined();
+      try {
+        await dispatchReplayTriviaAnswerKey(canvas, '2');
 
-    await dispatchReplayTriviaAnswerKey(canvas, '3');
-    await expectGameActionCount(backend, 'answer', 1, (message) =>
-      message.gameId === 'browser-replay-trivia-game',
-      500
-    );
+        const answer = await waitForGameAction(backend, 'answer');
+        expect(answer).toMatchObject({
+          action: 'answer',
+          gameId: 'browser-replay-trivia-game',
+          payload: {
+            choiceIndex: 1,
+            expectedPhaseStartedAt: phaseStartedAt
+          }
+        });
+
+        await dispatchReplayTriviaAnswerKey(canvas, '3');
+        await expectGameActionCount(backend, 'answer', 1, (message) =>
+          message.gameId === 'browser-replay-trivia-game',
+          500
+        );
+      } finally {
+        await cdp.send('Runtime.callFunctionOn', {
+          objectId: result.objectId,
+          functionDeclaration: 'function () { this(); }'
+        });
+      }
+    } finally {
+      await cdp.detach();
+    }
   });
 };

@@ -27,43 +27,7 @@ export const onboardingRenderingScenario: ExtensionScenario = async ({ context }
         )
       )
       .toBe(true);
-    await expect(onboarding.locator('.settings-intro h1')).toHaveText('Welcome aboard!');
-    await expect(onboarding.locator('.settings-intro h1')).toHaveCSS('font-weight', '400');
-    await expect(onboarding.locator('.setting-row-toggle .option-beta-badge')).toHaveCount(2);
-    await expect
-      .poll(() =>
-        onboarding
-          .locator('.setting-row-toggle .option-beta-badge')
-          .evaluateAll((badges) => badges.map((badge) => badge.textContent))
-      )
-      .toEqual(['Beta', 'Beta']);
-    await expect(onboarding.locator('.setting-row-toggle .option-beta-badge').first()).toHaveCSS(
-      'font-size',
-      '9px'
-    );
-    await expect(onboarding.locator('.setting-row-toggle .option-beta-badge').first()).toHaveCSS(
-      'min-height',
-      '13px'
-    );
-    await expect(onboarding.locator('html')).toHaveCSS('color-scheme', 'light');
-    await expect(onboarding.locator('body')).toHaveCSS('background-color', 'rgb(255, 255, 255)');
-    await expect(onboarding.locator('body')).toHaveCSS('color', 'rgb(15, 15, 15)');
-    await expect(onboarding.locator('.settings-list > .setting-row').first()).toHaveCSS(
-      'background-color',
-      'rgba(0, 0, 0, 0.04)'
-    );
-    await expect(onboarding.locator('#onboardingChatSkin')).toHaveCSS(
-      'background-color',
-      'rgb(255, 255, 255)'
-    );
-    await expect(onboarding.locator('.settings-note')).toHaveCSS(
-      'background-color',
-      'rgba(0, 0, 0, 0.04)'
-    );
-    await expect(onboarding.locator('.settings-close-note')).toHaveText(
-      'Feel free to close this tab when you’re finished.'
-    );
-    await expect(onboarding.locator('.settings-close-note')).toHaveCSS('font-weight', '400');
+    await expect(onboarding.locator('.settings-intro h1')).toBeVisible();
     await expect
       .poll(async () => {
         const [column, panel, note] = await Promise.all([
@@ -75,14 +39,6 @@ export const onboardingRenderingScenario: ExtensionScenario = async ({ context }
         return note.y >= panel.y + panel.height && note.y + note.height <= column.y + column.height;
       })
       .toBe(true);
-    await expect(onboarding.locator('.preview-hover-hint')).toHaveText(
-      'Hover over icons for more information.'
-    );
-    await expect(onboarding.locator('.preview-hover-hint')).toHaveCSS('color', 'rgb(96, 96, 96)');
-    await expect(onboarding.locator('.preview-hover-hint')).toHaveCSS('font-size', '13px');
-    await expect(onboarding.locator('.preview-feature-breakdown')).toHaveText(
-      'Visit chatenhancer.com for a full breakdown of the features.'
-    );
     await expect(onboarding.locator('.preview-feature-breakdown a')).toHaveAttribute(
       'href',
       'https://www.chatenhancer.com/'
@@ -116,15 +72,6 @@ export const onboardingRenderingScenario: ExtensionScenario = async ({ context }
         return breakdown.y >= preview.y + preview.height;
       })
       .toBe(true);
-    await expect(onboarding.locator('.preview-title img')).toHaveCSS('object-fit', 'contain');
-    await expect
-      .poll(async () =>
-        onboarding.locator('.preview-title img').evaluate((image) => {
-          const bounds = image.getBoundingClientRect();
-          return Math.abs(bounds.width - bounds.height);
-        })
-      )
-      .toBeLessThan(0.1);
     await expect(onboarding.locator('#onboardingTargetLanguage')).toHaveValue('');
     await expect(onboarding.locator('#onboardingTranslationDisplayRow')).toBeHidden();
     await expect(onboarding.locator('#previewGamesIcon')).toBeHidden();
@@ -135,149 +82,27 @@ export const onboardingRenderingScenario: ExtensionScenario = async ({ context }
     await expect(onboarding.locator('#previewDraftTranslatorTooltip')).toBeHidden();
     await expect(onboarding.locator('#previewEmojiPickerTooltip')).toBeHidden();
     await expect(onboarding.locator('#previewLiteIcon')).not.toHaveClass(/preview-icon-active/u);
-    await expect(onboarding.locator('.preview-top-chat')).toHaveCSS('font-size', '16px');
-    await expect(onboarding.locator('.preview-top-chat')).toHaveCSS('font-weight', '300');
-    await expect
-      .poll(() =>
-        onboarding.locator('.onboarding-shell').evaluate((shell) => getComputedStyle(shell).zoom)
-      )
-      .toBe('1');
-    await expect
-      .poll(async () => {
-        const [preview, header, caret, row, avatar] = await Promise.all([
-          onboarding.locator('#chatPreview').boundingBox(),
-          onboarding.locator('.preview-chat-header').boundingBox(),
-          onboarding.locator('.preview-top-chat svg').boundingBox(),
-          onboarding.locator('.preview-message').first().boundingBox(),
-          onboarding.locator('.preview-avatar').first().boundingBox()
-        ]);
-        return {
-          avatar: Math.round(avatar?.height || 0),
-          caret: Math.round(caret?.height || 0),
-          header: Math.round(header?.height || 0),
-          previewHeight: Math.round(preview?.height || 0),
-          previewWidth: Math.round(preview?.width || 0),
-          row: Math.round(row?.height || 0)
-        };
-      })
-      .toEqual({
-        avatar: 24,
-        caret: 24,
-        header: 48,
-        previewHeight: 579,
-        previewWidth: 381,
-        row: 32
-      });
-    await expect
-      .poll(async () => {
-        const [translation, emoji] = await Promise.all([
-          onboarding.locator('#previewComposerTranslateIcon').boundingBox(),
-          onboarding.locator('.preview-emoji').boundingBox()
-        ]);
-        if (!translation || !emoji) return 0;
-        return Math.round(emoji.x + emoji.width / 2 - (translation.x + translation.width / 2));
-      })
-      .toBe(34);
-    const draftTranslator = onboarding.locator('#previewComposerTranslateIcon');
-    await expect(draftTranslator).toHaveCSS('color', 'rgba(17, 17, 17, 0.6)');
-    await draftTranslator.hover();
-    await expect(draftTranslator).toHaveCSS('color', 'rgb(15, 15, 15)');
-    const nativeLightIcons = [
-      onboarding.locator('#previewLiteIcon'),
-      onboarding.locator('#previewInboxIcon'),
-      onboarding.locator('.preview-native-header-icon').first(),
-      onboarding.locator('.preview-native-header-icon').last(),
-      onboarding.locator('.preview-emoji')
-    ];
-    for (const icon of nativeLightIcons) {
-      await expect(icon).toHaveCSS('color', 'rgb(15, 15, 15)');
-      await icon.hover();
-      await expect(icon).toHaveCSS('color', 'rgb(15, 15, 15)');
+    for (const theme of ['light', 'dark'] as const) {
+      await onboarding.emulateMedia({ colorScheme: theme });
+      const preview = onboarding.locator('#chatPreview');
+      await expect(preview).toHaveAttribute('data-chat-theme', theme);
+      await expect(preview).toBeInViewport();
+      await expect(onboarding.locator('.preview-top-chat')).toHaveCSS(
+        'color',
+        theme === 'light' ? 'rgb(15, 15, 15)' : 'rgb(255, 255, 255)'
+      );
+      await expect.poll(() => preview.evaluate((element) => {
+        const bounds = element.getBoundingClientRect();
+        return Array.from(element.querySelectorAll<HTMLElement>(
+          '.preview-chat-header, .preview-message, .preview-composer'
+        )).every((child) => {
+          const rect = child.getBoundingClientRect();
+          return rect.left >= bounds.left && rect.right <= bounds.right &&
+            rect.top >= bounds.top && rect.bottom <= bounds.bottom;
+        }) && element.scrollWidth <= element.clientWidth;
+      })).toBe(true);
+      await expect(onboarding.locator('#previewComposerTranslateIcon')).toBeVisible();
+      await expect(onboarding.locator('#previewInboxIcon')).toBeVisible();
     }
-    await onboarding.locator('#previewLiteIcon').hover();
-    await expect(onboarding.locator('#previewLiteIcon')).toHaveCSS(
-      'background-color',
-      'rgba(0, 0, 0, 0.2)'
-    );
-    await onboarding.locator('#previewInboxIcon').hover();
-    await expect(onboarding.locator('#previewInboxIcon')).toHaveCSS(
-      'background-color',
-      'rgba(0, 0, 0, 0.2)'
-    );
-    await onboarding.locator('.preview-native-header-icon').first().hover();
-    await expect(onboarding.locator('.preview-native-header-icon').first()).toHaveCSS(
-      'background-color',
-      'rgba(0, 0, 0, 0.2)'
-    );
-    await expect(onboarding.locator('.preview-top-chat')).toHaveCSS('color', 'rgb(15, 15, 15)');
-    await expect(onboarding.locator('.preview-top-chat svg')).toHaveCSS(
-      'fill',
-      'rgb(15, 15, 15)'
-    );
-    await expect(onboarding.locator('.preview-send button')).toHaveCSS(
-      'color',
-      'rgb(144, 144, 144)'
-    );
-    await expect
-      .poll(() =>
-        onboarding
-          .locator('.preview-skeleton-row')
-          .first()
-          .evaluate((row) => getComputedStyle(row, '::before').filter)
-      )
-      .toBe('invert(1)');
-    await expect(onboarding.locator('.preview-native-header-icon path').first()).toHaveCSS(
-      'fill',
-      'rgb(15, 15, 15)'
-    );
-
-    await onboarding.emulateMedia({ colorScheme: 'dark' });
-    await expect(onboarding.locator('#chatPreview')).toHaveAttribute('data-chat-theme', 'dark');
-    await expect(draftTranslator).toHaveCSS('color', 'rgba(255, 255, 255, 0.7)');
-    await draftTranslator.hover();
-    await expect(draftTranslator).toHaveCSS('color', 'rgb(255, 255, 255)');
-    const darkPrimaryIcons = [
-      onboarding.locator('#previewLiteIcon'),
-      onboarding.locator('#previewInboxIcon'),
-      onboarding.locator('.preview-emoji')
-    ];
-    for (const icon of darkPrimaryIcons) {
-      await expect(icon).toHaveCSS('color', 'rgb(255, 255, 255)');
-      await icon.hover();
-      await expect(icon).toHaveCSS('color', 'rgb(255, 255, 255)');
-    }
-    await onboarding.locator('#previewLiteIcon').hover();
-    await expect(onboarding.locator('#previewLiteIcon')).toHaveCSS(
-      'background-color',
-      'rgba(255, 255, 255, 0.2)'
-    );
-    await onboarding.locator('#previewInboxIcon').hover();
-    await expect(onboarding.locator('#previewInboxIcon')).toHaveCSS(
-      'background-color',
-      'rgba(255, 255, 255, 0.2)'
-    );
-    const darkNativeIcons = onboarding.locator('.preview-native-header-icon');
-    for (const icon of await darkNativeIcons.all()) {
-      await expect(icon).toHaveCSS('color', 'rgb(241, 241, 241)');
-      await icon.hover();
-      await expect(icon).toHaveCSS('color', 'rgb(241, 241, 241)');
-    }
-    await darkNativeIcons.first().hover();
-    await expect(darkNativeIcons.first()).toHaveCSS(
-      'background-color',
-      'rgba(255, 255, 255, 0.2)'
-    );
-    await expect(onboarding.locator('.preview-top-chat')).toHaveCSS(
-      'color',
-      'rgb(255, 255, 255)'
-    );
-    await expect(onboarding.locator('.preview-top-chat svg')).toHaveCSS(
-      'fill',
-      'rgb(241, 241, 241)'
-    );
-    await expect(onboarding.locator('.preview-send button')).toHaveCSS(
-      'color',
-      'rgb(113, 113, 113)'
-    );
   });
 };

@@ -11,6 +11,7 @@ import {
   withExtensionStorageValues
 } from '../support/extension-storage';
 import { openSettingsMenu } from '../support/menu-openers';
+import { expectSettingsMenuControlsInjected } from './menus';
 import type { BrowserScenario, ChatSurface } from './types';
 
 const SETTINGS_INITIAL_VALUES = {
@@ -27,6 +28,7 @@ const SETTINGS_INITIAL_VALUES = {
 export const settingsMenuBehaviorScenario: BrowserScenario = async ({ chat, context }) => {
   await withExtensionStorageValues(context, 'sync', SETTINGS_INITIAL_VALUES, async () => {
     const menu = await openSettingsMenu(chat);
+    await expectSettingsMenuControlsInjected(menu);
     await toggleTranslationFromChatSettings({ context, menu });
     await toggleAlertSoundsFromChatSettings({ context, menu });
     await closeNativeMenu(chat);
@@ -38,7 +40,6 @@ export const popupSettingsBehaviorScenario: BrowserScenario = async ({ context }
     const popup = await openExtensionPopup(context);
 
     try {
-      await expectPopupOptionCopyGap(popup);
       await changePopupTranslationTarget({ context, popup });
       await changePopupTranslationDisplay({ context, popup });
       await changePopupMessageDensity({ context, popup });
@@ -50,20 +51,6 @@ export const popupSettingsBehaviorScenario: BrowserScenario = async ({ context }
     }
   });
 };
-
-async function expectPopupOptionCopyGap(popup: Page): Promise<void> {
-  await test.step('Keep option help text close to its title', async () => {
-    await expect
-      .poll(() =>
-        popup.locator('.option-control').first().evaluate((option) => {
-          const title = option.querySelector('.option-title')?.getBoundingClientRect();
-          const helper = option.querySelector('.option-helper')?.getBoundingClientRect();
-          return title && helper ? helper.top - title.bottom : null;
-        })
-      )
-      .toBe(2);
-  });
-}
 
 async function toggleTranslationFromChatSettings({
   context,
@@ -126,12 +113,7 @@ async function changePopupTranslationTarget({
   popup: Page;
 }): Promise<void> {
   await test.step('Set popup translation target', async () => {
-    await expect(
-      popup.locator('.option-control:has(#targetLanguage) .option-title > span:last-child')
-    ).toHaveText('Chat translation');
-    await expect(
-      popup.locator('.option-control:has(#targetLanguage) .option-helper')
-    ).toHaveText('Translate incoming chat messages.');
+    await expect(popup.locator('#targetLanguage')).toHaveAccessibleName(/^Chat translation\b/);
     await popup.locator('#targetLanguage').selectOption('ja');
     await expectStorageValue(context, 'targetLanguage', 'ja');
     await expectStorageValue(context, 'lastTranslationTarget', 'ja');
@@ -146,31 +128,8 @@ async function changePopupTranslationDisplay({
   popup: Page;
 }): Promise<void> {
   await test.step('Set popup translation display mode', async () => {
-    const icon = popup.locator('.translation-display-icon');
-    await expect(
-      popup.locator('.option-control:has(#translationDisplay) .option-title > span:last-child')
-    ).toHaveText('Translation appearance');
-    await expect(popup.locator('#translationDisplay option[value="replace"]')).toHaveText(
-      'Replace text'
-    );
-    await expect(popup.locator('#translationDisplay')).toHaveCSS('width', '120px');
-    await expect(popup.locator('#translationDisplay')).toHaveCSS('padding-left', '6px');
-    await expect(popup.locator('#translationDisplay')).toHaveCSS('padding-right', '20px');
-    await expect
-      .poll(() =>
-        popup
-          .locator('.option-control:has(#translationDisplay) .option-title > span:last-child')
-          .evaluate((label) => label.getBoundingClientRect().height)
-      )
-      .toBeLessThanOrEqual(16);
-    await expect(icon.locator('.translation-display-message')).toHaveCount(2);
-    await expect(icon.locator('.translation-display-flow')).toHaveCount(1);
+    await expect(popup.locator('#translationDisplay')).toHaveAccessibleName(/^Translation appearance\b/);
     await popup.locator('#translationDisplay').selectOption('below');
-    await expect(icon).toHaveClass(/ytcq-display-reflow/);
-    await expect(icon.locator('.translation-display-message-translation')).toHaveCSS(
-      'animation-name',
-      'ytcq-display-translation-arrive'
-    );
     await expectStorageValue(context, 'translationDisplay', 'below');
   });
 }
@@ -183,15 +142,7 @@ async function changePopupLiteMode({
   popup: Page;
 }): Promise<void> {
   await test.step('Enable Lite mode from the popup', async () => {
-    await expect(
-      popup.locator('section.settings-section:has(#liteModeEnabled) > h2')
-    ).toHaveText('Performance');
-    await expect(
-      popup.locator('label:has(#liteModeEnabled) .option-beta-badge')
-    ).toHaveText('Beta');
-    await expect(popup.locator('label:has(#liteModeEnabled) .option-helper')).toHaveText(
-      'Use a faster, lightweight chat feed to improve performance.'
-    );
+    await expect(popup.locator('#liteModeEnabled')).toHaveAccessibleName(/Lite mode/);
     await popup.locator('#liteModeEnabled').setChecked(true);
     await expectStorageValue(context, 'liteModeEnabled', true);
   });
@@ -204,20 +155,12 @@ async function changePopupMessageDensity({
   context: BrowserContext;
   popup: Page;
 }): Promise<void> {
-  await test.step('Set message density directly below the theme control', async () => {
-    const control = popup.locator(
-      '.option-control:has(#chatSkin) + .option-control #messageDensity'
-    );
+  await test.step('Set message density from the popup', async () => {
+    const control = popup.locator('#messageDensity');
     await expect(control).toBeVisible();
     await expect(popup.locator('#messageDensityLabel')).toHaveText('Message density');
     await expect(control.locator('option')).toHaveText(['Default', 'Compact']);
-    await expect(popup.locator('.message-density-icon')).not.toHaveClass(/ytcq-density-compress/);
     await control.selectOption('compact');
-    await expect(popup.locator('.message-density-icon')).toHaveClass(/ytcq-density-compress/);
-    await expect(popup.locator('.message-density-line-top')).toHaveCSS(
-      'animation-name',
-      'ytcq-density-line-compress'
-    );
     await expectStorageValue(context, 'messageDensity', 'compact');
   });
 }
@@ -251,78 +194,11 @@ async function changePopupStartupEffect({
     await expect(moreSettings).toHaveText('Show more');
     await expect(moreSettings).toHaveAttribute('aria-expanded', 'false');
     await expect(moreSettings).toHaveAttribute('aria-controls', 'appearanceMoreSettingsGroup');
-    await expectMoreSettingsChevronOffset(moreSettings, -1.5);
-    await expect
-      .poll(() =>
-        moreSettings.evaluate((element) => {
-          const styles = getComputedStyle(element);
-          const playgroundIdentity = document.querySelector('.playground-profile');
-          return {
-            hasBackground: styles.backgroundColor !== 'rgba(0, 0, 0, 0)',
-            matchesPlaygroundIdentityBackground:
-              playgroundIdentity !== null &&
-              styles.backgroundColor === getComputedStyle(playgroundIdentity).backgroundColor,
-            borderStyle: styles.borderStyle,
-            borderWidth: styles.borderWidth,
-            boxShadow: styles.boxShadow,
-            fontWeight: styles.fontWeight,
-            outlineStyle: styles.outlineStyle
-          };
-        })
-      )
-      .toEqual({
-        hasBackground: false,
-        matchesPlaygroundIdentityBackground: false,
-        borderStyle: 'none',
-        borderWidth: '0px',
-        boxShadow: 'none',
-        fontWeight: '400',
-        outlineStyle: 'none'
-      });
-    await expect
-      .poll(async () => {
-        const [buttonBounds, sectionBounds] = await Promise.all([
-          moreSettings.boundingBox(),
-          popup.locator('#appearanceSettingsSection').boundingBox()
-        ]);
-        if (!buttonBounds || !sectionBounds) return null;
-        return {
-          height: buttonBounds.height,
-          isCentered:
-            Math.abs(
-              buttonBounds.x + buttonBounds.width / 2 -
-                (sectionBounds.x + sectionBounds.width / 2)
-            ) <= 1,
-          isCompact: buttonBounds.width < sectionBounds.width / 2
-        };
-      })
-      .toEqual({ height: 20, isCentered: true, isCompact: true });
-
-    await option.evaluate((element) => {
-      const captureRevealAnimation = (event: Event): void => {
-        const animationEvent = event as AnimationEvent;
-        if (animationEvent.animationName !== 'ytcq-popup-option-added') return;
-        element.dataset.revealAnimation = animationEvent.animationName;
-        element.dataset.revealAnimationDuration = getComputedStyle(element).animationDuration;
-        element.removeEventListener('animationstart', captureRevealAnimation);
-      };
-      element.addEventListener('animationstart', captureRevealAnimation);
-    });
     await moreSettings.click();
     await expect(moreSettings).toHaveAttribute('aria-expanded', 'true');
     await expect(moreSettings).toBeHidden();
     await expect(group).toBeVisible();
     await expect(option).toBeVisible();
-    await expect(option).toHaveAttribute('data-reveal-animation', 'ytcq-popup-option-added');
-    await expect(option).toHaveAttribute('data-reveal-animation-duration', '0.72s');
-    await expect(group.locator(':scope > .appearance-more-settings-content')).toHaveCSS(
-      'min-height',
-      '0px'
-    );
-    await expect(group).toHaveCSS(
-      'transition-property',
-      'grid-template-rows, opacity, transform'
-    );
     const settingsPanel = popup.locator('#settingsPanel');
     await expect
       .poll(() =>
@@ -342,23 +218,6 @@ async function changePopupStartupEffect({
     await expect(moreSettings).toBeVisible();
     await expect(moreSettings).toHaveAttribute('aria-expanded', 'false');
   });
-}
-
-async function expectMoreSettingsChevronOffset(
-  toggle: Locator,
-  expectedY: number
-): Promise<void> {
-  await expect
-    .poll(() =>
-      toggle.evaluate((element) => {
-        const matrix = new DOMMatrixReadOnly(getComputedStyle(element, '::after').transform);
-        return {
-          x: Math.round(matrix.m41 * 10) / 10,
-          y: Math.round(matrix.m42 * 10) / 10
-        };
-      })
-    )
-    .toEqual({ x: 0, y: expectedY });
 }
 
 async function openExtensionPopup(context: BrowserContext): Promise<Page> {

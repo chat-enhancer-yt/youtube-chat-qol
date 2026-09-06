@@ -104,7 +104,7 @@ export const nativeMenuStacksAboveExtensionPanelScenario: BrowserScenario = asyn
   }
 };
 
-async function expectSettingsMenuControlsInjected(menu: Locator): Promise<void> {
+export async function expectSettingsMenuControlsInjected(menu: Locator): Promise<void> {
   await test.step('Verify Translate setting is injected', async () => {
     await expect(menu.locator('.ytcq-settings-item').filter({ hasText: 'Translate' })).toBeVisible();
   });
@@ -130,7 +130,7 @@ async function expectSettingsMenuControlsInjected(menu: Locator): Promise<void> 
   });
 }
 
-async function expectMessageMenuActionsInjected(menu: Locator): Promise<void> {
+export async function expectMessageMenuActionsInjected(menu: Locator): Promise<void> {
   await test.step('Verify Save action is injected', async () => {
     const saveAction = menu.locator('.ytcq-context-item[data-ytcq-action="save-message"]').first();
     await expect(saveAction).toBeVisible();

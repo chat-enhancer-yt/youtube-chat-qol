@@ -31,7 +31,8 @@ export const inboxScenarios: readonly YouTubeScenario[] = [
   {
     title: 'Inbox opens from the chat header',
     run: inboxOpensFromHeaderScenario,
-    on: [...pair.liveLoggedIn, ...pair.liveLoggedOut, ...pair.replayLoggedIn]
+    on: [target.replayLoggedIn],
+    reason: 'Live and mock replay scenarios open and close Inbox while recording messages; real replay needs its own opening check.'
   },
   {
     title: 'Inbox drags directly from its visible grip',

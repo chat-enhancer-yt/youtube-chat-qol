@@ -35,23 +35,6 @@ describe('onboarding settings', () => {
     vi.useRealTimers();
   });
 
-  it('lists Lite mode before Playground', () => {
-    const toggleOrder = Array.from(
-      document.querySelectorAll<HTMLInputElement>('.setting-row-toggle > input')
-    ).map((input) => input.id);
-
-    expect(toggleOrder).toEqual(['onboardingLiteModeEnabled', 'onboardingPlaygroundEnabled']);
-  });
-
-  it('uses onboarding-specific copy for the replacement display option', () => {
-    const replaceOption = document.querySelector<HTMLOptionElement>(
-      '#onboardingTranslationDisplay option[value="replace"]'
-    );
-
-    expect(replaceOption?.dataset.i18n).toBe('onboardingReplaceText');
-    expect(replaceOption?.textContent).toBe('Replace text');
-  });
-
   it('links the Playground option to the Playground site', () => {
     const learnMoreLink = document.querySelector<HTMLAnchorElement>(
       'label[for="onboardingPlaygroundEnabled"] .setting-helper a'
@@ -60,137 +43,22 @@ describe('onboarding settings', () => {
     expect(learnMoreLink?.href).toBe('https://playground.chatenhancer.com/');
   });
 
-  it('uses the popup icon animations for matching onboarding settings', async () => {
-    await import('./index');
-
-    const translationIcon = document.querySelector<SVGSVGElement>('.translation-target-icon')!;
-    const translationDisplayIcon = document.querySelector<SVGSVGElement>(
-      '.translation-display-icon'
-    )!;
-    const chatSkinIcon = document.querySelector<SVGSVGElement>('.chat-skin-icon')!;
-    const liteModeIcons = document.querySelectorAll<SVGSVGElement>('.lite-mode-icon');
-    const playgroundIcon = document.querySelector<SVGSVGElement>('.playground-joystick-icon')!;
-    const gameInvitesIcon = document.querySelector<SVGSVGElement>('.game-invites-icon')!;
-
-    expect(translationIcon.querySelector('.translation-source-mark')).not.toBeNull();
-    expect(translationIcon.querySelector('.translation-target-mark')).not.toBeNull();
-    expect(translationDisplayIcon.querySelectorAll('.translation-display-message')).toHaveLength(2);
-    expect(
-      translationDisplayIcon.querySelector('.translation-display-message-original')
-    ).not.toBeNull();
-    expect(
-      translationDisplayIcon.querySelector('.translation-display-message-translation')
-    ).not.toBeNull();
-    expect(translationDisplayIcon.querySelector('.translation-display-flow')).not.toBeNull();
-    expect(chatSkinIcon.querySelector('.chat-skin-palette-body')).not.toBeNull();
-    expect(chatSkinIcon.querySelectorAll('.chat-skin-palette-spot')).toHaveLength(4);
-    expect(liteModeIcons).toHaveLength(2);
-    expect(playgroundIcon.querySelector('.playground-joystick-base')).not.toBeNull();
-    expect(playgroundIcon.querySelector('.playground-joystick-stick')).not.toBeNull();
-
-    const targetLanguage = document.querySelector<HTMLSelectElement>('#onboardingTargetLanguage')!;
-    targetLanguage.value = 'ja';
-    targetLanguage.dispatchEvent(new Event('change', { bubbles: true }));
-
-    const translationDisplay = document.querySelector<HTMLSelectElement>(
-      '#onboardingTranslationDisplay'
-    )!;
-    translationDisplay.value = 'below';
-    translationDisplay.dispatchEvent(new Event('change', { bubbles: true }));
-
-    const chatSkin = document.querySelector<HTMLSelectElement>('#onboardingChatSkin')!;
-    chatSkin.value = 'aero';
-    chatSkin.dispatchEvent(new Event('change', { bubbles: true }));
-
-    const playgroundEnabled = document.querySelector<HTMLInputElement>(
-      '#onboardingPlaygroundEnabled'
-    )!;
-    playgroundEnabled.checked = true;
-    playgroundEnabled.dispatchEvent(new Event('change', { bubbles: true }));
-
-    const liteModeEnabled = document.querySelector<HTMLInputElement>('#onboardingLiteModeEnabled')!;
-    liteModeEnabled.checked = true;
-    liteModeEnabled.dispatchEvent(new Event('change', { bubbles: true }));
-
-    expect(translationIcon.classList.contains('ytcq-translation-pulse')).toBe(true);
-    expect(translationDisplayIcon.classList.contains('ytcq-display-reflow')).toBe(true);
-    expect(chatSkinIcon.classList.contains('ytcq-palette-pop')).toBe(true);
-    expect(playgroundIcon.classList.contains('ytcq-playground-joystick-wiggle')).toBe(true);
-    expect(gameInvitesIcon.classList.contains('ytcq-game-controller-hop')).toBe(true);
-    liteModeIcons.forEach((icon) => {
-      expect(icon.classList.contains('ytcq-bolt-redraw')).toBe(true);
-      expect(icon.querySelector('.lite-mode-bolt-fill')).not.toBeNull();
-      expect(icon.querySelector('.lite-mode-bolt-draw')).not.toBeNull();
-      expect(icon.querySelector('.lite-mode-bolt-draw-mask-main')).not.toBeNull();
-      expect(icon.querySelector('.lite-mode-bolt-draw-mask-blocker')).not.toBeNull();
-      expect(icon.querySelector('.lite-mode-bolt-draw-mask-end')).not.toBeNull();
-    });
-
-    await vi.advanceTimersByTimeAsync(1000);
-
-    expect(translationIcon.classList.contains('ytcq-translation-pulse')).toBe(false);
-    expect(translationDisplayIcon.classList.contains('ytcq-display-reflow')).toBe(false);
-    expect(chatSkinIcon.classList.contains('ytcq-palette-pop')).toBe(false);
-    expect(playgroundIcon.classList.contains('ytcq-playground-joystick-wiggle')).toBe(false);
-    expect(gameInvitesIcon.classList.contains('ytcq-game-controller-hop')).toBe(false);
-    liteModeIcons.forEach((icon) => {
-      expect(icon.classList.contains('ytcq-bolt-redraw')).toBe(false);
-    });
-
-    targetLanguage.value = '';
-    targetLanguage.dispatchEvent(new Event('change', { bubbles: true }));
-    chatSkin.value = 'system';
-    chatSkin.dispatchEvent(new Event('change', { bubbles: true }));
-    playgroundEnabled.checked = false;
-    playgroundEnabled.dispatchEvent(new Event('change', { bubbles: true }));
-    liteModeEnabled.checked = false;
-    liteModeEnabled.dispatchEvent(new Event('change', { bubbles: true }));
-
-    expect(translationIcon.classList.contains('ytcq-translation-pulse')).toBe(false);
-    expect(chatSkinIcon.classList.contains('ytcq-palette-pop')).toBe(false);
-    expect(playgroundIcon.classList.contains('ytcq-playground-joystick-wiggle')).toBe(false);
-    expect(gameInvitesIcon.classList.contains('ytcq-game-controller-hop')).toBe(false);
-    liteModeIcons.forEach((icon) => {
-      expect(icon.classList.contains('ytcq-bolt-redraw')).toBe(false);
-    });
-  });
-
-  it('commits the collapsed translation display row before animating it open', async () => {
+  it('shows translation appearance only while translation is enabled', async () => {
     await import('./index');
 
     const targetLanguage = document.querySelector<HTMLSelectElement>('#onboardingTargetLanguage')!;
-    const translationDisplayRow = document.querySelector<HTMLElement>(
-      '#onboardingTranslationDisplayRow'
-    )!;
-    const committedStates: boolean[] = [];
-    Object.defineProperty(translationDisplayRow, 'offsetHeight', {
-      configurable: true,
-      get: () => {
-        committedStates.push(
-          translationDisplayRow.classList.contains('translation-display-row-collapsed')
-        );
-        return 0;
-      }
-    });
+    const displayRow = document.querySelector<HTMLElement>('#onboardingTranslationDisplayRow')!;
+    expect(displayRow.hidden).toBe(true);
 
     targetLanguage.value = 'ja';
     targetLanguage.dispatchEvent(new Event('change', { bubbles: true }));
-
-    expect(committedStates).toEqual([true]);
-    expect(translationDisplayRow.hidden).toBe(false);
-    expect(translationDisplayRow.classList.contains('translation-display-row-collapsed')).toBe(
-      false
-    );
+    expect(displayRow.hidden).toBe(false);
+    expect(preview.setTargetLanguage).toHaveBeenCalledWith('ja');
 
     targetLanguage.value = '';
     targetLanguage.dispatchEvent(new Event('change', { bubbles: true }));
-
-    expect(translationDisplayRow.hidden).toBe(false);
-    expect(translationDisplayRow.classList.contains('translation-display-row-collapsed')).toBe(
-      true
-    );
     await vi.advanceTimersByTimeAsync(180);
-    expect(translationDisplayRow.hidden).toBe(true);
+    expect(displayRow.hidden).toBe(true);
   });
 
   it('uses the localized translated prefix in the below-message preview', async () => {

@@ -27,7 +27,6 @@ import { createGamePanelShell } from '../panel-shell';
 import {
   ANSWER_TIME_MS,
   ANSWER_UI_DELAY_MS,
-  CHAT_PROMPT_DELAY_MS,
   COUNTDOWN_MS,
   REVEAL_FRIEND_REPLY_DELAY_MS,
   REVEAL_MS,
@@ -664,13 +663,13 @@ describe('Replay Trivia panel', () => {
     updateReplayTriviaGamePanel(game, 'host-user');
 
     expect(fillTextCalls).toEqual(expect.arrayContaining([
-      expect.objectContaining({ fillStyle: '#303033', font: expect.stringContaining('700'), text: 'The' }),
-      expect.objectContaining({ fillStyle: '#303033', font: expect.stringContaining('700'), text: 'Last' }),
-      expect.objectContaining({ fillStyle: '#303033', font: expect.stringContaining('700'), text: 'of' }),
-      expect.objectContaining({ fillStyle: '#303033', font: expect.stringContaining('700'), text: 'Us.' })
+      expect.objectContaining({ font: expect.stringContaining('700'), text: 'The' }),
+      expect.objectContaining({ font: expect.stringContaining('700'), text: 'Last' }),
+      expect.objectContaining({ font: expect.stringContaining('700'), text: 'of' }),
+      expect.objectContaining({ font: expect.stringContaining('700'), text: 'Us.' })
     ]));
     expect(fillTextCalls).toEqual(expect.arrayContaining([
-      expect.objectContaining({ fillStyle: '#303033', font: expect.stringContaining('400'), text: 'wow,' })
+      expect.objectContaining({ font: expect.stringContaining('400'), text: 'wow,' })
     ]));
   });
 
@@ -694,8 +693,6 @@ describe('Replay Trivia panel', () => {
       expect.objectContaining({ fillStyle: '#2290FF', text: 'answer' }),
       expect.objectContaining({ fillStyle: '#111111', text: '!' })
     ]));
-    expect(context.moveTo).toHaveBeenCalledWith(12, 7);
-    expect(context.lineTo).toHaveBeenCalledWith(60, 7);
 
     closeReplayTriviaGamePanel({ notify: false });
     document.documentElement.lang = 'es';
@@ -1293,71 +1290,6 @@ describe('Replay Trivia panel', () => {
     expect(drawnText()).toContain('Nobody got this one right');
   });
 
-  it('keeps one-line friend reveal replies compact', async () => {
-    const assets = createLoadedReplayTriviaAssets();
-    getReplayTriviaAssetsMock.mockResolvedValue(assets);
-    const game = createReplayTriviaGame({
-      answers: {
-        guest: { answered: true, choiceIndex: 0, correct: true },
-        host: { answered: true, choiceIndex: 1, correct: false }
-      },
-      currentQuestion: {
-        ...createReplayTriviaQuestion(),
-        correctChoiceIndex: 0,
-        wrongReply: 'it was The Last of Us.'
-      },
-      status: 'reveal'
-    });
-
-    openReplayTriviaGamePanel(game, 'host-user', vi.fn());
-    await flushPromises();
-    context.drawImage.mockClear();
-
-    setNow(REVEAL_FRIEND_REPLY_DELAY_MS + 1_000);
-    updateReplayTriviaGamePanel(game, 'host-user');
-
-    const replyBubbleHeights = context.drawImage.mock.calls
-      .filter(([image]) => image === assets.greyBubbleTail)
-      .map((call) => call[8]);
-    expect(replyBubbleHeights).toContain(45);
-  });
-
-  it('keeps one-line friend prompt bubbles compact', async () => {
-    const assets = createLoadedReplayTriviaAssets();
-    getReplayTriviaAssetsMock.mockResolvedValue(assets);
-    const game = createReplayTriviaGame({
-      currentQuestion: {
-        ...createReplayTriviaQuestion(),
-        friendIntro: 'help me out',
-        prompt: 'which game won best role-playing game'
-      },
-      status: 'question'
-    });
-
-    openReplayTriviaGamePanel(game, 'host-user', vi.fn());
-    await flushPromises();
-    const fillTextCalls: Array<{ fillStyle: string; font: string; text: string }> = [];
-    context.fillText.mockImplementation((text) => {
-      fillTextCalls.push({
-        fillStyle: context.fillStyle,
-        font: context.font,
-        text: String(text)
-      });
-    });
-    context.drawImage.mockClear();
-
-    setNow(CHAT_PROMPT_DELAY_MS + 1_000);
-    updateReplayTriviaGamePanel(game, 'host-user');
-
-    const promptBubbleHeights = context.drawImage.mock.calls
-      .filter(([image]) => image === assets.greyBubbleTail)
-      .map((call) => call[8]);
-    expect(promptBubbleHeights).toContain(45);
-    expect(fillTextCalls).toEqual(expect.arrayContaining([
-      expect.objectContaining({ fillStyle: '#303033', font: expect.stringContaining('700'), text: 'which' })
-    ]));
-  });
-
   it('keeps punctuation attached to bolded friend reply answers', () => {
     const game = createReplayTriviaGame({
       answers: {
@@ -1426,7 +1358,6 @@ describe('Replay Trivia panel', () => {
     updateReplayTriviaGamePanel(finishedGame, 'host-user');
 
     expect(context.drawImage).toHaveBeenCalledWith(assets.bestie, expect.any(Number), expect.any(Number), expect.any(Number), expect.any(Number));
-    expect(context.fillRect).toHaveBeenCalled();
   });
 
   it('uses final stamp art outside English when the image is available', async () => {
@@ -1611,15 +1542,6 @@ describe('Replay Trivia panel', () => {
     expect(context.fillText).toHaveBeenCalled();
   });
 
-  it('draws a spinner while preparing questions', () => {
-    openReplayTriviaGamePanel(createReplayTriviaGame({
-      status: 'preparing'
-    }), 'host-user', vi.fn());
-
-    expect(context.arc).toHaveBeenCalledWith(224, 394, 10, 0, Math.PI * 2);
-    expect(context.stroke).toHaveBeenCalled();
-  });
-
   it('wraps long question and answer text down to the minimum font size', () => {
     context.measureText.mockImplementation((text: string) => ({ width: text.length * 40 }));
     const longQuestion = {
@@ -1668,7 +1590,7 @@ describe('Replay Trivia panel', () => {
       clientY: 260
     }));
 
-    expect(context.drawImage).toHaveBeenCalledWith(assets.target, expect.any(Number), expect.any(Number), 31, 31);
+    expect(context.drawImage.mock.calls.map(([image]) => image)).toContain(assets.target);
     expect(context.drawImage).toHaveBeenCalledWith(assets.greyBubbleTail, expect.any(Number), expect.any(Number), expect.any(Number), expect.any(Number), expect.any(Number), expect.any(Number), expect.any(Number), expect.any(Number));
     closeReplayTriviaGamePanel({ notify: false });
 

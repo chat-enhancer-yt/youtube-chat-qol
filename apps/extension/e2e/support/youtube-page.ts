@@ -310,7 +310,7 @@ export async function getUnavailableSignedInReason(page: Page): Promise<string> 
   return '';
 }
 
-async function dismissYouTubeConsentIfPresent(page: Page): Promise<void> {
+export async function dismissYouTubeConsentIfPresent(page: Page): Promise<void> {
   if (!(await hasYouTubeConsentPrompt(page))) return;
 
   const deadline = Date.now() + 12_000;

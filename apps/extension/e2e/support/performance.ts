@@ -39,6 +39,7 @@ export interface PerformanceReport {
 }
 
 export interface MockTranslationStats {
+  completedItemCount: number;
   failureCount: number;
   requestCount: number;
   successCount: number;
@@ -167,7 +168,9 @@ export async function withMockedPerformanceTranslationEndpoint<T>(
   },
   callback: (stats: MockTranslationStats) => Promise<T>
 ): Promise<T> {
+  const completedTexts = new Set<string>();
   const stats = {
+    completedItemCount: 0,
     failureCount: 0,
     requestCount: 0,
     successCount: 0,
@@ -179,42 +182,33 @@ export async function withMockedPerformanceTranslationEndpoint<T>(
     const isBatchRequest = url.pathname.endsWith('/t');
     const requestTexts = url.searchParams.getAll('q');
     const responseItemCount = isBatchRequest ? Math.max(1, requestTexts.length) : 1;
-    const countedItemCount = countText
-      ? requestTexts.filter((text) => countText(text)).length
-      : responseItemCount;
-    stats.requestCount += 1;
+    const countedTexts = countText ? requestTexts.filter(countText) : requestTexts;
+    const requestNumber = ++stats.requestCount;
     if (delayMs) await delay(delayMs);
 
-    if (failEvery > 0 && stats.requestCount % failEvery === 0) {
-      stats.failureCount += 1;
+    const failed = failEvery > 0 && requestNumber % failEvery === 0;
+    if (failed) {
       await route.fulfill({
         body: JSON.stringify({ error: 'Mock performance translation failure' }),
         contentType: 'application/json',
         status: 503
       });
-      return;
-    }
-
-    stats.successCount += 1;
-    stats.translatedItemCount += countedItemCount;
-    const text = typeof translatedText === 'function'
-      ? translatedText(stats.requestCount)
-      : translatedText;
-    if (isBatchRequest) {
+      stats.failureCount += 1;
+    } else {
+      const text = typeof translatedText === 'function'
+        ? translatedText(requestNumber)
+        : translatedText;
       await route.fulfill({
-        body: JSON.stringify(Array.from({ length: responseItemCount }, () => [text, sourceLanguage])),
+        body: JSON.stringify(isBatchRequest
+          ? Array.from({ length: responseItemCount }, () => [text, sourceLanguage])
+          : { sentences: [{ trans: text }], src: sourceLanguage }),
         contentType: 'application/json'
       });
-      return;
+      stats.successCount += 1;
+      stats.translatedItemCount += countedTexts.length;
     }
-
-    await route.fulfill({
-      body: JSON.stringify({
-        sentences: [{ trans: text }],
-        src: sourceLanguage
-      }),
-      contentType: 'application/json'
-    });
+    countedTexts.forEach((text) => completedTexts.add(text));
+    stats.completedItemCount = completedTexts.size;
   };
 
   await context.route(TRANSLATE_ENDPOINT_PATTERN, handler);

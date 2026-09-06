@@ -1,5 +1,6 @@
 /** Browser scenarios for incoming translation behavior. */
 import { expect, test, type BrowserContext } from '@playwright/test';
+import { requireControlledChat, type ControlledChat } from '../../support/controlled-chat';
 import { withMockedTranslationEndpoint } from '../../support/translation-endpoint';
 import {
   NORMAL_CHAT_MESSAGE_SELECTOR,
@@ -27,9 +28,12 @@ export const mockedMessageTranslationScenario: BrowserScenario = async ({ chat, 
   await expectMockedIncomingTranslation({ chat, context });
 };
 
-export const mockedReplacedTranslationToggleScenario: BrowserScenario = async ({ chat, context }) => {
-  await waitForSourceChatMessage(chat);
-  await expectMockedReplacedTranslationToggle({ chat, context });
+export const mockedReplacedTranslationToggleScenario: BrowserScenario = async ({ chat, context, controlledChat }) => {
+  await expectMockedReplacedTranslationToggle({
+    chat,
+    context,
+    controlledChat: requireControlledChat(controlledChat)
+  });
 };
 
 async function expectMockedIncomingTranslation({
@@ -82,22 +86,28 @@ async function enableTranslationAndExpectRendered({
 
 async function expectMockedReplacedTranslationToggle({
   chat,
-  context
+  context,
+  controlledChat
 }: {
   chat: ChatSurface;
   context: BrowserContext;
+  controlledChat: ControlledChat;
 }): Promise<void> {
-  await test.step('Use mocked translation endpoint for the real message row', async () => {
+  await test.step('Toggle a controlled native message translation', async () => {
     await withMockedTranslationEndpoint(context, TOGGLE_TRANSLATED_TEXT, async () => {
       await withTranslationCleared({ chat, context, targetLanguage: TOGGLE_TARGET_LANGUAGE, callback: async () => {
-        await reloadChatForMockedTranslation(chat);
-        const { sourceMessage, sourceText } = await findTranslatableSourceMessage(chat);
         await withTranslationEnabled({
           chat,
           context,
           targetLanguage: TOGGLE_TARGET_LANGUAGE,
           translationDisplay: 'replace',
           callback: async () => {
+            const sourceText = 'Gracias por probar la traducción del mensaje';
+            const messageId = await controlledChat.injectMessage({
+              author: '@InlineToggleViewer',
+              text: sourceText
+            });
+            const sourceMessage = chat.locator(`#${messageId}`);
             await expectToggleableReplacement({
               host: sourceMessage,
               originalTitle: /^Translated: Browser translated toggle result(?:\s.*)?$/u,

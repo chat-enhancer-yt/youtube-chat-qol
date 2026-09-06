@@ -7,6 +7,7 @@
  */
 import { expect } from '@playwright/test';
 import { nativeYouTubePerformanceTest as test } from '../../support/fixtures/youtube-native-performance';
+import { restoreRealYouTubeChatLiveEdge } from '../../support/fixtures/youtube-real-state';
 import { withExtensionStorageValues } from '../../support/extension-storage';
 import type { FrameLocator } from '@playwright/test';
 import {
@@ -78,19 +79,15 @@ test('youtube-native performance: open panels keep up with incoming messages', a
         const profileUpdateMs = await waitForProfilePanelToReceiveMessage(chat, profileLastText);
         await closeProfileCard(chat);
 
-        await openFocusPanel(chat, source.messageId);
+        await openFocusPanel(chat, profileDelivery.deliveredIds.at(-1)!);
         await openInboxPanel(chat);
+        await restoreRealYouTubeChatLiveEdge({ chat, context, page });
         const focusInboxMessages = createPanelMessages(source, FOCUS_INBOX_MESSAGE_COUNT, 'focus-inbox');
         const focusInboxLastText = focusInboxMessages.at(-1)?.text || '';
         const focusInboxDelivery = await transport.injectMessages(focusInboxMessages);
         const focusInboxUpdateMs = await waitForFocusAndInboxToReceiveMessage(chat, focusInboxLastText);
         const continuationIngressMs = profileDelivery.durationMs + focusInboxDelivery.durationMs;
         const panelUpdateMs = profileUpdateMs + focusInboxUpdateMs;
-        const panelTranslationCount = await chat.locator([
-          '.ytcq-focus-card-expanded .ytcq-translation',
-          '.ytcq-profile-card:not(.ytcq-inbox-card) .ytcq-translation',
-          '.ytcq-inbox-card .ytcq-translation'
-        ].join(',')).count();
         const probe = await stopNativeChatPerfProbe(chat);
         const heapAfter = await collectNativeChatHeapSnapshot(context, page);
         const heapGrowthMb = getHeapGrowthMb(heapBefore, heapAfter);
@@ -104,7 +101,6 @@ test('youtube-native performance: open panels keep up with incoming messages', a
             { label: 'Focus/Inbox update', value: formatMs(focusInboxUpdateMs), budget: formatMs(BUDGETS.panelUpdateMs) },
             { label: 'Combined panel update', value: formatMs(panelUpdateMs) },
             { label: 'Translation requests', value: translationStats.requestCount },
-            { label: 'Panel translations', value: panelTranslationCount },
             { label: 'Long tasks', value: probe.longTaskCount },
             { label: 'Max long task', value: formatMs(probe.maxLongTaskMs), budget: formatMs(BUDGETS.maxLongTaskMs) },
             { label: 'p95 frame gap', value: formatMs(probe.p95FrameGapMs), budget: formatMs(BUDGETS.p95FrameGapMs) },
@@ -118,7 +114,6 @@ test('youtube-native performance: open panels keep up with incoming messages', a
           continuationIngressMs,
           heapGrowthMb,
           panelUpdateMs,
-          panelTranslationCount,
           probe
         });
       });
@@ -171,30 +166,40 @@ function createPanelMessages(source: SourceAuthor, count: number, label: string)
 
 async function waitForProfilePanelToReceiveMessage(chat: FrameLocator, lastText: string): Promise<number> {
   const startedAt = performance.now();
-  await expect(chat.locator('.ytcq-profile-card:not(.ytcq-inbox-card) .ytcq-profile-card-message').filter({ hasText: lastText }).first())
-    .toBeVisible({ timeout: BUDGETS.panelUpdateMs });
-  return performance.now() - startedAt;
+  const message = chat.locator('.ytcq-profile-card:not(.ytcq-inbox-card) .ytcq-profile-card-message')
+    .filter({ hasText: lastText }).first();
+  await expect(message).toBeVisible({ timeout: BUDGETS.panelUpdateMs });
+  const updateMs = performance.now() - startedAt;
+  await expect(message.locator(`.ytcq-translation[lang="${TARGET_LANGUAGE}"]`))
+    .toHaveText(/YTCQ panel translation/);
+  return updateMs;
 }
 
 async function waitForFocusAndInboxToReceiveMessage(chat: FrameLocator, lastText: string): Promise<number> {
   const startedAt = performance.now();
-  await expect(chat.locator('.ytcq-focus-card-expanded .ytcq-focus-bubble').filter({ hasText: lastText }).first())
-    .toBeVisible({ timeout: BUDGETS.panelUpdateMs });
-  await expect(chat.locator('.ytcq-inbox-card .ytcq-inbox-message').filter({ hasText: lastText }).first())
-    .toBeVisible({ timeout: BUDGETS.panelUpdateMs });
-  return performance.now() - startedAt;
+  const focusMessage = chat.locator('.ytcq-focus-card-expanded .ytcq-focus-message')
+    .filter({ hasText: lastText }).first();
+  const inboxMessage = chat.locator('.ytcq-inbox-card .ytcq-inbox-message')
+    .filter({ hasText: lastText }).first();
+  await expect(focusMessage).toBeVisible({ timeout: BUDGETS.panelUpdateMs });
+  await expect(inboxMessage).toBeVisible({ timeout: BUDGETS.panelUpdateMs });
+  // Measure row arrival separately from provider completion.
+  const updateMs = performance.now() - startedAt;
+  await expect(focusMessage.locator(`.ytcq-translation[lang="${TARGET_LANGUAGE}"]`))
+    .toHaveText(/YTCQ panel translation/);
+  // Inbox retains original keyword matches, including their highlighted keyword.
+  await expect(inboxMessage.locator('.ytcq-inbox-keyword-highlight')).toHaveText(PANEL_KEYWORD);
+  return updateMs;
 }
 
 function assertPerformanceBudgets({
   continuationIngressMs,
   heapGrowthMb,
-  panelTranslationCount,
   panelUpdateMs,
   probe
 }: {
   continuationIngressMs: number;
   heapGrowthMb: number | null;
-  panelTranslationCount: number;
   panelUpdateMs: number;
   probe: BrowserPerfProbeSnapshot;
 }): void {
@@ -202,8 +207,6 @@ function assertPerformanceBudgets({
     .toBeLessThanOrEqual(BUDGETS.continuationIngressMs);
   expect.soft(panelUpdateMs, 'Open panels should receive the latest message within budget.')
     .toBeLessThanOrEqual(BUDGETS.panelUpdateMs);
-  expect.soft(panelTranslationCount, 'Open panels should receive prioritized translations.')
-    .toBeGreaterThan(0);
   expect.soft(probe.maxLongTaskMs, 'Panel updates should not create a catastrophic long task.')
     .toBeLessThanOrEqual(BUDGETS.maxLongTaskMs);
   expect.soft(probe.p95FrameGapMs, 'The page should keep painting with panels open.')

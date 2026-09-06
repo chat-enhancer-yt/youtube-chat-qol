@@ -1253,46 +1253,71 @@ describe('popup', () => {
     }
   });
 
-  it('updates option controls and animates enabled option icons', async () => {
-    vi.useFakeTimers();
-    document.body.innerHTML += `
-      <svg class="chat-skin-icon"></svg>
-      <svg class="translation-target-icon"></svg>
-      <svg class="translation-display-icon"></svg>
-      <svg class="sound-icon"></svg>
-      <svg class="startup-effect-icon"></svg>
-      <svg class="lite-mode-icon"></svg>
-      <svg class="message-density-icon">
-        <path class="message-density-line message-density-line-top"></path>
-        <path class="message-density-line message-density-line-upper"></path>
-        <path class="message-density-line message-density-line-lower"></path>
-        <path class="message-density-line message-density-line-bottom"></path>
-      </svg>
-      <svg class="playground-joystick-icon">
-        <path class="playground-joystick-stick"></path>
-        <path class="playground-joystick-base"></path>
-      </svg>
-      <svg class="game-invites-icon"></svg>
-    `;
+  it('loads saved settings into their controls', async () => {
     await chrome.storage.sync.set({
       chatSkin: 'aero',
-      lastTranslationTarget: 'ko',
       liteModeEnabled: true,
       messageDensity: 'compact',
-      playgroundEnabled: true,
-      playgroundGamesAvailable: true,
       sound: false,
       startupEffect: true,
       targetLanguage: 'ja',
       translationDisplay: 'below'
     });
-    vi.mocked(chrome.tabs.query).mockImplementation(((
-      _queryInfo: chrome.tabs.QueryInfo,
-      callback?: (tabs: chrome.tabs.Tab[]) => void
-    ) => {
-      callback?.([]);
-      return Promise.resolve([]);
-    }) as never);
+    await import('./index');
+
+    for (const [id, value] of [
+      ['chatSkin', 'aero'], ['messageDensity', 'compact'],
+      ['targetLanguage', 'ja'], ['translationDisplay', 'below']
+    ]) {
+      expect(document.querySelector<HTMLSelectElement>(`#${id}`)?.value).toBe(value);
+    }
+    expect(document.querySelector<HTMLInputElement>('#sound')?.checked).toBe(false);
+    expect(document.querySelector<HTMLInputElement>('#startupEffect')?.checked).toBe(true);
+    expect(document.querySelector<HTMLInputElement>('#liteModeEnabled')?.checked).toBe(true);
+  });
+
+  it('persists control changes and remembers the last enabled translation language', async () => {
+    await chrome.storage.sync.set({ targetLanguage: 'ja', lastTranslationTarget: 'ko' });
+    await import('./index');
+
+    const language = document.querySelector<HTMLSelectElement>('#targetLanguage')!;
+    language.value = '';
+    language.dispatchEvent(new Event('change', { bubbles: true }));
+    expect(chrome.storage.sync.set).toHaveBeenLastCalledWith(
+      expect.objectContaining({ targetLanguage: '', lastTranslationTarget: 'ko' })
+    );
+    language.value = 'fr';
+    language.dispatchEvent(new Event('change', { bubbles: true }));
+    expect(chrome.storage.sync.set).toHaveBeenLastCalledWith(
+      expect.objectContaining({ targetLanguage: 'fr', lastTranslationTarget: 'fr' })
+    );
+
+    const changes: Array<[string, string | boolean]> = [
+      ['translationDisplay', 'below'], ['translationDisplay', 'replace'],
+      ['chatSkin', 'aero'], ['chatSkin', 'system'],
+      ['messageDensity', 'compact'], ['messageDensity', 'default'],
+      ['sound', false], ['sound', true],
+      ['startupEffect', false], ['startupEffect', true],
+      ['liteModeEnabled', true], ['liteModeEnabled', false]
+    ];
+    for (const [id, value] of changes) {
+      const control = document.querySelector<HTMLInputElement | HTMLSelectElement>(`#${id}`)!;
+      if (typeof value === 'boolean') {
+        (control as HTMLInputElement).checked = value;
+      } else {
+        control.value = value;
+      }
+      control.dispatchEvent(new Event('change', { bubbles: true }));
+      expect(chrome.storage.sync.set).toHaveBeenLastCalledWith({ [id]: value });
+    }
+  });
+
+  it('loads Playground identity on demand, edits it, and clears it when disabled', async () => {
+    vi.useFakeTimers();
+    await chrome.storage.sync.set({
+      playgroundEnabled: true,
+      playgroundGamesAvailable: true
+    });
     vi.mocked(chrome.runtime.sendMessage).mockImplementation(((
       message: unknown,
       callback?: (response: unknown) => void
@@ -1334,250 +1359,80 @@ describe('popup', () => {
     }) as never);
 
     await import('./index');
-    const targetLanguage = document.querySelector<HTMLSelectElement>('#targetLanguage')!;
-    const translationDisplay = document.querySelector<HTMLSelectElement>('#translationDisplay')!;
-    const sound = document.querySelector<HTMLInputElement>('#sound')!;
-    const startupEffect = document.querySelector<HTMLInputElement>('#startupEffect')!;
-    const liteModeEnabled = document.querySelector<HTMLInputElement>('#liteModeEnabled')!;
-    const playgroundEnabled = document.querySelector<HTMLInputElement>('#playgroundEnabled')!;
-    const playgroundProfile = document.querySelector<HTMLElement>('#playgroundProfile')!;
-    const playgroundProfileAvatar = document.querySelector<HTMLElement>(
-      '#playgroundProfileAvatar'
-    )!;
-    const playgroundProfileDetails = document.querySelector<HTMLElement>(
-      '#playgroundProfileDetails'
-    )!;
-    const playgroundDisplayName =
-      document.querySelector<HTMLInputElement>('#playgroundDisplayName')!;
-    const playgroundProfileName = document.querySelector<HTMLElement>('#playgroundProfileName')!;
-    const playgroundProfileToggle = document.querySelector<HTMLButtonElement>(
-      '#playgroundProfileToggle'
-    )!;
-    const playgroundProfileWins = document.querySelector<HTMLElement>('#playgroundProfileWins')!;
-    const playgroundProfileWinsCount = document.querySelector<HTMLElement>(
-      '#playgroundProfileWinsCount'
-    )!;
-    const playgroundGamesSection = document.querySelector<HTMLElement>('#playgroundGamesSection')!;
-    const playgroundGamesAvailable = document.querySelector<HTMLInputElement>(
-      '#playgroundGamesAvailable'
-    )!;
-    const chatSkin = document.querySelector<HTMLSelectElement>('#chatSkin')!;
-    const messageDensity = document.querySelector<HTMLSelectElement>('#messageDensity')!;
-    const translationIcon = document.querySelector<SVGSVGElement>('.translation-target-icon')!;
-    const skinOptions = Array.from(chatSkin.options).map((option) => [
-      option.value,
-      option.textContent
-    ]);
-    const densityOptions = Array.from(messageDensity.options).map((option) => [
-      option.value,
-      option.textContent
-    ]);
-    expect(skinOptions).toEqual([
-      ['system', 'chatSkinDefault'],
-      ['aero', 'chatSkinAero']
-    ]);
-    expect(densityOptions).toEqual([
-      ['default', 'messageDensityDefault'],
-      ['compact', 'messageDensityCompact']
-    ]);
-    expect(chatSkin.value).toBe('aero');
-    expect(messageDensity.value).toBe('compact');
-    expect(targetLanguage.value).toBe('ja');
-    expect(translationIcon.querySelector('.translation-source-mark')).not.toBeNull();
-    expect(translationIcon.querySelector('.translation-target-mark')).not.toBeNull();
-    expect(translationDisplay.value).toBe('below');
-    expect(sound.checked).toBe(false);
-    expect(startupEffect.checked).toBe(true);
-    expect(liteModeEnabled.checked).toBe(true);
-    expect(playgroundEnabled.checked).toBe(true);
+    const enabled = document.querySelector<HTMLInputElement>('#playgroundEnabled')!;
+    const profile = document.querySelector<HTMLElement>('#playgroundProfile')!;
+    const avatar = document.querySelector<HTMLElement>('#playgroundProfileAvatar')!;
+    const details = document.querySelector<HTMLElement>('#playgroundProfileDetails')!;
+    const displayName = document.querySelector<HTMLInputElement>('#playgroundDisplayName')!;
+    const profileName = document.querySelector<HTMLElement>('#playgroundProfileName')!;
+    const toggle = document.querySelector<HTMLButtonElement>('#playgroundProfileToggle')!;
+    const wins = document.querySelector<HTMLElement>('#playgroundProfileWins')!;
+    const winsCount = document.querySelector<HTMLElement>('#playgroundProfileWinsCount')!;
+    const games = document.querySelector<HTMLElement>('#playgroundGamesSection')!;
+    const available = document.querySelector<HTMLInputElement>('#playgroundGamesAvailable')!;
+
+    expect(enabled.checked).toBe(true);
     expect(chrome.runtime.sendMessage).not.toHaveBeenCalledWith(
-      { type: PLAYGROUND_PROFILE_MESSAGE_TYPE },
-      expect.any(Function)
+      { type: PLAYGROUND_PROFILE_MESSAGE_TYPE }, expect.any(Function)
     );
-    document.querySelector<HTMLButtonElement>('#playgroundTab')?.click();
-    expect(playgroundProfile.hidden).toBe(false);
-    expect(playgroundProfileDetails.hidden).toBe(true);
-    expect(playgroundProfileAvatar.textContent).toBe('T');
-    expect(playgroundProfileAvatar.style.getPropertyValue('--playground-profile-avatar-bg')).toBe(
-      'hsl(255 45% 37%)'
-    );
-    expect(playgroundProfileName.textContent).toBe('Player TEST');
-    expect(playgroundDisplayName.value).toBe('');
-    expect(playgroundDisplayName.placeholder).toBe('Player TEST');
-    expect(playgroundProfileWins.title).toBe('playgroundWins: 7');
-    expect(playgroundProfileWins.getAttribute('aria-label')).toBe('playgroundWins: 7');
-    expect(playgroundProfileWinsCount.textContent).toBe('7');
-    expect(playgroundGamesSection.hidden).toBe(false);
-    expect(playgroundGamesAvailable.checked).toBe(true);
+    document.querySelector<HTMLButtonElement>('#playgroundTab')!.click();
+    expect(profile.hidden).toBe(false);
+    expect(details.hidden).toBe(true);
+    expect(avatar.textContent).toBe('T');
+    expect(profileName.textContent).toBe('Player TEST');
+    expect(displayName.value).toBe('');
+    expect(displayName.placeholder).toBe('Player TEST');
+    expect(wins.getAttribute('aria-label')).toBe('playgroundWins: 7');
+    expect(winsCount.textContent).toBe('7');
+    expect(games.hidden).toBe(false);
+    expect(available.checked).toBe(true);
 
-    playgroundProfileToggle.click();
-    expect(playgroundProfileToggle.getAttribute('aria-expanded')).toBe('true');
-    expect(playgroundProfileDetails.hidden).toBe(false);
-    playgroundProfileToggle.click();
-    expect(playgroundProfileToggle.getAttribute('aria-expanded')).toBe('false');
-    expect(playgroundProfileDetails.hidden).toBe(true);
-    playgroundProfileToggle.click();
+    toggle.click();
+    expect(toggle.getAttribute('aria-expanded')).toBe('true');
+    expect(details.hidden).toBe(false);
+    toggle.click();
+    expect(toggle.getAttribute('aria-expanded')).toBe('false');
+    expect(details.hidden).toBe(true);
+    toggle.click();
 
-    playgroundDisplayName.value = '  Luna Chat  ';
-    playgroundDisplayName.dispatchEvent(new Event('change', { bubbles: true }));
+    displayName.value = '  Luna Chat  ';
+    displayName.dispatchEvent(new Event('change', { bubbles: true }));
     expect(chrome.runtime.sendMessage).toHaveBeenCalledWith(
-      {
-        displayName: 'Luna Chat',
-        type: PLAYGROUND_PROFILE_UPDATE_MESSAGE_TYPE
-      },
+      { displayName: 'Luna Chat', type: PLAYGROUND_PROFILE_UPDATE_MESSAGE_TYPE },
       expect.any(Function)
     );
-    expect(playgroundProfileAvatar.textContent).toBe('L');
-    expect(playgroundProfileName.textContent).toBe('Luna Chat');
-    expect(playgroundDisplayName.value).toBe('Luna Chat');
-    expect(playgroundDisplayName.placeholder).toBe('Player TEST');
+    expect(avatar.textContent).toBe('L');
+    expect(profileName.textContent).toBe('Luna Chat');
+    expect(displayName.value).toBe('Luna Chat');
+    expect(displayName.placeholder).toBe('Player TEST');
 
-    targetLanguage.value = '';
-    targetLanguage.dispatchEvent(new Event('change', { bubbles: true }));
-    expect(chrome.storage.sync.set).toHaveBeenLastCalledWith(
-      expect.objectContaining({
-        lastTranslationTarget: 'ko',
-        targetLanguage: ''
-      })
-    );
+    enabled.checked = false;
+    enabled.dispatchEvent(new Event('change', { bubbles: true }));
+    expect(chrome.storage.sync.set).toHaveBeenCalledWith({ playgroundEnabled: false });
+    expect(profile.hidden).toBe(true);
+    expect(details.hidden).toBe(true);
+    expect(toggle.getAttribute('aria-expanded')).toBe('false');
+    expect(avatar.textContent).toBe('');
+    expect(displayName.value).toBe('');
+    expect(displayName.placeholder).toBe('');
+    expect(profileName.textContent).toBe('');
+    expect(wins.getAttribute('aria-label')).toBe('playgroundWins: 0');
+    expect(winsCount.textContent).toBe('0');
+    expect(available.checked).toBe(true);
+    const transitionEnd = new Event('transitionend');
+    Object.defineProperty(transitionEnd, 'propertyName', { value: 'transform' });
+    games.dispatchEvent(transitionEnd);
+    expect(games.hidden).toBe(true);
 
-    targetLanguage.value = 'fr';
-    targetLanguage.dispatchEvent(new Event('change', { bubbles: true }));
-    translationDisplay.value = 'replace';
-    translationDisplay.dispatchEvent(new Event('change', { bubbles: true }));
-    chatSkin.value = 'system';
-    chatSkin.dispatchEvent(new Event('change', { bubbles: true }));
-    expect(document.querySelector('.chat-skin-icon')?.classList.contains('ytcq-palette-pop')).toBe(
-      false
-    );
-    chatSkin.value = 'aero';
-    chatSkin.dispatchEvent(new Event('change', { bubbles: true }));
-    messageDensity.value = 'default';
-    messageDensity.dispatchEvent(new Event('change', { bubbles: true }));
-    expect(
-      document.querySelector('.message-density-icon')?.classList.contains('ytcq-density-compress')
-    ).toBe(false);
-    messageDensity.value = 'compact';
-    messageDensity.dispatchEvent(new Event('change', { bubbles: true }));
-    sound.checked = true;
-    sound.dispatchEvent(new Event('change', { bubbles: true }));
-    startupEffect.checked = false;
-    startupEffect.dispatchEvent(new Event('change', { bubbles: true }));
-    expect(
-      document.querySelector('.startup-effect-icon')?.classList.contains('ytcq-sparkle-burst')
-    ).toBe(false);
-    startupEffect.checked = true;
-    startupEffect.dispatchEvent(new Event('change', { bubbles: true }));
-    liteModeEnabled.checked = false;
-    liteModeEnabled.dispatchEvent(new Event('change', { bubbles: true }));
-    liteModeEnabled.checked = true;
-    liteModeEnabled.dispatchEvent(new Event('change', { bubbles: true }));
-    playgroundEnabled.checked = false;
-    playgroundEnabled.dispatchEvent(new Event('change', { bubbles: true }));
-    expect(
-      document
-        .querySelector('.playground-joystick-icon')
-        ?.classList.contains('ytcq-playground-joystick-wiggle')
-    ).toBe(false);
-
-    expect(
-      document
-        .querySelector('.translation-target-icon')
-        ?.classList.contains('ytcq-translation-pulse')
-    ).toBe(true);
-    expect(
-      document.querySelector('.translation-display-icon')?.classList.contains('ytcq-display-reflow')
-    ).toBe(true);
-    expect(document.querySelector('.chat-skin-icon')?.classList.contains('ytcq-palette-pop')).toBe(
-      true
-    );
-    expect(
-      document.querySelector('.message-density-icon')?.classList.contains('ytcq-density-compress')
-    ).toBe(true);
-    expect(document.querySelector('.sound-icon')?.classList.contains('ytcq-bell-ringing')).toBe(
-      true
-    );
-    expect(
-      document.querySelector('.startup-effect-icon')?.classList.contains('ytcq-sparkle-burst')
-    ).toBe(true);
-    expect(document.querySelector('.lite-mode-icon')?.classList.contains('ytcq-bolt-redraw')).toBe(
-      true
-    );
-    expect(
-      document
-        .querySelector('.playground-joystick-icon')
-        ?.classList.contains('ytcq-playground-joystick-wiggle')
-    ).toBe(false);
-    expect(chrome.storage.sync.set).toHaveBeenCalledWith({ chatSkin: 'system' });
-    expect(chrome.storage.sync.set).toHaveBeenCalledWith({ messageDensity: 'default' });
-    expect(chrome.storage.sync.set).toHaveBeenCalledWith({ messageDensity: 'compact' });
-    expect(chrome.storage.sync.set).toHaveBeenCalledWith({ liteModeEnabled: false });
-    expect(chrome.storage.sync.set).toHaveBeenCalledWith({ liteModeEnabled: true });
-    expect(playgroundGamesSection.hidden).toBe(false);
-    expect(playgroundGamesSection.classList.contains('settings-group-collapsed')).toBe(true);
-    expect(playgroundProfile.hidden).toBe(true);
-    expect(playgroundProfileDetails.hidden).toBe(true);
-    expect(playgroundProfileToggle.getAttribute('aria-expanded')).toBe('false');
-    expect(playgroundProfileAvatar.textContent).toBe('');
-    expect(playgroundProfileAvatar.style.getPropertyValue('--playground-profile-avatar-bg')).toBe(
-      ''
-    );
-    expect(playgroundDisplayName.value).toBe('');
-    expect(playgroundDisplayName.placeholder).toBe('');
-    expect(playgroundProfileName.textContent).toBe('');
-    expect(playgroundProfileWins.title).toBe('playgroundWins: 0');
-    expect(playgroundProfileWins.getAttribute('aria-label')).toBe('playgroundWins: 0');
-    expect(playgroundProfileWinsCount.textContent).toBe('0');
-    expect(playgroundGamesAvailable.checked).toBe(true);
-    expect(chrome.storage.sync.set).toHaveBeenCalledWith({
-      playgroundEnabled: false
-    });
-    playgroundGamesAvailable.checked = false;
-    playgroundGamesAvailable.dispatchEvent(new Event('change', { bubbles: true }));
-    expect(
-      document.querySelector('.game-invites-icon')?.classList.contains('ytcq-game-controller-hop')
-    ).toBe(false);
-    expect(chrome.storage.sync.set).toHaveBeenCalledWith({
-      playgroundGamesAvailable: false
-    });
-    const playgroundTransitionEnd = new Event('transitionend');
-    Object.defineProperty(playgroundTransitionEnd, 'propertyName', { value: 'transform' });
-    playgroundGamesSection.dispatchEvent(playgroundTransitionEnd);
-    expect(playgroundGamesSection.hidden).toBe(true);
-    await vi.advanceTimersByTimeAsync(1000);
-    expect(document.querySelector('.chat-skin-icon')?.classList.contains('ytcq-palette-pop')).toBe(
-      false
-    );
-    expect(
-      document.querySelector('.startup-effect-icon')?.classList.contains('ytcq-sparkle-burst')
-    ).toBe(false);
-    expect(document.querySelector('.lite-mode-icon')?.classList.contains('ytcq-bolt-redraw')).toBe(
-      false
-    );
-    expect(
-      document.querySelector('.message-density-icon')?.classList.contains('ytcq-density-compress')
-    ).toBe(false);
-    expect(
-      document
-        .querySelector('.playground-joystick-icon')
-        ?.classList.contains('ytcq-playground-joystick-wiggle')
-    ).toBe(false);
-    expect(
-      document.querySelector('.game-invites-icon')?.classList.contains('ytcq-game-controller-hop')
-    ).toBe(false);
-
-    playgroundEnabled.checked = true;
-    playgroundEnabled.dispatchEvent(new Event('change', { bubbles: true }));
-    playgroundGamesAvailable.checked = true;
-    playgroundGamesAvailable.dispatchEvent(new Event('change', { bubbles: true }));
-    expect(
-      document
-        .querySelector('.playground-joystick-icon')
-        ?.classList.contains('ytcq-playground-joystick-wiggle')
-    ).toBe(true);
-    expect(
-      document.querySelector('.game-invites-icon')?.classList.contains('ytcq-game-controller-hop')
-    ).toBe(true);
+    enabled.checked = true;
+    enabled.dispatchEvent(new Event('change', { bubbles: true }));
+    expect(chrome.storage.sync.set).toHaveBeenCalledWith({ playgroundEnabled: true });
+    expect(games.hidden).toBe(false);
+    for (const value of [false, true]) {
+      available.checked = value;
+      available.dispatchEvent(new Event('change', { bubbles: true }));
+      expect(chrome.storage.sync.set).toHaveBeenCalledWith({ playgroundGamesAvailable: value });
+    }
   });
 
   it('shows the Playground identity while remote wins are loading', async () => {

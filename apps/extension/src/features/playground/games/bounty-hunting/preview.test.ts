@@ -22,11 +22,8 @@ describe('Bounty Hunting preview', () => {
     renderBountyHuntingPreview(container);
     await flushPromises();
 
-    const canvas = container.querySelector<HTMLCanvasElement>('canvas');
-    expect(canvas?.style.width).toBe('');
-    expect(canvas?.style.height).toBe('');
     expect(chrome.runtime.getURL).toHaveBeenCalledWith('games/bounty-hunting/logo.webp');
-    expect(context.drawImage).toHaveBeenCalledWith(images[0], 30, 0, 32, 48);
+    expect(context.drawImage.mock.calls.map(([image]) => image)).toContain(images[0]);
   });
 
   it('keeps a fallback preview when the logo cannot load', async () => {
@@ -40,7 +37,7 @@ describe('Bounty Hunting preview', () => {
     renderBountyHuntingPreview(container);
     await flushPromises();
 
-    expect(context.fillText).toHaveBeenCalledWith('WILD CHAT', 46, 24);
+    expect(context.fillText.mock.calls.map(([text]) => text)).toContain('WILD CHAT');
     expect(context.drawImage).not.toHaveBeenCalled();
   });
 

@@ -10,7 +10,10 @@ import {
   getChatComposerText,
   setChatComposerText
 } from '../../support/composer';
-import { withExtensionStorageValues } from '../../support/extension-storage';
+import {
+  getExtensionStorageValues,
+  withExtensionStorageValues
+} from '../../support/extension-storage';
 import { withMockedTranslationEndpoint } from '../../support/translation-endpoint';
 import type { BrowserScenario, ChatSurface } from '../types';
 
@@ -21,18 +24,21 @@ const PROTECTED_COMPOSER_SOURCE = 'hello @DraftTarget ✅';
 const PROTECTED_COMPOSER_EXPECTED = 'texte traduit @DraftTarget ✅';
 const REAL_COMPOSER_SOURCE = 'thank you for the stream';
 
-export const composerTranslationControlsOpenScenario: BrowserScenario = async ({ chat }) => {
-  await expectChatComposerVisible(chat);
-  await expectComposerTranslateButtonAttached(chat);
-  await openComposerTranslationPanel(chat);
-};
-
 export const mockedComposerTranslationScenario: BrowserScenario = async ({ chat, context }) => {
   await expectChatComposerVisible(chat);
   await withMockedTranslationEndpoint(context, MOCKED_COMPOSER_TRANSLATION, async () => {
     await withExtensionStorageValues(context, 'sync', {
-      composerTranslateLanguage: 'fr'
+      composerTranslateLanguage: ''
     }, async () => {
+      await expectComposerTranslateButtonAttached(chat);
+      await openComposerTranslationPanel(chat);
+      await chat.locator('.ytcq-composer-translate-select').selectOption('fr');
+      await expect.poll(async () =>
+        (await getExtensionStorageValues(context, 'sync', ['composerTranslateLanguage']))
+          .composerTranslateLanguage
+      ).toBe('fr');
+      await chat.locator('.ytcq-composer-translate-button').click();
+      await expect(chat.locator('.ytcq-composer-translate-panel')).toBeHidden();
       await translateComposerDraft({
         chat,
         expectedText: MOCKED_COMPOSER_TRANSLATION,

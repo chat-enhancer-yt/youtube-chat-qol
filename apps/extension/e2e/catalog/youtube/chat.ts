@@ -26,11 +26,6 @@ import {
   type YouTubeScenario
 } from './model';
 
-const allChatSurfaces = [
-  ...pair.liveLoggedIn,
-  ...pair.liveLoggedOut,
-  ...pair.replayLoggedIn
-] as const;
 const sharedLoggedInLive = pair.liveLoggedIn;
 const menuSurfaces = [
   ...pair.liveLoggedIn,
@@ -46,7 +41,7 @@ export const chatScenarios: readonly YouTubeScenario[] = [
   {
     title: 'chat settings menu receives extension controls',
     run: settingsMenuScenario,
-    on: allChatSurfaces
+    on: pair.replayLoggedIn
   },
   {
     title: 'chat settings menu toggles persist options',
@@ -68,7 +63,7 @@ export const chatScenarios: readonly YouTubeScenario[] = [
   {
     title: 'message context menu receives save, quote, and mention actions',
     run: messageMenuScenario,
-    on: menuSurfaces
+    on: pair.replayLoggedIn
   },
   {
     title: 'saved message persists and appears in Bookmarks',

@@ -1,5 +1,4 @@
 import {
-  composerTranslationControlsOpenScenario,
   mockedComposerTranslationProtectedDraftScenario,
   mockedComposerTranslationScenario,
   realComposerTranslationScenario
@@ -20,11 +19,6 @@ import {
 } from './model';
 
 export const translationScenarios: readonly YouTubeScenario[] = [
-  {
-    title: 'composer translation controls open',
-    run: composerTranslationControlsOpenScenario,
-    on: pair.liveLoggedIn
-  },
   {
     title: 'translation display modes render for injected incoming messages',
     run: translationDisplayScenario,

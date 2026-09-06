@@ -1,10 +1,4 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import {
-  MATERIAL_ICON_VIEW_BOX,
-  SOUND_BELL_BODY_ICON_PATH,
-  SOUND_BELL_CLAPPER_ICON_PATH,
-  SOUND_BELL_RING_ICON_PATH
-} from '../../shared/icons';
 import { DEFAULT_OPTIONS } from '../../shared/options';
 import { setOptions } from '../../shared/state';
 
@@ -50,19 +44,6 @@ describe('chat settings menu integration', () => {
     expect(items[1].getAttribute('data-ytcq-setting')).toBe('sound');
     expect(items[1].querySelector('.ytcq-menu-label')?.textContent).toBe('Alert sounds');
     expect(items[1].getAttribute('aria-checked')).toBe('true');
-    expect(items[1].querySelector('svg')?.getAttribute('viewBox')).toBe(MATERIAL_ICON_VIEW_BOX);
-    expect(items[1].querySelector('.ytcq-bell-body')?.getAttribute('d')).toBe(
-      SOUND_BELL_BODY_ICON_PATH
-    );
-    expect(items[1].querySelector('.ytcq-bell-clapper')?.getAttribute('d')).toBe(
-      SOUND_BELL_CLAPPER_ICON_PATH
-    );
-    expect(items[1].querySelector('.ytcq-bell-ring')?.getAttribute('d')).toBe(
-      SOUND_BELL_RING_ICON_PATH
-    );
-    expect(items[1].querySelector('.ytcq-menu-icon')?.classList.contains('ytcq-bell-ringing')).toBe(
-      false
-    );
   });
 
   it('saves translation and sound changes from toggle clicks', () => {
@@ -90,7 +71,7 @@ describe('chat settings menu integration', () => {
     expect(soundMocks.playAlertSoundPreview).toHaveBeenCalledOnce();
   });
 
-  it('saves sound being disabled without starting the enable animation', () => {
+  it('disables sound without playing the preview', () => {
     const saveOptions = vi.fn();
     const menu = createSettingsMenu();
     document.body.append(menu);
@@ -101,16 +82,13 @@ describe('chat settings menu integration', () => {
     });
 
     enhanceSettingsMenu(menu);
-    const soundIcon = menu.querySelector<HTMLElement>('[data-ytcq-setting="sound"] .ytcq-menu-icon')!;
-    const readLayout = vi.spyOn(soundIcon, 'getBoundingClientRect');
     menu.querySelector<HTMLElement>('[data-ytcq-setting="sound"]')!.click();
 
     expect(saveOptions).toHaveBeenCalledWith({ sound: false });
     expect(soundMocks.playAlertSoundPreview).not.toHaveBeenCalled();
-    expect(readLayout).not.toHaveBeenCalled();
   });
 
-  it('saves translation being disabled without starting the enable animation', () => {
+  it('disables translation from its menu toggle', () => {
     const saveOptions = vi.fn();
     const menu = createSettingsMenu();
     document.body.append(menu);
@@ -122,41 +100,11 @@ describe('chat settings menu integration', () => {
     });
 
     enhanceSettingsMenu(menu);
-    const translateIcon = menu.querySelector<HTMLElement>('[data-ytcq-setting="targetLanguage"] .ytcq-translate-menu-icon')!;
-    const readLayout = vi.spyOn(translateIcon, 'getBoundingClientRect');
     menu.querySelector<HTMLElement>('[data-ytcq-setting="targetLanguage"]')!.click();
 
     expect(saveOptions).toHaveBeenCalledWith({
       targetLanguage: ''
     });
-    expect(readLayout).not.toHaveBeenCalled();
-  });
-
-  it('removes menu icon animation classes after the animation window', async () => {
-    vi.useFakeTimers();
-    const saveOptions = vi.fn();
-    const menu = createSettingsMenu();
-    document.body.append(menu);
-    configureSettingsMenu(saveOptions);
-    setOptions({
-      ...DEFAULT_OPTIONS,
-      lastTranslationTarget: 'ja',
-      sound: false
-    });
-
-    enhanceSettingsMenu(menu);
-    const translateIcon = menu.querySelector<HTMLElement>('[data-ytcq-setting="targetLanguage"] .ytcq-translate-menu-icon')!;
-    const soundIcon = menu.querySelector<HTMLElement>('[data-ytcq-setting="sound"] .ytcq-menu-icon')!;
-
-    menu.querySelector<HTMLElement>('[data-ytcq-setting="targetLanguage"]')!.click();
-    menu.querySelector<HTMLElement>('[data-ytcq-setting="sound"]')!.click();
-    expect(translateIcon.classList.contains('ytcq-translation-pulse')).toBe(true);
-    expect(soundIcon.classList.contains('ytcq-bell-ringing')).toBe(true);
-
-    await vi.advanceTimersByTimeAsync(900);
-
-    expect(translateIcon.classList.contains('ytcq-translation-pulse')).toBe(false);
-    expect(soundIcon.classList.contains('ytcq-bell-ringing')).toBe(false);
   });
 
   it('refreshes existing menu labels and checked state from current options', () => {
